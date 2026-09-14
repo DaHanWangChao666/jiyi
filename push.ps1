@@ -1,84 +1,104 @@
-# 一键推送脚本（PowerShell 版）
-# 用法：在本文件夹里运行  .\push.ps1
-#
-# 这个脚本只做本地准备工作，最后一步"推送到 GitHub"由你执行——
-# 因为我不能、也不应该碰你的账号凭证。
+# ============================================================
+#  一键推送到 GitHub（PowerShell 版）
+#  用法：右键这个文件 → 「使用 PowerShell 运行」
+#     或：在本文件夹按住 Shift + 右键 → 在此处打开 PowerShell → .\PUSH.ps1
+# ============================================================
 
-$ErrorActionPreference = "Stop"
+$ErrorActionPreference = 'Continue'
 Set-Location $PSScriptRoot
 
-Write-Host ""
-Write-Host "  ============================================" -ForegroundColor Cyan
-Write-Host "     记忆修复局 —— 推送到 GitHub" -ForegroundColor Cyan
-Write-Host "  ============================================" -ForegroundColor Cyan
-Write-Host ""
+$user = 'DaHanWangChao666'
+$repo = 'jiyi'
+$url  = "https://$($user.ToLower()).github.io/$repo/"
 
-$user = "DaHanWangChao666"
-$repo = "jiyi"
+function Line { Write-Host ('-' * 52) -ForegroundColor DarkGray }
+function Head($t) { Write-Host ''; Line; Write-Host "  $t" -ForegroundColor Cyan; Line }
 
-# 1) 检查 git
+Write-Host ''
+Write-Host '  ==================================================' -ForegroundColor Cyan
+Write-Host '     Push game to GitHub' -ForegroundColor Cyan
+Write-Host '  ==================================================' -ForegroundColor Cyan
+
+# --- 0. 检查 git ---
+Head 'Checking git'
 $git = Get-Command git -ErrorAction SilentlyContinue
 if (-not $git) {
-  Write-Host "  [错误] 没找到 git。请先安装 Git for Windows。" -ForegroundColor Red
-  Read-Host "  按回车退出"; exit 1
+  Write-Host '  [ERROR] git not found.' -ForegroundColor Red
+  Write-Host '          Install: https://git-scm.com/download/win' -ForegroundColor Red
+  Read-Host '  Press Enter to exit'; exit 1
 }
-Write-Host "  [1/5] git 已就绪" -ForegroundColor Green
+Write-Host '  [OK] git found' -ForegroundColor Green
 
-# 2) 初始化仓库
-if (-not (Test-Path ".git")) {
-  git init -q
-  git branch -M main
-  Write-Host "  [2/5] 已初始化本地仓库" -ForegroundColor Green
-} else {
-  Write-Host "  [2/5] 本地仓库已存在" -ForegroundColor Green
-}
+# --- 1. 提示建仓库 ---
+Head 'STEP 1 - Create an EMPTY repo on GitHub'
+Write-Host '  Opening https://github.com/new ...'
+Write-Host ''
+Write-Host '  On that page:' -ForegroundColor Yellow
+Write-Host '    Repository name :  jiyi'
+Write-Host '    Choose          :  Public'
+Write-Host '    Do NOT tick any of the 3 checkboxes'
+Write-Host '    Click           :  Create repository'
+Write-Host ''
+Start-Process 'https://github.com/new'
+Read-Host '  Press Enter AFTER the repo is created'
 
-# 3) 提交
+# --- 2. 准备本地文件 ---
+Head 'STEP 2 - Preparing local files'
+git init -q 2>$null
+git branch -M main 2>$null
 git add -A
-$msg = "记忆修复局 v0.1"
-git -c user.email="$user@users.noreply.github.com" -c user.name="$user" commit -q -m $msg 2>$null
-if ($LASTEXITCODE -eq 0) {
-  Write-Host "  [3/5] 已提交" -ForegroundColor Green
-} else {
-  Write-Host "  [3/5] 没有新改动" -ForegroundColor Yellow
+git -c user.email="$user@users.noreply.github.com" -c user.name="$user" commit -q -m 'update' 2>$null
+git remote remove origin 2>$null | Out-Null
+git remote add origin "https://github.com/$user/$repo.git"
+Write-Host "  Files ready. Remote = github.com/$user/$repo" -ForegroundColor Green
+
+# --- 3. 推送 ---
+Head 'STEP 3 - Pushing (a browser window will pop up)'
+Write-Host '  A browser window will ask you to sign in to GitHub.'
+Write-Host '  Sign in and click Authorize. Only needed once.'
+Write-Host ''
+Read-Host '  Press Enter to start pushing'
+Write-Host ''
+git push -u origin main
+
+if ($LASTEXITCODE -ne 0) {
+  Write-Host ''
+  Write-Host '  ==================================================' -ForegroundColor Red
+  Write-Host '     PUSH FAILED' -ForegroundColor Red
+  Write-Host '  ==================================================' -ForegroundColor Red
+  Write-Host ''
+  Write-Host '  Common reasons:'
+  Write-Host '   1) Repo not created yet'
+  Write-Host '      -> https://github.com/new  create Public repo named jiyi'
+  Write-Host '   2) Repo is not empty (you ticked "Add a README")'
+  Write-Host '      -> delete README.md in the repo, run again'
+  Write-Host '   3) Sign-in not completed'
+  Write-Host '      -> run again and finish the browser sign-in'
+  Write-Host '   4) Cannot reach GitHub (network)'
+  Write-Host '      -> wait a few minutes and retry'
+  Write-Host ''
+  Write-Host '  Copy the error lines above and send them to me.' -ForegroundColor Yellow
+  Write-Host ''
+  Read-Host '  Press Enter to exit'
+  exit 1
 }
 
-# 4) 绑定远程
-$remote = git remote get-url origin 2>$null
-if (-not $remote) {
-  git remote add origin "https://github.com/$user/$repo.git"
-  Write-Host "  [4/5] 已绑定远程仓库" -ForegroundColor Green
-} else {
-  Write-Host "  [4/5] 远程仓库已绑定: $remote" -ForegroundColor Green
-}
-
-# 5) 打开新建仓库页面
-Write-Host "  [5/5] 打开 GitHub 新建仓库页面..." -ForegroundColor Green
-Start-Process "https://github.com/new?name=$repo"
-
-Write-Host ""
-Write-Host "  ============================================" -ForegroundColor Yellow
-Write-Host "    现在只剩两步（都要你自己做）：" -ForegroundColor Yellow
-Write-Host "  ============================================" -ForegroundColor Yellow
-Write-Host ""
-Write-Host "  ① 在刚打开的网页上建仓库：" -ForegroundColor White
-Write-Host "       仓库名填：  $repo" -ForegroundColor White
-Write-Host "       必须选：    Public" -ForegroundColor White
-Write-Host "       不要勾任何 Add a ... 选项" -ForegroundColor White
-Write-Host "       点 Create repository" -ForegroundColor White
-Write-Host ""
-Write-Host "  ② 建好之后，回到这个窗口运行：" -ForegroundColor White
-Write-Host ""
-Write-Host "       git push -u origin main" -ForegroundColor Cyan
-Write-Host ""
-Write-Host "     首次会弹出浏览器让你登录 GitHub，登录并授权即可（只此一次）" -ForegroundColor Gray
-Write-Host ""
-Write-Host "  ③ 推送成功后，去仓库的 Settings → Pages：" -ForegroundColor White
-Write-Host "       Source 选 Deploy from a branch" -ForegroundColor White
-Write-Host "       Branch 选 main，文件夹选 / (root)，点 Save" -ForegroundColor White
-Write-Host ""
-Write-Host "  ④ 等 1~2 分钟，你的游戏网址就是：" -ForegroundColor Green
-Write-Host "       https://$user.github.io/$repo/" -ForegroundColor Green
-Write-Host ""
-
-Read-Host "  按回车退出"
+# --- 4. 成功 ---
+Head 'SUCCESS'
+Write-Host ''
+Write-Host '  LAST STEP - turn on Pages (one time only):' -ForegroundColor Yellow
+Write-Host ''
+Write-Host "    1) Open: https://github.com/$user/$repo/settings/pages"
+Write-Host '    2) Source : Deploy from a branch'
+Write-Host '    3) Branch : main        Folder : / (root)'
+Write-Host '    4) Click Save'
+Write-Host '    5) Wait 1-2 minutes'
+Write-Host ''
+Write-Host '  Your game URL:' -ForegroundColor Green
+Write-Host ''
+Write-Host "     $url" -ForegroundColor Green
+Write-Host ''
+Write-Host '  Works on phone and PC. Share it with anyone.'
+Write-Host ''
+Start-Process "https://github.com/$user/$repo/settings/pages"
+Read-Host '  Press Enter to exit'

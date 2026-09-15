@@ -1,4 +1,5 @@
 ﻿# 推送用的本地脚本，不需要上传到仓库
 GO.bat
 FIX-PUSH.bat
+CLEAN.bat
 *.ps1

@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta name="build" content="2026/9/16 13:38:42">
-<!-- build: 2026/9/16 13:38:42 -->
+<meta name="build" content="2026/9/16 19:02:49">
+<!-- build: 2026/9/16 19:02:49 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#0d0b0a">
@@ -1641,11 +1641,20 @@ G.TOURNEY_NAMES = {
      · 数值与机制**远超同境界修士**
      · 「除非数值远超同境界的修士，否则不可能战胜他们」
    所以他们的难度不是「比同阶强 1.5 倍」，而是**逼近不可战胜**：
-     · 气血 × 3.2、攻击 × 2.0（相对同境界凶物级敌人）
+     · 气血 × 4.6、攻击 × 2.6（相对同境界凶物级敌人）
      · 额外机制：每回合回气、自带减伤、重击率更高
    实测（见 dev/verify-tianjiao.js）：一个「正常走到该境界」的玩家
-   胜率约 5~15%；只有把属性堆到明显超出同阶（大量元层升级 + 卡牌）
-   才有把握。
+   胜率 **0%**（2~4 回合就被打倒）；把元层升级点满、再堆上几百点额外属性
+   之后，炼气~金丹段能稳赢，但**元婴段仍然只有七成上下** ——
+   那两位是留给多周目玩家的长期目标。
+
+   ⚠️ 第 25 轮：倍率从 3.2/2.0 提到 4.6/2.6。原因不是「天骄变强了」，
+   而是**玩家这边多了一项以前根本没生效的加成**：
+   「根骨」旧版是「每次突破多算一行属性表」（表只有 72 行），改成百分比
+   之后它才第一次真的起作用，一下把「堆满的玩家」从 92% 推到 100%。
+   和玩家确认后：根骨保留 +30%，同时把天骄抬一档，
+   让「即使堆满，元婴段也不该稳赢」这条规则重新成立。
+   实测：元婴段 53~68%，全榜平均 88.4%。
 
    遇到的方式：机缘事件 / 宗门事件里的小概率。
    打赢了会记进档案柜（终身成就），而且**一局只会遇到一次**。
@@ -1718,8 +1727,8 @@ G.TIANJIAO = [
 
 /* 天骄的数值倍率（相对「同境界的凶物」）——刻意逼近不可战胜 */
 G.TIANJIAO_MUL = {
-  hp: 3.2,
-  atk: 2.0
+  hp: 4.6,
+  atk: 2.6
 };
 
 /* 【天骄】称号（打赢之后挂在档案柜里） */
@@ -1886,9 +1895,24 @@ G.ENEMY_FORMULA = { hpMul: 1.0, hpBase: 0, atkMul: 1.0, atkBase: 0 };
    都恰好值同样多的战力，元层成长才是可预期的。
 
    保留平加的几项，是因为它们本来就没有「百分比语义」：
-     attrGain / startLife / startStone / restGain / qiRegen /
-     sectGain / sectDrain / discipleQ / guard / wheelLuck / luck / startCard
-   ——它们是「次数」「张数」「点数」这类离散量，乘百分比没有意义。 */
+     qiRegen / sectDrain / discipleQ / guard / wheelLuck / luck
+
+   ⚠️⚠️ 第 25 轮补做（第一次漏了，玩家指出来了）：
+   「修行」与「根基」两类里，我当时只转了**战斗类**，把剩下四项
+   用一句「离散量，乘百分比没意义」带过去了 —— 那是偷懒，不是设计。
+   实际上这四项里没有一项是真正的离散量，它们全都在**放大一个会变大的基**：
+
+     attrGain  根骨：放大「每次突破给的属性点」。旧版是每次突破**多算一行**
+               属性表 —— 而属性表只有 72 行。点满 10 级之后，7 次突破就把
+               72 行吃光，此后一辈子拿不到任何境界属性。
+               前 7 层是神，之后是零。这是比战斗类更严重的一种失准。
+     startLife 根基：放大「寿元上限」。炼气一层上限 100，+160 就是 +160%；
+               元婴九层上限 14895，+160 是 +1.1%。
+     startStone积蓄：放大「灵石收入」。见下面单独一条说明。
+     restGain  静养：放大「静养回复量」。静养基础回复是 maxLife×14%（会随境界涨），
+               而 +5/级是常数 —— 一模一样的病。
+
+   四项全部改成百分比，作用在各自的自然基上。 */
 G.UPGRADES = [
   /* —— 修行 —— */
   { id:'cultGain',  cat:'修行', name:'悟性',   max:20, cost:function(l){return 18+l*11;},
@@ -1896,20 +1920,27 @@ G.UPGRADES = [
   { id:'breakCut',  cat:'修行', name:'破障',   max:10, cost:function(l){return 30+l*24;},
     desc:'突破所需修为降低',                 val:function(l){return l*0.04;}, fmt:function(l){return '突破需求 −'+l*4+'%';} },
   { id:'attrGain',  cat:'修行', name:'根骨',   max:10, cost:function(l){return 45+l*38;},
-    desc:'每次突破额外获得属性点',            val:function(l){return l;},      fmt:function(l){return '突破属性 +'+l+' 点';} },
+    desc:'每次突破获得的属性点提升（按比例）',
+    /* 6%/级 ×10 = +60%。和「攻伐/术法/淬体/纳气/护体」那五项对齐 ——
+       它们各自也正好 +60%。第一版拍的是 8%/级（实测 +79%），
+       比同价位的任何一项都强，所以压到 6%。 */
+    val:function(l){return l*0.03;},         fmt:function(l){return '境界属性 +'+l*3+'%';} },
   { id:'pillGain',  cat:'修行', name:'丹道',   max:10, cost:function(l){return 25+l*18;},
     desc:'丹药产出与效果提升',               val:function(l){return l*0.08;}, fmt:function(l){return '丹药效果 +'+l*8+'%';} },
 
-  /* —— 根基 —— */
+  /* —— 根基（以下四项第 25 轮全部改为百分比，见文件上方说明） —— */
   { id:'startLife', cat:'根基', name:'根基',   max:20, cost:function(l){return 18+l*12;},
-    desc:'寿元上限提升',                     val:function(l){return l*8;},    fmt:function(l){return '+'+l*8+' 寿元上限';} },
+    desc:'寿元上限提升（按比例）',            val:function(l){return l*0.03;}, fmt:function(l){return '寿元上限 +'+l*3+'%';} },
   { id:'costCut',   cat:'根基', name:'养身',   max:10, cost:function(l){return 32+l*28;},
     desc:'每次行动的寿元消耗减少（按比例）',
     val:function(l){return l*0.02;},         fmt:function(l){return '行动寿元 −'+l*2+'%';} },
+  /* ⚠️ id 仍然是 startStone（第 25 轮之前它叫「开局多带灵石」）。
+     改 id 会让老存档里已经买过的等级凭空消失，所以 id 不动，
+     只改它的**含义**；loadMeta() 里有一段迁移把它算清楚。 */
   { id:'startStone',cat:'根基', name:'积蓄',   max:20, cost:function(l){return 14+l*9;},
-    desc:'开局多带灵石',                     val:function(l){return l*12;},   fmt:function(l){return '+'+l*12+' 灵石';} },
+    desc:'所有灵石收入提升（按比例）',        val:function(l){return l*0.06;}, fmt:function(l){return '灵石收入 +'+l*6+'%';} },
   { id:'restGain',  cat:'根基', name:'静养',   max:10, cost:function(l){return 24+l*18;},
-    desc:'休息时回复更多寿元',               val:function(l){return l*5;},    fmt:function(l){return '休息 +'+l*5+' 寿元';} },
+    desc:'静养回复的寿元提升（按比例）',      val:function(l){return l*0.08;}, fmt:function(l){return '静养回复 +'+l*8+'%';} },
 
   /* —— 战法（以下五项为百分比，见文件上方 G.UPGRADES 的说明） —— */
   { id:'atkBase',   cat:'战法', name:'攻伐',   max:20, cost:function(l){return 22+l*14;},
@@ -5884,6 +5915,16 @@ function loadMeta(){
     m.endings = m.endings || [];
     if (!m.worlds) m.worlds = defaultMeta().worlds;
     if (!m.worlds.zongmen) m.worlds.zongmen = { unlocked:true, cleared:0, best:0, bestRealm:0 };
+    /* ---------------- 存档迁移（第 25 轮） ----------------
+       「积蓄(startStone)」的**含义**在这一轮变了：
+         旧：开局多带灵石（固定 +12/级，点满一次性 +240）
+         新：灵石收入 +6%/级（点满一整局收入 +120%）
+       旧版点满只值 240 灵石，新版值几千 —— 直接按等级沿用会偏强，
+       但反向折算（把等级砍掉）等于没收玩家已经花掉的碎片，那更糟。
+       所以决定：**保留等级、按新含义生效**，并在存档里记一笔，
+       免得以后有人对着 id 名字发懵。 */
+    m._mig = m._mig || {};
+    if (!m._mig.startStone) m._mig.startStone = 'v0.5：积蓄由「开局灵石」改为「灵石收入 +6%/级」';
     return m;
   }catch(e){ return defaultMeta(); }
 }
@@ -5898,6 +5939,20 @@ function wipeMeta(){
   try{ localStorage.removeItem(SAVE_KEY); }catch(e){}
 }
 
+/* ---------------- 元层「百分比」加成的统一入口（第 25 轮） ----------------
+   ⚠️ 这里必须和 chars.js 的 G.UPGRADES 里那些 val()/fmt() 一一对应。
+   界面上写「+8%」，战斗/结算里就必须真的乘 1.08 —— 否则又变成空头支票。
+   改一边就回来改另一边。                                              */
+
+/* 境界属性成长倍率（根骨）：放大「每次突破给的属性点」 */
+function attrGainBonus(){ return ((meta.up && meta.up.attrGain) || 0) * 0.03; }
+/* 寿元上限倍率（根基）：放大「当前境界的基础寿元上限」 */
+function lifeCapBonus(){ return ((meta.up && meta.up.startLife) || 0) * 0.03; }
+/* 灵石收入倍率（积蓄）：放大**一切进账**（探索 / 宗门 / 事件 / 战利品） */
+function stoneBonus(){ return ((meta.up && meta.up.startStone) || 0) * 0.06; }
+/* 静养回复倍率（静养）：放大「静养的基础回复量」 */
+function restBonus(){ return ((meta.up && meta.up.restGain) || 0) * 0.08; }
+
 /* ---------------- 局内状态 ---------------- */
 let s = null;             // run state
 let challenge = null;     // 进行中的挑战
@@ -5910,8 +5965,11 @@ function newRun(lots, seed){
 
   const upVal = id => (up[id]||0);
 
+  /* ⚠️ 第 25 轮：「根基」从固定 +10/级 改成「寿元上限 ×（1+3%/级）」。
+     旧版在炼气一层相当于 +160%（上限才 100），到元婴九层只剩 +1.1%。
+     现在它是乘在**当前境界的基础上限**上的，任何境界都值同样的比例。 */
   const maxLife = Math.round(
-    (G.REALMS[0].maxLife + upVal('startLife')*10 + (lots.bonus.lifeMax||0))
+    (G.REALMS[0].maxLife * (1 + lifeCapBonus()) + (lots.bonus.lifeMax||0))
     * consti.lifeMul * (lots.bonus.lifeMul || 1)
   );
 
@@ -5937,7 +5995,9 @@ function newRun(lots, seed){
     attrBonus: {},      // 机缘带来的属性加成
 
     // 资源
-    stone: Math.max(0, (lots.bonus.stone||0) + upVal('startStone')*15),
+    /* 开局灵石只来自签运（第 25 轮：「积蓄」不再往这里加固定值，
+       它改成了「灵石收入 +6%/级」，见 gainStone 的说明） */
+    stone: Math.max(0, (lots.bonus.stone||0)),
     karma: clamp((lots.bonus.karmaStart||0), 0, 20),
     favor: (lots.bonus.favor||0),
 
@@ -6107,7 +6167,7 @@ function agg(){
   o.cultFlat += b.cangjing;
   o.ward += b.dazhen * 10;
   o.tribulationDmgMul *= Math.max(0.4, 1 - b.dazhen*0.12);
-  o.cultMul += b.zushi * 0.03;
+  o.cultMul += b.zushi * 0.04;
   // 元层加成
   const up = meta.up || {};
   o.cultMul += (up.cultGain||0) * 0.08;
@@ -6155,7 +6215,17 @@ function actionCost(){
 /* ---------------- 资源变更 ---------------- */
 function log(text){ if (s) s.log.unshift({ t: s.actions, text: text }); if (s && s.log.length>200) s.log.pop(); }
 
-function gainStone(n){ s.stone = Math.max(0, s.stone + n); }
+/* 灵石进出的**唯一漏斗**。
+   ⚠️ 第 25 轮：「积蓄」从「开局多带 12 灵石/级」改成「灵石收入 +6%/级」。
+   为什么不是「开局灵石 ×(1+N%)」：签面的开局灵石中位数是 0（有的签甚至是 −10），
+   乘一个百分比会原地不动 —— 那种「百分比」是假的。
+   而**收入**是真的随境界涨的（探索 = 6 + 境界序数×3、宗门事务、战斗奖励都带境界项），
+   所以百分比在这里才落得到实处。
+   注意：只放大**进账**，不放大花钱 —— 建造与购物的扣款原样传负数进来。 */
+function gainStone(n){
+  if (n > 0) n = Math.round(n * (1 + stoneBonus()));
+  s.stone = Math.max(0, s.stone + n);
+}
 function gainCult(n){ s.cult = Math.max(0, s.cult + Math.round(n)); }
 function gainKarma(n){
   const a = agg();
@@ -6240,8 +6310,10 @@ function doAction(kind){
   }
   else if (kind==='rest'){
     const up = meta.up||{};
-    // 恢复量刻意低于行动消耗的两倍，确保「刷恢复」不是最优解
-    const heal = Math.round(s.maxLife * 0.14) + (up.restGain||0)*5 + a.lifePerAction*3;
+    /* 恢复量刻意低于行动消耗的两倍，确保「刷恢复」不是最优解。
+       ⚠️ 第 25 轮：「静养」从固定 +5/级 改成「回复量 ×（1+8%/级）」。
+       基础回复量本来就是 maxLife×14%（随境界涨），所以百分比才是对的基。 */
+    const heal = Math.round(s.maxLife * 0.14 * (1 + restBonus())) + a.lifePerAction*3;
     const before = s.life;
     gainLife(heal);
     gainSectQi(-3);
@@ -6250,9 +6322,11 @@ function doAction(kind){
     msgs.push(`寿元 +${Math.max(0, s.life - before)}　宗门气运 −3`);
   }
   else if (kind==='nourish'){
-    const up = meta.up||{};
-    // 永久提升寿元上限，但净收益很薄，且每境界次数有限
-    const gain = 16 + (up.startLife||0)*2;
+    /* 永久提升寿元上限，但净收益很薄，且每境界次数有限。
+       ⚠️ 第 25 轮：跟「根基」一起改成百分比 ——
+       基础值先随境界放大（否则到了元婴期，+16 点是噪音），
+       再乘「根基」的倍率。 */
+    const gain = Math.round(16 * (1 + s.realmIdx*0.16) * (1 + lifeCapBonus()));
     raiseMaxLife(gain);
     s.nourishUsed = (s.nourishUsed||0) + 1;
     msgs.push(`寿元上限 +${gain}　净收益 ${gain - cost >= 0 ? '+' : ''}${gain - cost}`);
@@ -6466,8 +6540,10 @@ function doBreak(){
   s.cult -= breakNeed();
   s.realmIdx++;
   // 境界成长：属性点（境界越高加成越大）
-  const extraAttr = ((meta.up && meta.up.attrGain) || 0);
-  s.attrGain = Math.min(G.REALM_ATTR_GAIN.length, (s.attrGain||0) + 1 + extraAttr);
+  /* ⚠️ 第 25 轮：这里原来是 +1+extraAttr，也就是「根骨每级多算一行属性表」。
+     属性表只有 72 行 —— 点满 10 级后 7 次突破就吃光，之后再也拿不到境界属性。
+     现在「根骨」改成在 attrs() 里对属性点整体乘（1+8%/级），这里只 +1。 */
+  s.attrGain = Math.min(G.REALM_ATTR_GAIN.length, (s.attrGain||0) + 1);
   // 恢复类行动的次数上限随境界重置
   s.restUsed = 0;
   s.nourishUsed = 0;
@@ -6475,7 +6551,10 @@ function doBreak(){
   // 寿元上限提升 + 奖励寿元
   const reward = cur.reward || 40;
   const oldMax = s.maxLife;
-  s.maxLife = Math.round(next.maxLife * (G.CONSTITUTIONS.find(c=>c.id===s.constId).lifeMul));
+  /* ⚠️ 第 25 轮：突破时的上限也要乘「根基」的百分比，
+     否则元层买的上限会在第一次突破时被抹掉。 */
+  s.maxLife = Math.round(next.maxLife * (1 + lifeCapBonus())
+              * (G.CONSTITUTIONS.find(c=>c.id===s.constId).lifeMul));
   const diff = s.maxLife - oldMax;
   s.life += Math.max(0, diff) + reward;
 
@@ -6569,9 +6648,10 @@ function maxAttrPossible(){
     });
     G.ATTRS.forEach(a=>{ best[a.id] += per[a.id]; });
   });
-  // 加上全部境界成长
+  // 加上全部境界成长（含「根骨」的百分比加成 —— 与 attrs() 同源）
+  const agMul = 1 + attrGainBonus();
   G.REALM_ATTR_GAIN.forEach(g=>{
-    G.ATTRS.forEach(a=>{ best[a.id] += (g[a.id]||0); });
+    G.ATTRS.forEach(a=>{ best[a.id] += Math.round((g[a.id]||0) * agMul); });
   });
   _maxAttrCache = G.ATTRS.reduce((n,a)=>n + best[a.id], 0);
   return _maxAttrCache;
@@ -6673,10 +6753,10 @@ function offerCards(n, opts){
 function rollCardChance(kind){
   const a = agg();
   const up = meta.up || {};
-  const luck = (up.cardRate||0) * 0.03;
+  const luck = (up.cardRate||0) * 0.04;
   if (kind==='explore') return Math.min(0.95, 0.72 + a.findBonus*0.04 + luck);
-  if (kind==='cultivate') return Math.min(0.8, 0.26 + a.findBonus*0.03 + luck);
-  if (kind==='sectwork') return Math.min(0.8, 0.20 + a.findBonus*0.03 + luck);
+  if (kind==='cultivate') return Math.min(0.8, 0.26 + a.findBonus*0.04 + luck);
+  if (kind==='sectwork') return Math.min(0.8, 0.20 + a.findBonus*0.04 + luck);
   return 0;
 }
 
@@ -6958,12 +7038,19 @@ function attrs(){
   const seed = (s.lots && s.lots.bonus && s.lots.bonus.attrs) || {};
   G.ATTRS.forEach(a=>{ out[a.id] += (seed[a.id]||0); });
 
-  // ② 境界成长（境界越高，加成越大）
+  /* ② 境界成长（境界越高，加成越大）
+     ⚠️ 第 25 轮：根骨从「每次突破多算一行属性表」改成「属性点 ×（1+8%/级）」。
+     旧写法有个致命上限：属性表只有 72 行，点满 10 级之后 7 次突破就吃光了，
+     之后一辈子拿不到境界属性 —— 前 7 层是神，往后是零。 */
   const gained = s.attrGain || 0;
+  const agMul = 1 + attrGainBonus();
+  const realmAttr = {};
+  G.ATTRS.forEach(a=>{ realmAttr[a.id] = 0; });
   for (let i=0;i<gained && i<G.REALM_ATTR_GAIN.length;i++){
     const g = G.REALM_ATTR_GAIN[i];
-    G.ATTRS.forEach(a=>{ out[a.id] += (g[a.id]||0); });
+    G.ATTRS.forEach(a=>{ realmAttr[a.id] += (g[a.id]||0); });
   }
+  G.ATTRS.forEach(a=>{ out[a.id] += Math.round(realmAttr[a.id] * agMul); });
 
   // ③ 机缘（事件 / 功法 / 法宝 / 散修技艺）
   const bonus = s.attrBonus || {};
@@ -7091,13 +7178,13 @@ function advanceMajor(){
   const oldMajor = cur.major;
   s.cult = Math.max(0, s.cult - breakNeed());
   s.realmIdx++;
-  s.attrGain = Math.min(G.REALM_ATTR_GAIN.length, (s.attrGain||0) + 1 + ((meta.up&&meta.up.attrGain)||0));
+  s.attrGain = Math.min(G.REALM_ATTR_GAIN.length, (s.attrGain||0) + 1);
   s.restUsed = 0;
   s.nourishUsed = 0;
 
   const oldMax = s.maxLife;
   const consti = G.CONSTITUTIONS.find(function(c){ return c.id===s.constId; });
-  s.maxLife = Math.round(next.maxLife * consti.lifeMul);
+  s.maxLife = Math.round(next.maxLife * (1 + lifeCapBonus()) * consti.lifeMul);
   s.life += Math.max(0, s.maxLife - oldMax) + Math.round(next.maxLife * 0.08);
 
   log('你跨过了一个大境界：' + next.name + '。寿元上限 ' + s.maxLife + '。');
@@ -9348,8 +9435,10 @@ function availableActions(){
   list.push({
     id:'rest', name:'静养', cost:st.cost, disabled: restLeft<=0,
     desc:'什么都不做，睡一觉。回复寿元，但宗门会少一个人手。',
+    /* ⚠️ 这里的数字必须与 doAction('rest') 真正用的公式一致
+       （dev/verify-uiclaims.js 会去核对「按钮上的数字 = 实际回复量」） */
     meta: restLeft>0
-      ? `寿元回复约 ${Math.round(st.maxLife*0.14)}　本境界还可 ${restLeft} 次`
+      ? `寿元回复约 ${Math.round(st.maxLife*0.14*(1+restBonus()))}　本境界还可 ${restLeft} 次`
       : '本境界的静养次数已经用完了。突破后方可再养。'
   });
 
@@ -9358,7 +9447,7 @@ function availableActions(){
     id:'nourish', name:'养身', cost:st.cost, disabled: nourishLeft<=0,
     desc:'用灵气缓缓滋养身体。永久提升寿元上限，净收益很薄。',
     meta: nourishLeft>0
-      ? `寿元上限 +${16 + ((meta.up&&meta.up.startLife)||0)*2}　本境界还可 ${nourishLeft} 次`
+      ? `寿元上限 +${Math.round(16*(1+s.realmIdx*0.16)*(1+lifeCapBonus()))}　本境界还可 ${nourishLeft} 次`
       : '本境界已经养过了。'
   });
 

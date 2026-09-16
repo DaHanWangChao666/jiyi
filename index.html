@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta name="build" content="2026/9/16 12:56:07">
-<!-- build: 2026/9/16 12:56:07 -->
+<meta name="build" content="2026/9/16 13:38:42">
+<!-- build: 2026/9/16 13:38:42 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#0d0b0a">
@@ -276,13 +276,20 @@ button:disabled{opacity:.35;cursor:not-allowed}
 .act-desc{font-size:12px;color:var(--ink3);margin-top:4px;line-height:1.65}
 .act-meta{font-size:11px;color:var(--jade);margin-top:5px}
 
+/* 底栏（第 25 轮改成会换行的 4 列网格）
+   ------------------------------------------------------------
+   加了「榜」之后是 7 个按钮。旧样式是 flex 不换行 + flex:1，
+   在 360px 的手机上每个只剩 ~40px —— 「储物袋」三个字就会被切掉。
+   现在允许换行、每行 4 个：窄屏排成 4 + 3，宽屏（520px 上限）也还是 4 + 3，
+   每个按钮 ~118px，中文标签放得下。 */
 .run-foot{
-  display:flex;gap:8px;padding:9px 15px calc(9px + env(safe-area-inset-bottom));
+  display:flex;flex-wrap:wrap;gap:8px;padding:9px 15px calc(9px + env(safe-area-inset-bottom));
   border-top:1px solid var(--line);background:var(--bg2);
 }
 .foot-btn{
-  flex:1;padding:10px 0;border-radius:8px;font-size:12.5px;
+  flex:1 1 21%;min-width:0;padding:10px 0;border-radius:8px;font-size:12.5px;
   color:var(--ink2);background:var(--panel);border:1px solid var(--line);letter-spacing:.1em;
+  white-space:nowrap;
 }
 .foot-btn:active{background:var(--panel2)}
 .foot-btn em{font-style:normal;color:var(--gold);font-size:11px;margin-left:3px}
@@ -377,6 +384,74 @@ button:disabled{opacity:.35;cursor:not-allowed}
   min-width:66px;text-align:center;
 }
 .bld-btn:disabled{color:var(--ink3);border-color:var(--line)}
+
+/* ---------------- 丹药品级（第 25 轮） ----------------
+   储物袋与战斗里的丹药都要显示「几品」以及「此刻吃下去会怎样」。
+   颜色语义：正合=金、越 1 品=橙、越 2 品以上=红、低品=灰。 */
+.pill-grade-head{
+  font-size:12px;color:var(--gold2);letter-spacing:2px;
+  margin:14px 0 4px;padding-top:10px;border-top:1px solid var(--line);
+}
+.pill-grade-head .pg-mine{letter-spacing:0;color:var(--ink3);font-size:11.5px;margin-left:6px}
+.pill-grade-note{
+  font-size:11px;color:var(--ink3);line-height:1.7;
+  background:var(--bg2);border:1px solid var(--line);border-radius:7px;
+  padding:8px 10px;margin-bottom:10px;
+}
+.pg-tag{font-size:10px;border-radius:3px;padding:0 5px;border:1px solid var(--line2)}
+.pg-ok   {color:var(--gold2)}
+.pg-warn {color:#d9a24a}
+.pg-bad  {color:#e07a6a}
+.pg-dim  {color:var(--ink3)}
+.pg-mul  {color:#d9a24a}
+.bld-name .pg-tag.pg-ok  {border-color:var(--gold2)}
+.bld-name .pg-tag.pg-warn{border-color:#d9a24a}
+.bld-name .pg-tag.pg-bad {border-color:#e07a6a}
+.bld-name .pg-tag.pg-dim {border-color:var(--line2)}
+
+/* HUD 上的丹力条：永久丹（金）与限时丹（橙）分开配色，
+   限时的那一段带剩余场次，散掉的时候玩家能看见它消失。 */
+.pill-boost{
+  font-size:11px;line-height:1.7;margin-top:6px;
+  padding-top:6px;border-top:1px dashed var(--line);
+}
+.pill-boost .pb-perm{color:var(--gold2)}
+.pill-boost .pb-temp{color:#d9a24a}
+
+/* ---------------- 榜（比武大会 / 天骄榜，第 25 轮） ----------------
+   之前这两套系统在界面里完全没有入口：请帖是一闪而过的弹窗，
+   天骄榜只有抽中事件才看见一行字。这块样式就是那个缺失的入口。 */
+.rank-h{
+  font-size:13px;color:var(--gold2);letter-spacing:3px;
+  margin:16px 0 6px;padding-bottom:5px;border-bottom:1px solid var(--line);
+}
+.rank-h:first-child{margin-top:0}
+.rank-note{font-size:11.5px;color:var(--ink3);line-height:1.75;margin-bottom:9px}
+.rank-sub{font-size:11.5px;color:var(--gold2);letter-spacing:1px;margin:12px 0 6px}
+.rank-sec{margin-bottom:6px}
+.rank-card{
+  background:var(--bg2);border:1px solid var(--line);border-radius:8px;
+  padding:11px 12px;margin-bottom:10px;
+}
+.rank-card.hot{border-color:var(--gold2);background:rgba(201,162,39,.06)}
+.rank-card-h{font-size:13.5px;color:var(--gold2);margin-bottom:4px}
+.rank-card-d{font-size:11.5px;color:var(--ink3);line-height:1.7;margin-bottom:5px}
+.rank-card-m{font-size:11.5px;color:var(--ink2);line-height:1.8}
+.rank-card-m b{color:var(--gold2);font-weight:400}
+.rank-row{
+  background:var(--bg2);border:1px solid var(--line);border-radius:7px;
+  padding:9px 11px;margin-bottom:6px;
+}
+.rank-row.me{border-color:var(--gold2);background:rgba(201,162,39,.05)}
+.rank-row.done{opacity:.62}
+.rr-name{font-size:13px;color:var(--ink)}
+.rr-epi{font-size:11px;color:var(--ink3)}
+.rr-desc{font-size:11px;color:var(--ink3);line-height:1.65;margin-top:3px}
+.rr-meta{font-size:11px;color:var(--ink3);line-height:1.7;margin-top:3px}
+.rk-ok{color:var(--jade)}
+.rk-bad{color:#e07a6a}
+.rk-dim{color:var(--ink3)}
+.rr-meta b{color:var(--gold2);font-weight:400}
 
 .log-i{font-size:12px;color:var(--ink2);line-height:1.9;padding:5px 0;border-bottom:1px dashed #221d1a}
 .log-i b{color:var(--gold2);font-weight:400}
@@ -797,6 +872,8 @@ button{touch-action:manipulation;}
           <span class="pow" id="powText">战力 0 · 手无寸铁</span>
           距突破还需 <span id="cultNeed">100</span> 修为
         </div>
+        <!-- 丹药加成条（第 25 轮）：永久丹与剩余场次的限时丹。空的时候整条隐藏 -->
+        <div class="pill-boost" id="pillBoost" style="display:none"></div>
       </div>
     </header>
 
@@ -806,6 +883,7 @@ button{touch-action:manipulation;}
       <button class="foot-btn" id="btnAttr">属性</button>
       <button class="foot-btn" id="btnDeck">牌组 <em id="deckCount">0</em></button>
       <button class="foot-btn" id="btnBag">储物袋 <em id="bagCount">0</em></button>
+      <button class="foot-btn" id="btnRank">榜</button>
       <button class="foot-btn" id="btnSect">宗门</button>
       <button class="foot-btn" id="btnClue">线索 <em id="clueCount">0</em></button>
       <button class="foot-btn" id="btnLog">记事</button>
@@ -1361,14 +1439,71 @@ G.CARDS = {
   '无名指环': { type:'法宝', rarity:'玄', desc:'内圈刻着两个字，磨损得很厉害。像是一个名字。', eff:{cultMul:0.12}, flags:['ring'] },
   '拾遗石':   { type:'法宝', rarity:'良', desc:'捡来的。它总在你想找东西的时候变热。', eff:{findBonus:1} },
 
-  /* ---------- 丹药（一次性） ---------- */
-  '聚气丹':   { type:'丹药', rarity:'凡', desc:'一颗下去，顶你三天打坐。', use:{cult:28} },
-  '养元丹':   { type:'丹药', rarity:'凡', desc:'补气，也补一点命。', use:{life:20} },
-  '破障丹':   { type:'丹药', rarity:'良', desc:'障在眼前的时候吃。', use:{cult:70} },
-  '续命丹':   { type:'丹药', rarity:'良', desc:'能拖。拖多久，看你还有多少事没做。', use:{life:55} },
-  '洗髓丹':   { type:'丹药', rarity:'玄', desc:'疼三天。之后再疼三天。', use:{lifeMax:35} },
-  '九转还魂丹':{type:'丹药', rarity:'道', desc:'还魂。魂回来之后，还是原来那个吗。', use:{life:200, karma:-5} },
-  '假丹':     { type:'丹药', rarity:'凡', desc:'不知道谁炼的，也不知道是给谁炼的。', use:{cult:45, karma:2} },
+  /* ---------- 丹药（一次性） ----------
+     ⚠️ 第 25 轮新增「品级」（grade 1~9）。
+
+     · 品级 = **这枚丹是给哪个大境界的修士炼的**：
+         1 品 = 炼气期用的    2 品 = 筑基期用的
+         3 品 = 金丹期用的    4 品 = 元婴期用的 …… 9 品 = 渡劫期
+       （境界表里 G.REALMS[i].major 就是 1~9，所以「品级」和「大境界序号」
+        用同一个数，玩家不用记第二套刻度。）
+
+     · **越品（吃高于自己境界的丹）→ 药力过盛，伤身**：
+         高 1 品：效果 ×0.75，反噬掉 5% 寿元上限
+         高 2 品及以上：效果 ×0.40，反噬掉 (5%×差距) 寿元上限（最多 25%）
+       「越品反噬」不会直接要命——最多把你扣到剩 1 点寿元。
+       你要赌那口药力，就得先赔上自己的底子。
+
+     · **低品（吃低于自己境界的丹）→ 药力过时**：
+         每低 1 品，效果 ×0.70（最低 ×0.15）。
+       炼气期的聚气丹到了元婴期，就只剩下一点心理安慰。
+
+     这两条都写在引擎的 usePill() 里（唯一实现处），界面只负责**提前告诉你**
+     会发生什么（储物袋里会算给你看）。                              */
+
+  /* —— 1 品：炼气期 —— */
+  '聚气丹':   { type:'丹药', grade:1, rarity:'凡', desc:'一颗下去，顶你三天打坐。', use:{cult:28} },
+  '养元丹':   { type:'丹药', grade:1, rarity:'凡', desc:'补气，也补一点命。', use:{life:20} },
+  '假丹':     { type:'丹药', grade:1, rarity:'凡', desc:'不知道谁炼的，也不知道是给谁炼的。', use:{cult:45, karma:2} },
+  /* —— 2 品：筑基期 —— */
+  '破障丹':   { type:'丹药', grade:2, rarity:'良', desc:'障在眼前的时候吃。', use:{cult:70} },
+  '续命丹':   { type:'丹药', grade:2, rarity:'良', desc:'能拖。拖多久，看你还有多少事没做。', use:{life:55} },
+  /* —— 3 品：金丹期 —— */
+  '洗髓丹':   { type:'丹药', grade:3, minMajor:2, rarity:'玄', desc:'疼三天。之后再疼三天。', use:{lifeMax:35} },
+  /* —— 4 品：元婴期 —— */
+  '回天丹':   { type:'丹药', grade:4, minMajor:3, rarity:'玄', desc:'把散掉的那口气重新收拢。收不拢的，就留在里面了。', use:{life:260} },
+  '大衍丹':   { type:'丹药', grade:4, minMajor:3, rarity:'玄', desc:'五十之数，去一为大衍。少的那一个，是你。', use:{cult:240} },
+  /* —— 5 品：化神期 —— */
+  '九转还魂丹':{type:'丹药', grade:5, minMajor:3, rarity:'道', desc:'还魂。魂回来之后，还是原来那个吗。', use:{life:200, karma:-5} },
+
+  /* ---------- 永久战斗丹（第 25 轮新增） ----------
+     吃下去之后**这一局内永久**提升战斗属性（下一局重新归零）。
+     和卡牌、元层升级都是乘算叠加，所以任何境界都值同样多。
+     ⚠️ 它们是「一次性投资」，所以单枚幅度比元层升级大得多：
+     元层攻伐练满 20 级才 +60%，一颗龙血丹就 +12% —— 但它只在这一局。 */
+  '淬体丹':   { type:'丹药', grade:2, minMajor:1, rarity:'良', desc:'骨头先重起来，人才能站得稳。',
+    use:{ perm:{ hpPct:0.06 } }, battle:'永久 气血上限 +6%' },
+  '锐金丹':   { type:'丹药', grade:2, minMajor:1, rarity:'良', desc:'金气入肺。呼出来的气是利的。',
+    use:{ perm:{ atkPct:0.06 } }, battle:'永久 伤害 +6%' },
+  '凝元丹':   { type:'丹药', grade:3, minMajor:2, rarity:'玄', desc:'把真气压实。压实之后就不太肯动了。',
+    use:{ perm:{ qiPct:0.10 } }, battle:'永久 真气上限 +10%' },
+  '龟息丹':   { type:'丹药', grade:3, minMajor:2, rarity:'玄', desc:'学龟。龟不急。',
+    use:{ perm:{ wardPct:0.12 } }, battle:'永久 护体 +12%' },
+  '龙血丹':   { type:'丹药', grade:4, minMajor:3, rarity:'玄', desc:'不知道是哪条龙的。它很烫。',
+    use:{ perm:{ hpPct:0.12, atkPct:0.12 } }, battle:'永久 气血 +12%　伤害 +12%' },
+
+  /* ---------- 限时战斗丹（第 25 轮新增） ----------
+     「接下来 N 场战斗」有效。打完第 N 场就散掉。
+     同一类效果**不叠加**，取最强的那个，并把剩余场次刷新为较长的那个——
+     不然囤十颗爆元丹就是无脑通关。 */
+  '爆元丹':   { type:'丹药', grade:2, minMajor:1, rarity:'良', desc:'把丹田点着。点着之后不疼，就是快。',
+    use:{ temp:{ fights:3, atkPct:0.35 } }, battle:'3 场内 伤害 +35%' },
+  '金刚丹':   { type:'丹药', grade:3, minMajor:2, rarity:'玄', desc:'皮下面多了一层东西。摸上去还是软的。',
+    use:{ temp:{ fights:3, dmgCut:0.25 } }, battle:'3 场内 受伤 −25%' },
+  '疾风丹':   { type:'丹药', grade:3, minMajor:2, rarity:'玄', desc:'风从耳朵里过。你比风快半步。',
+    use:{ temp:{ fights:2, evade:0.15 } }, battle:'2 场内 闪避 +15%' },
+  '天罡丹':   { type:'丹药', grade:4, minMajor:3, rarity:'道', desc:'三十六天罡，一天一口。你只吃了一颗。',
+    use:{ temp:{ fights:2, atkPct:0.50, dmgCut:0.20 } }, battle:'2 场内 伤害 +50%　受伤 −20%' },
 
   /* ---------- 邪功 ---------- */
   '血炼术':   { type:'功法', school:'duo', rarity:'玄', desc:'烧自己的血，换别人的命。', eff:{power:22, karmaPer:4} },
@@ -1656,22 +1791,31 @@ G.BOSSES = {
     ]
   },
 
+  /* ---------------- 第一场天劫：结丹之劫（第 25 轮挪位） ----------------
+     ⚠️ 这个 Boss 原本挂在「炼气九层 → 筑基」上，name 是
+     「天劫 · 雷池之影」，hint 写着「终极一战」，intro 说「炼气九层，
+     已是此界之巅」——那是第 1 轮把筑基当结局时留下的草稿。
+
+     现在筑基只是第二站，玩家要到**筑基九层 → 金丹一层**才碰它。
+     这是全篇唯一一场手写的大境界天劫，负责把「天劫」这个概念立起来；
+     金丹之后的跨大境界走通用的 startTribulation()。
+     它同时满足用户的那条要求：天劫只出现在金丹期起的大境界突破上。 */
   boss_zhuji: {
-    id:'boss_zhuji', name:'天劫 · 雷池之影', kind:'final', title:'雷 池',
-    trigger:function(s){ return s.realmIdx>=8 && s.realmIdx<9 && !s.flags.includes('boss_zhuji_done'); },
-    intro:'炼气九层，已是此界之巅。\n再往上，就不是「炼」了。\n\n你站在雷池边上。池子里没有水，全是白的。\n\n一个声音从池底升上来，很平：\n“上一个站在这里的人，也没进去。”\n“你想清楚了吗？”',
+    id:'boss_zhuji', name:'天劫 · 雷池之影', kind:'final', title:'结 丹',
+    trigger:function(s){ return s.realmIdx>=17 && s.realmIdx<18 && !s.flags.includes('boss_zhuji_done'); },
+    intro:'筑基九层，气已经满了。\n满到身体装不下，开始往外渗。\n\n结丹要在一瞬间把那口气收回去。\n收不回去的，就在这一刻散掉。\n\n你站在雷池边上。池子里没有水，全是白的。\n\n一个声音从池底升上来，很平：\n“上一个站在这里的人，也没进去。”\n“你想清楚了吗？”',
     choices:[
-      { label:'走进去', hint:'终极一战',
+      { label:'走进去', hint:'天劫 · 结丹',
         eff:function(s,a){
-          a.challenge({ bossId:'boss_zhuji', name:'雷池之影', type:'tribulation', tier:'boss',
-            heroWin:true,
+          a.challenge({ bossId:'boss_zhuji', name:'雷池之影', type:'tribulation',
+            tier:'tribulation', heroWin:true,
             outcome:{ win:{ flag:'boss_zhuji_done' },
                       lose:{ flag:'boss_zhuji_done', lifePct:-0.18, karma:4 } } });
           return '你把脚放进了池子里。';
         } },
       { label:'在池边坐下',
         eff:function(s,a){ a.flag('boss_zhuji_done'); a.life(40); a.cult(120);
-          return '你在池边坐下了。\n坐了很久。久到你确定自己不想进去。\n你站起来，往回走。\n\n身后那个声音说：“也行。”\n寿元 +40，修为 +120'; } }
+          return '你在池边坐下了。\n坐了很久。久到你确定自己不想进去。\n你站起来，往回走。\n\n身后那个声音说：“也行。”\n\n你没有结丹。气慢慢退了回去。\n寿元 +40，修为 +120'; } }
     ]
   },
 
@@ -1704,8 +1848,8 @@ G.BOSS_OUTCOME = {
   boss_qingyun_lose: '你没打过他。\n他走的时候没有为难你，这比为难你更难受。',
   boss_xinmo_win:     '它散了。\n散之前它说了一句：“下一次，我还会在这儿。”',
   boss_xinmo_lose:    '你输了。\n它没有杀你——它只是坐进了你的位置。\n你花了很久才重新坐回去。',
-  boss_zhuji_win:     '雷池翻了一下，然后静了。\n你从池子里走出来的时候，脚下的石头是软的。\n\n你听见有人在很远的地方说：\n“又来了一个。”',
-  boss_zhuji_lose:    '你被推了出来。\n池子还是白的，一动不动。\n它没有杀你。它只是不收你。'
+  boss_zhuji_win:     '雷池翻了一下，然后静了。\n你从池子里走出来的时候，脚下的石头是软的。\n\n丹田里有一颗东西在慢慢转。\n它很小，但它不打算停。\n\n你听见有人在很远的地方说：\n“又来了一个。”',
+  boss_zhuji_lose:    '你被推了出来。\n池子还是白的，一动不动。\n它没有杀你。它只是不收你。\n\n气散了一半。你还能再来一次。'
 };
 
 /* ---------------- 失败转盘 ----------------
@@ -1728,7 +1872,23 @@ G.WHEEL_SLICES = [
 
 /* 敌人强度换算式（兼容旧接口，实际数值由 G.TUNE 控制） */
 G.ENEMY_FORMULA = { hpMul: 1.0, hpBase: 0, atkMul: 1.0, atkBase: 0 };
-/* ---------------- 元层升级（7 类 · 26 项） ---------------- */
+/* ---------------- 元层升级（7 类 · 26 项） ----------------
+   ⚠️ 第 25 轮：**战斗类升级全部从「固定数值」改成「百分比」**。
+
+   原因（玩家反馈的原话大意）：「用碎片买的永久升级，效果从固定数值改成百分比」。
+
+   旧版是 `普攻 +2/级`、`气血 +12/级`、`护体 +3/级` 这种平加。问题在于
+   玩家的基础值随境界**指数级**涨（金丹期普攻已上千），而平加是常数：
+     · 前期：+2 普攻 相当于 +25% —— 强得离谱
+     · 后期：+40 普攻 相当于 +3%  —— 等于没买
+   于是同一项升级在不同境界的「价值」差几十倍，玩家没法判断该买什么，
+   后期买满了也感觉不到。改成百分比之后，每一级在**任何境界**
+   都恰好值同样多的战力，元层成长才是可预期的。
+
+   保留平加的几项，是因为它们本来就没有「百分比语义」：
+     attrGain / startLife / startStone / restGain / qiRegen /
+     sectGain / sectDrain / discipleQ / guard / wheelLuck / luck / startCard
+   ——它们是「次数」「张数」「点数」这类离散量，乘百分比没有意义。 */
 G.UPGRADES = [
   /* —— 修行 —— */
   { id:'cultGain',  cat:'修行', name:'悟性',   max:20, cost:function(l){return 18+l*11;},
@@ -1744,29 +1904,30 @@ G.UPGRADES = [
   { id:'startLife', cat:'根基', name:'根基',   max:20, cost:function(l){return 18+l*12;},
     desc:'寿元上限提升',                     val:function(l){return l*8;},    fmt:function(l){return '+'+l*8+' 寿元上限';} },
   { id:'costCut',   cat:'根基', name:'养身',   max:10, cost:function(l){return 32+l*28;},
-    desc:'每次行动的寿元消耗减少',            val:function(l){return l*0.5;},  fmt:function(l){return '−'+l*0.5+' 寿元/行动';} },
+    desc:'每次行动的寿元消耗减少（按比例）',
+    val:function(l){return l*0.02;},         fmt:function(l){return '行动寿元 −'+l*2+'%';} },
   { id:'startStone',cat:'根基', name:'积蓄',   max:20, cost:function(l){return 14+l*9;},
     desc:'开局多带灵石',                     val:function(l){return l*12;},   fmt:function(l){return '+'+l*12+' 灵石';} },
   { id:'restGain',  cat:'根基', name:'静养',   max:10, cost:function(l){return 24+l*18;},
     desc:'休息时回复更多寿元',               val:function(l){return l*5;},    fmt:function(l){return '休息 +'+l*5+' 寿元';} },
 
-  /* —— 战法 —— */
+  /* —— 战法（以下五项为百分比，见文件上方 G.UPGRADES 的说明） —— */
   { id:'atkBase',   cat:'战法', name:'攻伐',   max:20, cost:function(l){return 22+l*14;},
-    desc:'普通攻击伤害提升',                 val:function(l){return l*2;},    fmt:function(l){return '普攻 +'+l*2;} },
+    desc:'普通攻击伤害提升',                 val:function(l){return l*0.03;}, fmt:function(l){return '普攻 +'+l*3+'%';} },
   { id:'techBase',  cat:'战法', name:'术法',   max:20, cost:function(l){return 26+l*16;},
-    desc:'招式威力提升',                     val:function(l){return l*2;},    fmt:function(l){return '招式 +'+l*2;} },
+    desc:'招式威力提升',                     val:function(l){return l*0.03;}, fmt:function(l){return '招式 +'+l*3+'%';} },
   { id:'hpBase',    cat:'战法', name:'淬体',   max:20, cost:function(l){return 20+l*13;},
-    desc:'战斗气血上限提升',                 val:function(l){return l*12;},   fmt:function(l){return '气血 +'+l*12;} },
+    desc:'战斗气血上限提升',                 val:function(l){return l*0.03;}, fmt:function(l){return '气血 +'+l*3+'%';} },
   { id:'qiBase',    cat:'战法', name:'纳气',   max:15, cost:function(l){return 24+l*15;},
-    desc:'真气上限提升',                     val:function(l){return l*8;},    fmt:function(l){return '真气 +'+l*8;} },
+    desc:'真气上限提升',                     val:function(l){return l*0.04;}, fmt:function(l){return '真气 +'+l*4+'%';} },
   { id:'qiRegen',   cat:'战法', name:'回气',   max:10, cost:function(l){return 30+l*22;},
-    desc:'每轮回气速度提升',                 val:function(l){return l;},      fmt:function(l){return '每轮 +'+l+' 真气';} },
+    desc:'每轮回气速度提升（固定值）',        val:function(l){return l;},      fmt:function(l){return '每轮 +'+l+' 真气';} },
   { id:'crit',      cat:'战法', name:'锐眼',   max:10, cost:function(l){return 34+l*26;},
     desc:'重击（暴击）几率提升',              val:function(l){return l*0.02;}, fmt:function(l){return '重击 +'+l*2+'%';} },
   { id:'evade',     cat:'战法', name:'游身',   max:10, cost:function(l){return 34+l*26;},
     desc:'闪避几率提升',                     val:function(l){return l*0.015;},fmt:function(l){return '闪避 +'+l*1.5+'%';} },
   { id:'wardBase',  cat:'战法', name:'护体',   max:10, cost:function(l){return 28+l*20;},
-    desc:'护体（减伤）提升',                 val:function(l){return l*3;},    fmt:function(l){return '护体 +'+l*3;} },
+    desc:'护体（减伤）提升',                 val:function(l){return l*0.06;}, fmt:function(l){return '护体 +'+l*6+'%';} },
 
   /* —— 机缘 —— */
   { id:'findGain',  cat:'机缘', name:'机缘',   max:20, cost:function(l){return 16+l*10;},
@@ -1962,7 +2123,7 @@ G.CARDS_NEW = {
     desc:'画完之后，手会麻一天。' },
   '万符归阵': { type:'术法', school:'fu', rarity:'玄', minMajor:3, power:38, ward:30,
     desc:'把所有符都贴出去。之后你就没有符了。' },
-  '三转还元丹':{ type:'丹药', school:'dan', rarity:'良', minMajor:2, desc:'三转之后，气血翻倍。', use:{life:110, lifeMax:20} },
+  '三转还元丹':{ type:'丹药', grade:2, school:'dan', rarity:'良', minMajor:2, desc:'三转之后，气血翻倍。', use:{life:110, lifeMax:20} },
   '夺元掌':   { type:'术法', school:'duo', rarity:'良', minMajor:2, power:22, karmaPer:3,
     desc:'一掌拍出去，带走的不只是命。' },
   '化血神功': { type:'术法', school:'duo', rarity:'玄', minMajor:3, power:44, karmaPer:6,
@@ -1987,7 +2148,7 @@ window.G = window.G || {};
 
 /* ---------------- 全局配置（想自己调数值就改这里） ---------------- */
 G.CONFIG = {
-  version: '0.2.0',
+  version: '0.5.0',
   saveKey: 'jiyi_xiufu_ju_v1',
 
   /* ---------------- 境界上限（第 21 轮） ----------------
@@ -2013,16 +2174,33 @@ G.CONFIG = {
 
   /* ---------------- 天劫门槛（重要平衡设定） ----------------
      天劫是「大境界的门槛」，不是「每一次突破的日常」。
-       · 「金丹以下」不降天劫——炼气、筑基都是打基础，不该被雷劈。
-       · 除非你逆天改命：业障滔天 / 属性远超同阶 / 修了不该修的功法。
-     金丹以上（V0.2 内容）才会正常遭遇天劫。                        */
+
+     判定用的是「大境界」而不是「境界序数」：
+       · 小境界突破（三层 → 四层）永远不降天劫，一次都不会。
+       · 炼气期、筑基期（大境界 0、1、2 的跨越）也不降天劫——
+         那是打基础的阶段，不该被雷劈。
+       · 只有从金丹期起，「跨大境界」的那一次突破才会降劫。
+         第一条天劫 = 「筑基九层 → 金丹一层」，也就是**结丹之劫**。
+         之后每一次跨大境界（金丹→元婴→化神……）都会降劫。
+
+      满足条件时天劫**必定**降临，不再掷骰子——它是门槛，不是意外。
+      「逆天」的条件（业障滔天 / 属性远超同阶 / 修了禁忌功法）
+      不再决定「有没有劫」，只决定「这一劫有多狠」（见 extremeMul）。
+
+     改动历史：这里原本是 fromRealmIdx:20（金丹期内的一个境界序数），
+     判定写成「境界序数 >= 20」，于是金丹期内部的小境界突破也会被雷劈，
+     而炼气→筑基走的是另一个写死的 Boss「渡雷池」。
+     用户明确要求：天劫只能出现在金丹期起的**大境界**突破上，
+     并且要清掉炼气→筑基 那段早期草稿的「终极一战」框架。
+     现在两个大境界门槛走的是同一条规则。                        */
   tribulation: {
-    fromRealmIdx: 20,        // 金丹期及以上的境界序数（V0.1 的炼气/筑基不触发）
-    extremeKarma: 16,        // 业障达到这个值 → 视为「逆天」，可能降劫
-    extremeAttrRatio: 0.92,  // 属性总和达到理论上限的 92% → 视为「逆天」
+    fromMajor: 3,            // 大境界 3 = 金丹期。跨进「金丹」的那一次就是第一劫
+    majorOnly: true,         // 只有「跨大境界」的突破才降劫（小境界永不，见 doBreak）
+    extremeKarma: 16,        // 业障达到这个值 → 这一劫更狠
+    extremeAttrRatio: 0.92,  // 属性总和达到理论上限的 92% → 这一劫更狠
                              // ⚠️ 定得这么高是有意的：宗门气运加持会给 +8 全属性，
-                             //    门槛太低的话「宗门兴旺」反而会招来天劫——那是反直觉的
-    extremeChance: 0.5,      // 逆天者突破时降劫的概率
+                             //    门槛太低的话「宗门兴旺」反而会招来更狠的天劫——反直觉
+    extremeMul: 1.5,         // 「逆天」时天劫强度 ×1.5
     killerKarma: 20          // 业障满 → 天谴（必死难度）
   },
 
@@ -2037,6 +2215,27 @@ G.CONFIG = {
 
   // 稀有度权重（探索抽卡用）
   rarityWeight: { '凡': 62, '良': 26, '玄': 10, '道': 2 },
+
+  /* ---------------- 丹药品级（第 25 轮） ----------------
+     品级 = 这枚丹是给哪个大境界的修士炼的，1~9。
+     恰好等于 G.REALMS[i].major（1 = 炼气，2 = 筑基，3 = 金丹，4 = 元婴…），
+     所以「我该吃几品的丹」这个问题，玩家看自己的大境界就知道。
+
+       · 越品（丹的品级 > 我的大境界）→ 药力过盛，伤身
+       · 低品（丹的品级 < 我的大境界）→ 药力过时，打折
+
+     引擎里唯一的实现处是 usePill()；这里的数字就是那份实现读的表。 */
+  pill: {
+    /* 越品：每高 1 品，效果乘以下面这个数 */
+    overMul:   [1, 0.75, 0.40],   // [同品, 高1品, 高2品及以上]
+    /* 越品反噬：每高 1 品，扣掉寿元上限的这个比例（战斗中扣气血） */
+    overBleed: 0.05,
+    overBleedMax: 0.25,           // 反噬上限，别真把人扣死
+    overBleedFloor: 1,            // 至少给你留这么点寿元
+    /* 低品：每低 1 品，效果乘以下面这个数 */
+    underMul: 0.70,
+    underMin: 0.15                // 打折下限
+  },
 
   // 死亡保护
   deathGuardHeal: 15
@@ -2360,7 +2559,23 @@ G.ENEMY_TIERS = {
   normal: { mul:1.00, label:'寻常' },
   elite:  { mul:1.45, label:'好手' },
   boss:   { mul:2.00, label:'强敌' },
-  terror: { mul:2.80, label:'凶物' }
+  terror: { mul:2.80, label:'凶物' },
+  /* ---------------- 天劫（第 25 轮新增） ----------------
+     它不是「更凶的敌人」，是「必过的门槛」：打不过就卡在这儿，
+     所以它的强度要按**体验**设计，而不是照抄一个倍率。
+
+     mul 是「综合威胁」，只用于奖励缩放与显示。
+     血量与攻击各自单独定，因为它们要满足两个不同的人话目标
+     （见 G.TUNE 的说明：寻常仗 8 回合掉 80% 血）：
+
+       hpMul  1.50 → 12 回合打完（8 × 1.50）
+       atkMul 0.65 → 12 回合掉 78% 血（每回合比寻常仗轻，但总量更重）
+
+     ⚠️ atkMul < 1 看着反直觉，但它是对的：单次伤害更轻、
+     持续更久，玩家有机会用药、有回合去用护体，而不是被一击带走。
+     真正的压力来自「你必须在掉完血之前打完」。
+     普通敌人不写 hpMul/atkMul，走 mul 一档（见 startChallenge）。 */
+  tribulation: { mul:2.60, hpMul:1.50, atkMul:0.65, label:'天劫' }
 };
 
 /* 各「大境界」的名字，用于敌人境界显示与对比 */
@@ -5028,16 +5243,21 @@ G.EVENTS_NEW = (G.EVENTS_NEW || []).concat([
        '“别逞能。”',
   choices:[
     { label:'问他：榜上都有谁',
-      eff:(s,a)=>{ a.cult(10); a.favor(1);
+      eff:(s,a)=>{ a.cult(10); a.favor(1); a.flag('heard_tianjiao');
         return '老头念了几个名字，念到一半自己笑了：\n\n' +
           '“我说这些干什么，你又碰不上。”\n\n' +
-          '他把你碗里的水续满，就不说了。\n\n修为 +' + a.cult(10) + '　人情 +1'; } },
+          '他把你碗里的水续满，就不说了。\n\n' +
+          '——但你记住了那张纸的样子。\n（底栏的「榜」里现在能查到这些人。）\n\n修为 +' + a.cult(10) + '　人情 +1'; } },
     { label:'把名字记下来',
-      eff:(s,a)=>{ a.clue('clue_world'); a.cult(14);
+      eff:(s,a)=>{ a.clue('clue_world'); a.cult(14); a.flag('heard_tianjiao');
         return '你凑近看了一遍。\n\n名字下面还有小字，写着各人的年纪和出身。\n' +
-          '最小的那个，今年十四。\n\n你把这一列名字记住了。\n修为 +' + a.cult(14); } },
+          '最小的那个，今年十四。\n\n你把这一列名字记住了。\n' +
+          '（底栏的「榜」里现在能查到这些人，也能循名去找人。）\n\n修为 +' + a.cult(14); } },
     { label:'喝完就走',
-      eff:(s,a)=>{ a.life(6); return '你喝完茶，付了钱，走了。\n\n茶是粗茶，但很解渴。\n寿元 +6'; } }
+      eff:(s,a)=>{ a.life(6); a.flag('heard_tianjiao');
+        return '你喝完茶，付了钱，走了。\n\n茶是粗茶，但很解渴。\n' +
+          '走的时候你回头看了一眼那张纸——上面的名字你一个也不认识。\n' +
+          '（底栏的「榜」里现在能查到这些人。）\n\n寿元 +6'; } }
   ]
 },
 
@@ -5056,7 +5276,7 @@ G.EVENTS_NEW = (G.EVENTS_NEW || []).concat([
            如果先 a.tianjiao() 再掷骰子，那么「拿到又放弃」的分支会让玩家
            以为『我碰到天骄了』，而实际上什么都没发生 —— 概率感是错的。
            现在：先掷骰子决定「这次碰不碰得上」，再取人。 */
-        if(!a.chance(0.28))
+        if(!a.chance(0.42))
           return '你上前说了两句。\n他很客气，也很短。\n\n走到岔路口，他朝你点了点头，往另一条路去了。\n你回头看了一眼——那条路明明不通。';
         const tj=a.tianjiao();
         if(!tj) return '你刚要开口，他先说话了：\n\n“别问我叫什么。”\n\n然后他就走了。走得不快，但你追不上。';
@@ -5085,7 +5305,7 @@ G.EVENTS_NEW = (G.EVENTS_NEW || []).concat([
   choices:[
     { label:'跟上去，找个机会说话',
       eff:(s,a)=>{
-        if(!a.chance(0.22))
+        if(!a.chance(0.38))
           return '你跟了一路，一直没找到机会。\n\n他走的时候朝你的方向看了一眼。\n只一眼，然后就上了车。';
         const tj=a.tianjiao();
         if(!tj) return '你终于在廊下截住了他。\n\n“有事？”他问。\n你还没想好怎么答，他已经走过去了。\n\n走出三步，他补了一句：“下次想清楚再来。”';
@@ -5111,7 +5331,7 @@ G.EVENTS_NEW = (G.EVENTS_NEW || []).concat([
   choices:[
     { label:'回头',
       eff:(s,a)=>{
-        if(!a.chance(0.25))
+        if(!a.chance(0.40))
           return '你回过头。\n\n身后没有人。\n只有风，把碑上的灰吹起来一点。';
         const tj=a.tianjiao();
         if(!tj) return '你回过头。\n\n那人站在三步之外，正在看碑。\n“刻得不好。”他说，“但比没有强。”\n\n说完他就走了，没有再看你。';
@@ -5758,6 +5978,12 @@ function newRun(lots, seed){
     titles: [],           // 本局挣到的名号（如「炼气魁首」）
     tianjiaoMet: [],      // 本局已遭遇过的天骄 id
 
+    /* 第 25 轮：丹药的两类战斗加成
+       pillPerm —— 「永久战斗丹」在本局内累加，下一局归零
+       pillTemp —— 「限时战斗丹」，fights 是还剩几场；打完就散 */
+    pillPerm: { hpPct:0, atkPct:0, qiPct:0, wardPct:0 },
+    pillTemp: { fights:0, atkPct:0, dmgCut:0, evade:0 },
+
     // 统计
     actions: 0,
     pillCounter: 0,
@@ -5910,14 +6136,19 @@ function agg(){
   return o;
 }
 
-/* ---------------- 行动消耗 ---------------- */
+/* ---------------- 行动消耗 ----------------
+   ⚠️ 第 25 轮：元层「养身(costCut)」从「−0.5 寿元/行动」改成「−2%/级」。
+   旧版是平减，而行动消耗本身随境界涨（cost = 寿元上限/52）：
+   在炼气一层，−5 寿元 直接把消耗砍成 0（要夹到 1）；
+   到了元婴期，−5 只是零头。百分比才在任何境界都成立。
+   上限封在 −60%，不然寿元这条唯一的硬约束会被买掉。            */
 function actionCost(){
   const consti = G.CONSTITUTIONS.find(c=>c.id===s.constId) || G.CONSTITUTIONS[0];
   const base = G.REALMS[s.realmIdx].cost;
   let cost = base * consti.costMul;
   const a = agg();
   cost = (cost - a.costReduce) * (1 - a.costReducePct);
-  cost -= (meta.up && meta.up.costCut ? meta.up.costCut*0.5 : 0);
+  cost *= 1 - Math.min(0.60, (meta.up && meta.up.costCut ? meta.up.costCut*0.02 : 0));
   return Math.max(1, Math.round(cost));
 }
 
@@ -6038,7 +6269,7 @@ function doAction(kind){
     const need = Math.max(3, 8 - dfLv) - (a.pillGain>0?1:0);
     if (s.pillCounter >= Math.max(3,need)){
       s.pillCounter = 0;
-      const pool = Object.keys(G.CARDS).filter(k=>G.CARDS[k].type==='丹药');
+      const pool = pillPool();
       const pick = pool[Math.floor(s.rng()*pool.length)];
       addCard(pick);
       msgs.push(`丹房产出【${pick}】`);
@@ -6047,7 +6278,7 @@ function doAction(kind){
 
   /* 套装「丹火不熄」：每次行动有几率自动产丹（第 20 轮接上，以前是死效果） */
   if (a.pillSetChance > 0 && s.rng() < a.pillSetChance){
-    const pool = Object.keys(G.CARDS).filter(k=>G.CARDS[k].type==='丹药');
+    const pool = pillPool();
     if (pool.length){
       const pick = pool[Math.floor(s.rng()*pool.length)];
       addCard(pick);
@@ -6167,15 +6398,26 @@ function canBreak(){
   return s.cult >= breakNeed();
 }
 
-/* 炼气圆满 + 修为已足 → 可以挑战「渡雷池」进入筑基
-   ⚠️ 用 major 判断大境界，不要用 tier（tier 是敌人难度阶梯的键） */
+/* 筑基圆满 + 修为已足 → 可以挑战「结丹之劫」进入金丹
+   ⚠️ 用 major 判断大境界，不要用 tier（tier 是敌人难度阶梯的键）
+   ⚠️ 第 25 轮：这个门槛原本挂在「炼气九层 → 筑基」上，
+   那是早期草稿把筑基当成结局时留下的。现在筑基只是第二站，
+   天劫也统一挪到「金丹期起的大境界突破」——第一劫就是结丹。 */
 function canAscend(){
   const cur = G.REALMS[s.realmIdx];
   const next = G.REALMS[s.realmIdx+1];
   if (G.isRealmCapped && G.isRealmCapped(s.realmIdx)) return false;
-  return !!cur && !!next && cur.major === 1 && next.major === 2
+  return !!cur && !!next && cur.major === 2 && next.major === 3
       && s.cult >= breakNeed()
       && !s.flags.includes('boss_zhuji_done');
+}
+
+/* 下一次突破是不是「跨大境界」？（第 25 轮）
+   天劫判定的唯一前置条件——小境界突破永远不降劫。 */
+function isMajorCrossing(){
+  const cur = G.REALMS[s.realmIdx];
+  const next = G.REALMS[s.realmIdx+1];
+  return !!cur && !!next && next.major > cur.major;
 }
 
 /* 是否已经无路可走（已到本世上限） */
@@ -6194,6 +6436,11 @@ function canCapstone(){
 }
 
 function doBreak(){
+  /* ⚠️ 必须在这里就把「从哪来 / 到哪去」抓下来。
+     下面 s.realmIdx++ 之后，G.REALMS[s.realmIdx+1] 指的是**再下一层**，
+     天劫判定会整整晚一步（实测：金丹八层→九层降劫、九层→元婴一层反而平静）。
+     第 25 轮就是因为这个 off-by-one，才有了「天劫出现在小境界上」的假象。 */
+  const fromRealm = G.REALMS[s.realmIdx];
   const next = G.REALMS[s.realmIdx+1];
 
   // 到了本世上限：修为已足 → 交回界面走收束结局
@@ -6202,8 +6449,13 @@ function doBreak(){
              capName: G.realmCapName ? G.realmCapName() : '' };
   }
 
-  // 炼气圆满 → 筑基：不是普通「突破」，是「渡雷池」，交给 Boss 处理
-  if (next && next.major === 2 && !s.flags.includes('boss_zhuji_done')){
+  /* 筑基圆满 → 金丹：第一场天劫，写成剧本（「雷池之影」）。
+     这是全篇唯一一场手写的大境界天劫——它负责把「天劫」这个概念
+     立起来。金丹之后的跨大境界走通用的 startTribulation()。
+     ⚠️ 第 25 轮改动：这里原本是「炼气圆满 → 筑基」。
+     用户要求清掉那段早期草稿把筑基当结局的「终极一战」框架，
+     所以筑基→金丹 接管了这个 Boss，炼气→筑基 变回一次普通突破。 */
+  if (next && next.major === 3 && !s.flags.includes('boss_zhuji_done')){
     if (!canAscend()) return null;
     return { realm: next.name, needBoss:'boss_zhuji' };
   }
@@ -6229,45 +6481,64 @@ function doBreak(){
 
   log(`你突破到了 ${next.name}。寿元上限 ${s.maxLife}。`);
 
-  // 天劫判定（见 G.CONFIG.tribulation）：
-  // 金丹以前不降天劫——炼气、筑基都是打基础，不该被雷劈。
-  // 只有「逆天」的修士才会在低境界引来天劫。
-  const judge = shouldTribulate();
+  /* 天劫判定（见 G.CONFIG.tribulation）：
+     ⚠️ 第 25 轮重写。旧版是「境界序数 >= 20 就降劫」，于是
+     金丹期内部的**小境界**突破也会被雷劈；而炼气→筑基 走的是
+     另一个写死的 Boss。用户要求：天劫只能出现在金丹期起的
+     **大境界**突破上，小境界与金丹以下一次都不能有。
+
+     新规则只有一句：
+         跨大境界 且 目标大境界 >= 金丹  →  必定降劫
+     逆天条件（业障 / 属性 / 禁忌功法）不再决定「有没有劫」，
+     只决定「这一劫有多狠」——门槛是确定的，难度是可经营的。 */
+  const judge = shouldTribulate(fromRealm, next);
   if (judge.yes){
     return { realm: next.name, tribulation: true, reward: reward,
-             maxLife: s.maxLife, tribReason: judge.reason };
+             maxLife: s.maxLife, tribReason: judge.reason, extreme: judge.extreme };
   }
   return { realm: next.name, tribulation: false, reward: reward, maxLife: s.maxLife };
 }
 
 /* ---------------- 天劫门槛判定 ----------------
-   返回 { yes:bool, reason:string, extreme:bool }
-   规则：
-     ① 境界达到门槛（金丹以上）→ 正常降劫
-     ② 低境界但「逆天」→ 才可能降劫（业障滔天 / 属性碾压同阶 / 修了禁忌功法）
-     ③ 其余情况一律不降——让玩家安心打基础                        */
-function shouldTribulate(){
-  const T = G.CONFIG.tribulation;
+   shouldTribulate(fromRealm, toRealm) → { yes, reason, extreme }
 
-  // ① 大境界门槛
-  if (s.realmIdx >= T.fromRealmIdx){
-    return { yes:true, reason:'normal', extreme:false };
+   ⚠️ 必须**显式传入**「从哪来 / 到哪去」。
+   不传的话会退回「以当前状态看下一次突破」，那是给界面问
+   「我下次破境会不会挨雷」用的——doBreak 内部绝不能依赖它，
+   因为调用点在 s.realmIdx++ 之后（第 25 轮踩过这个坑）。
+
+   规则（第 25 轮）：
+     ① 不是跨大境界 → 一律不降劫（小境界永远安全）
+     ② 目标大境界低于金丹（炼气/筑基）→ 一律不降劫
+     ③ 其余 → 必定降劫
+   然后单独判断这一劫是不是「逆天劫」（更狠）：
+     业障滔天 / 属性碾压同阶 / 修了禁忌功法                        */
+function shouldTribulate(fromRealm, toRealm){
+  const T = G.CONFIG.tribulation;
+  const cur  = fromRealm || G.REALMS[s.realmIdx];
+  const next = toRealm   || G.REALMS[s.realmIdx+1];
+
+  // ①② 唯一的门槛：跨大境界，且目标大境界达到金丹
+  if (!next) return { yes:false, reason:'noNext', extreme:false };
+  if (T.majorOnly !== false && !(cur && next.major > cur.major)){
+    return { yes:false, reason:'subRealm', extreme:false };
+  }
+  if (next.major < T.fromMajor){
+    return { yes:false, reason:'below', extreme:false };
   }
 
-  // ② 属性碾压同阶？先算「理论上限」再比比例
+  // ③ 降劫。下面只是判断「狠不狠」，不再影响「有没有」
   const A = attrs();
   const sum = G.ATTRS.reduce((n,a)=>n + (A[a.id]||0), 0);
   const maxPossible = maxAttrPossible();
   const ratio = maxPossible > 0 ? sum / maxPossible : 0;
   if (ratio >= T.extremeAttrRatio){
-    const yes = s.rng() < T.extremeChance;
-    return { yes:yes, reason:'attr', extreme:true };
+    return { yes:true, reason:'attr', extreme:true };
   }
 
   // ③ 业障滔天？
   if (s.karma >= T.extremeKarma){
-    const yes = s.rng() < T.extremeChance;
-    return { yes:yes, reason:'karma', extreme:true };
+    return { yes:true, reason:'karma', extreme:true };
   }
 
   // ④ 修了禁忌功法？（吞天魔功 / 化功大法 这类）
@@ -6276,15 +6547,13 @@ function shouldTribulate(){
     return c && c.eff && (c.eff.karmaPer||0) >= 5;
   });
   if (taboo && s.karma >= 10){
-    const yes = s.rng() < 0.35;
-    return { yes:yes, reason:'taboo', extreme:true };
+    return { yes:true, reason:'taboo', extreme:true };
   }
 
-  return { yes:false, reason:'below', extreme:false };
+  return { yes:true, reason:'major', extreme:false };
 }
 
-/* 属性「理论上限」：抽签可能拿到的最高初始属性 + 全部境界成长 */
-let _maxAttrCache = null;
+/* 属性「理论上限」：抽签可能拿到的最高初始属性 + 全部境界成长 */let _maxAttrCache = null;
 function maxAttrPossible(){
   if (_maxAttrCache !== null) return _maxAttrCache;
   // 每支签里各项属性的最大值之和
@@ -6763,27 +7032,53 @@ function combatStats(){
   /* 套装「剑冢遗风」：招式伤害 +50%。以前收集了却没人用。 */
   const techMul = 1 + (ag.techMul || 0);
 
+  /* ---- 元层「战法」升级：第 25 轮全部改为**百分比** ----
+     ⚠️ 旧版是平加（+2 普攻/级、+12 气血/级…），而基础值随境界指数涨，
+     于是同一级在炼气期值 +25%、在金丹期值 +3% —— 后期买满了也没体感。
+     现在统一乘在**算完境界与卡牌之后**的结果上，任何境界都值同样多。
+
+     各档的每级百分比写在 G.UPGRADES 里（chars.js），这里必须同步：
+       atkBase  3%/级 ×20  = +60% 普攻
+       techBase 3%/级 ×20  = +60% 招式
+       hpBase   3%/级 ×20  = +60% 气血
+       qiBase   4%/级 ×15  = +60% 真气
+       wardBase 6%/级 ×10  = +60% 护体
+     ⚠️ 改 G.UPGRADES 的 val/fmt 时**务必**回来改这里的系数，
+     否则界面承诺的「+3%」和战斗里实际吃的就不是一回事。 */
+  const pct = (id, per) => 1 + (up[id] || 0) * per;
+
+  /* ---- 丹药的战斗加成（第 25 轮） ----
+     pillPerm：「永久战斗丹」在本局内累加，下一局归零。
+     pillTemp：「限时战斗丹」，只在剩余场次 > 0 时生效。
+     两者都乘在**算完境界、卡牌、元层之后**的结果上，
+     所以「+6% 伤害」在任何境界都是 +6%。 */
+  const perm = s.pillPerm || {};
+  const temp = (s.pillTemp && s.pillTemp.fights > 0) ? s.pillTemp : {};
+  const dmgBonus = (perm.atkPct || 0) + (temp.atkPct || 0);
+
   const hpMulSet = 1 + (ag.hpMul || 0);   // 卡牌与套装「不坏之身」的气血加成
-  const maxHp = Math.round(((46 + A.tipo*7 + A.gengu*3) * realmMul) * hpMulSet) + (up.hpBase||0)*12;
-  const maxQi = Math.round(24 + A.gengu*4 + A.lingli*1.5) + (up.qiBase||0)*8;
+  const maxHp = Math.round((46 + A.tipo*7 + A.gengu*3) * realmMul * hpMulSet
+                           * pct('hpBase', 0.03) * (1 + (perm.hpPct || 0)));
+  const maxQi = Math.round((24 + A.gengu*4 + A.lingli*1.5) * pct('qiBase', 0.04) * (1 + (perm.qiPct || 0)));
   const qiRegen = Math.max(3, Math.round(5 + A.gengu*1.1)) + (up.qiRegen||0);
   // 普通攻击：由属性总和驱动 × 卡牌战力，不限次数的可靠输出
-  const basicAtk = Math.max(3, Math.round((4 + attrSum*0.20) * realmMul * powerMul)) + (up.atkBase||0)*2;
-  const techPower = Math.round(Math.max(5, Math.round((6 + attrSum*0.30) * realmMul * powerMul)) * techMul) + (up.techBase||0)*2;
+  const basicAtk = Math.max(3, Math.round((4 + attrSum*0.20) * realmMul * powerMul * pct('atkBase', 0.03) * (1 + dmgBonus)));
+  const techPower = Math.round(Math.max(5, Math.round((6 + attrSum*0.30) * realmMul * powerMul)) * techMul * pct('techBase', 0.03) * (1 + dmgBonus));
   const critChance = Math.min(0.60, 0.03 + A.shenshi*0.010 + (up.crit||0)*0.02 + (ag.critSet||0));
-  const evade = Math.min(0.38, A.shenfa*0.010 + (up.evade||0)*0.015);
+  const evade = Math.min(0.38, A.shenfa*0.010 + (up.evade||0)*0.015 + (temp.evade || 0));
   /* 常驻护体：卡牌的 ward 第一次真的有用。
      转换成百分比减伤（上限 35%），而不是直接减去伤害点——
      因为敌人攻击是随境界指数涨的，平减会在后期变成零。 */
   const wardGuard = Math.min(0.35, (ag.ward || 0) * 0.0009);
   /* 基础护体（招式护体的基数）。套装「符阵相生」每轮额外给一层。 */
-  const ward = Math.round(realmMul * 3) + (up.wardBase||0)*3 + (ag.wardPerRound || 0);
-  /* 受到的伤害乘数：套装「不坏之身」的 −20% 走这里 */
-  const dmgTakenMul = clamp((ag.dmgTakenSet || 0) ? 1 + ag.dmgTakenSet : 1, 0.4, 1.5);
+  const ward = Math.round(realmMul * 3 * pct('wardBase', 0.06) * (1 + (perm.wardPct || 0))) + (ag.wardPerRound || 0);
+  /* 受到的伤害乘数：套装「不坏之身」的 −20%、限时丹的减伤都走这里 */
+  const dmgTakenMul = clamp(((ag.dmgTakenSet || 0) ? 1 + ag.dmgTakenSet : 1) * (1 - (temp.dmgCut || 0)), 0.4, 1.5);
 
   return { attrs:A, attrSum, maxHp, maxQi, qiRegen, basicAtk, techPower,
            critChance, evade, ward, realmMul, powerMul, techMul, wardGuard, dmgTakenMul,
-           cardPower: ag.power || 0, cardWard: ag.ward || 0 };
+           cardPower: ag.power || 0, cardWard: ag.ward || 0,
+           pillPerm: perm, pillTemp: temp, dmgBonus: dmgBonus };
 }
 /* ---------------- 大境界跨越（第 17 轮） ----------------
    以前「筑基」是结局；现在它只是九个大境界里的第二个。
@@ -6870,9 +7165,14 @@ function startChallenge(cfg){
   const tier = G.ENEMY_TIERS[tierKey] || G.ENEMY_TIERS.normal;
   const T = G.TUNE;
 
-  /* 难度阶梯 × 手动微调（兼容旧的 power 参数，当作 ±% 微调） */
+  /* 难度阶梯 × 手动微调（兼容旧的 power 参数，当作 ±% 微调）
+     ⚠️ 第 25 轮：阶梯现在可以给「血」「攻」各自的倍率（天劫需要）。
+     给了 hpMul/atkMul 就**取代** mul，不是再乘一层 ——
+     否则天劫会吃两次倍率（实测血条 ×3.9 而不是 ×1.5，一场打 32 回合）。
+     mul 仍然保留，用于奖励缩放与显示。 */
   const manual = (cfg.power || 0) / 100;
-  const scale = tier.mul * (1 + manual);
+  const hpScale  = (tier.hpMul  != null ? tier.hpMul  : tier.mul) * (1 + manual);
+  const atkScale = (tier.atkMul != null ? tier.atkMul : tier.mul) * (1 + manual);
 
   /* 敌人强度 = 一条曲线（G.foePowerAt）× 难度阶梯 × 手动微调
      ⚠️ 第 21 轮重做。旧公式是
@@ -6886,13 +7186,17 @@ function startChallenge(cfg){
   const hpCurve  = 1 + (power - 1) * (T.curveHp  != null ? T.curveHp  : 1.0);
   const atkCurve = 1 + (power - 1) * (T.curveAtk != null ? T.curveAtk : 1.0);
 
+  /* 阶梯可以给「血」「攻」各自的倍率（第 25 轮，天劫需要）。
+     不写就沿用 mul —— 也就是「整档一起变强」，那是绝大多数阶梯的语义。
+     hpScale / atkScale 已经在上面算好（含 ±% 微调）。 */
+
   /* 天骄：在同境界「凶物」的基础上再乘一层倍率（第 22 轮）。
      玩家要求「除非数值远超同境界，否则不可能战胜」——
      所以这不是强一点，是量级上的差距（气血 ×3.2 / 攻击 ×2.0）。 */
   const TJ = (cfg.tianjiao && G.TIANJIAO_MUL) ? G.TIANJIAO_MUL : { hp:1, atk:1 };
 
-  const foeHpMax = Math.round(G.foeHpBase * hpCurve * scale * TJ.hp);
-  const foeAtk = Math.round(G.foeAtkBase * atkCurve * scale * 0.9 * TJ.atk);
+  const foeHpMax = Math.round(G.foeHpBase * hpCurve * hpScale * TJ.hp);
+  const foeAtk = Math.round(G.foeAtkBase * atkCurve * 0.9 * atkScale * TJ.atk);
 
   challenge = {
     active: true,
@@ -6942,6 +7246,27 @@ function startChallenge(cfg){
   return challenge;
 }
 
+/* 战斗中吃了「永久 / 限时战斗丹」之后，把战斗内的数值重算一次。
+   ⚠️ 不重算的话，玩家在战斗里吃下淬体丹会看到「气血上限 +6%」的提示，
+   但血条一动不动 —— 那是界面在撒谎（第 25 轮踩过）。
+   做法是按**比例**缩放当前值，这样「还剩几成血」不会因为重算而跳变。 */
+function refreshChallengeStats(){
+  const ch = challenge;
+  if (!ch || !ch.active) return null;
+  const before = ch.stats || {};
+  const after = combatStats();
+  const scale = (oldMax, newMax, cur) =>
+    newMax === oldMax ? cur : Math.max(0, Math.min(newMax, Math.round(cur * newMax / (oldMax || 1))));
+
+  ch.hpMax = scale(before.maxHp, after.maxHp, ch.hpMax);
+  ch.hp    = Math.min(ch.hpMax, scale(before.maxHp, after.maxHp, ch.hp));
+  ch.qiMax = scale(before.maxQi, after.maxQi, ch.qiMax);
+  ch.qi    = Math.min(ch.qiMax, scale(before.maxQi, after.maxQi, ch.qi));
+  ch.qiRegen = after.qiRegen;
+  ch.stats = after;
+  return after;
+}
+
 /* ---------------- 敌人境界显示 ----------------
    把敌人的强度换算成「境界」，超过玩家太多就显示「境界未知」。
    这样玩家能一眼看出：这场我该不该打。                          */
@@ -6952,7 +7277,7 @@ function foeRealmInfo(){
   const t = G.ENEMY_TIERS[ch.tier] || G.ENEMY_TIERS.normal;
 
   // 用 tier 折算「相当于玩家第几层」
-  const tierOffset = { weak:-2, normal:0, elite:2, boss:4, terror:6 }[ch.tier] || 0;
+  const tierOffset = { weak:-2, normal:0, elite:2, boss:4, terror:6, tribulation:5 }[ch.tier] || 0;
   let foeIdx = myIdx + tierOffset + (ch.cfg.realmOffset || 0);
   if (foeIdx < 0) foeIdx = 0;
 
@@ -7153,6 +7478,65 @@ function useTechnique(name){
   return { ok:true, msg:msg, over:!!(after && after.over), result:after ? after.result : null };
 }
 
+/* ---------------- 丹药品级（第 25 轮） ----------------   品级 = G.CARDS[name].grade（1~9），含义是「这枚丹是给哪个大境界炼的」。
+   玩家自己的品级就是他的大境界序号 —— 两套刻度故意用同一个数，
+   玩家不需要记第二张表。
+
+   这里只做**一件事**：算出一枚丹此刻吃下去会发生什么。
+   usePill() 拿它去执行，储物袋面板拿它去提前告诉玩家。
+   ⚠️ 两边必须共用这一个函数，否则界面承诺和实际效果会走散。 */
+function pillGradeOfRealm(realmIdx){
+  const r = G.REALMS[Math.min(Math.max(0, realmIdx), G.REALMS.length-1)];
+  return r ? r.major : 1;
+}
+function myPillGrade(){
+  return pillGradeOfRealm(s ? s.realmIdx : 0);
+}
+
+/* 当前境界能炼出 / 采到的丹药池。
+   ⚠️ 第 25 轮新增：以前三处产丹点（宗门丹房、散修丹炉、套装「丹火不熄」）
+   直接取「全部丹药」——于是炼气期就能炼出 4 品丹。
+   现在统一按 minMajor 过滤，和抽卡（randCardName）用同一套规则。
+   约定：品级 N 的丹从「大境界 N-1」起可见，也就是最多比你高 1 品。
+   高 1 品吃下去只是「药力偏盛」（效果 75% + 5% 反噬），那是可以赌的；
+   再高就该是传闻里的东西，不该从自家丹炉里滚出来。 */
+function pillPool(){
+  const my = myPillGrade();
+  const pool = Object.keys(G.CARDS).filter(function(k){
+    const c = G.CARDS[k];
+    if (!c || c.type !== '丹药' || c.hidden) return false;
+    if (c.minMajor && c.minMajor > my) return false;
+    return true;
+  });
+  return pool.length ? pool : ['聚气丹'];
+}
+function pillOutcome(name){
+  const c = G.CARDS[name];
+  const P = G.CONFIG.pill;
+  const grade = (c && c.grade) || 1;
+  const mine  = myPillGrade();
+  const d = grade - mine;                       // >0 越品，<0 低品
+  let mul = 1, kind = 'ok', bleed = 0, note = '';
+
+  if (d > 0){
+    /* 越品：药力过盛。效果打折，同时反噬寿元。 */
+    mul = P.overMul[Math.min(d, P.overMul.length - 1)] || P.overMul[P.overMul.length-1];
+    bleed = Math.min(P.overBleedMax, P.overBleed * d);
+    kind = d >= 2 ? 'danger' : 'warn';
+    note = d >= 2
+      ? `越品 ${d} 级——药力过盛，效果仅存 ${Math.round(mul*100)}%，反噬 ${Math.round(bleed*100)}% 寿元上限`
+      : `越品 1 级——药力偏盛，效果 ${Math.round(mul*100)}%，反噬 ${Math.round(bleed*100)}% 寿元上限`;
+  } else if (d < 0){
+    /* 低品：药力过时。 */
+    mul = Math.max(P.underMin, Math.pow(P.underMul, -d));
+    kind = 'dim';
+    note = `低于你 ${-d} 品——药力过时，效果仅存 ${Math.round(mul*100)}%`;
+  } else {
+    note = '正合你的境界';
+  }
+  return { name, grade, mine, diff:d, mul, bleed, kind, note };
+}
+
 /* ---- 使用丹药 ----
    ⚠️ 第 24 轮：丹药以前**只能在战斗里吃**（`if (!ch || ch.over) return`），
    于是玩家攒了一堆回血丹、破障丹，打完架就只能看着。
@@ -7163,7 +7547,10 @@ function useTechnique(name){
      · 战斗外：u.life 补的是**寿元**（s.life）—— 这才是它在局外的对应物
    其余效果（修为 / 寿元上限 / 业障）两边完全一致。
 
-   第 20 轮还接过套装「丹火不熄」的「丹药效果翻倍」。 */
+   第 20 轮还接过套装「丹火不熄」的「丹药效果翻倍」。
+
+   ⚠️ 第 25 轮：加入**品级**。见 pillOutcome()——
+   越品伤身、低品减效，两种惩罚都在这里执行。 */
 function usePill(name){
   const c = G.CARDS[name];
   if (!c || c.type !== '丹药') return { ok:false, msg:'这不是丹药' };
@@ -7174,7 +7561,9 @@ function usePill(name){
   const ch = (challenge && !challenge.over) ? challenge : null;
   s.deck.splice(idx, 1);
 
-  const pillMul = 1 + (agg().pillSetMul || 0);
+  /* pillMul = 套装「丹火不熄」× 品级倍率（越品打折 / 低品打折） */
+  const po = pillOutcome(name);
+  const pillMul = (1 + (agg().pillSetMul || 0)) * po.mul;
   const u = c.use || {};
   const parts = [];
 
@@ -7198,18 +7587,88 @@ function usePill(name){
     parts.push(`寿元上限 +${v}`);
   }
   if (u.karma){ gainKarma(u.karma); parts.push(`业障 ${u.karma > 0 ? '+' : ''}${u.karma}`); }
-  if (pillMul > 1) parts.push(`丹火不熄 ×${pillMul.toFixed(1)}`);
 
-  const msg = `服下【${name}】` + (parts.length ? '：' + parts.join('　') : '');
+  /* ---- 永久战斗丹：本局内永久累加 ---- */
+  if (u.perm){
+    if (!s.pillPerm) s.pillPerm = { hpPct:0, atkPct:0, qiPct:0, wardPct:0 };
+    const label = { hpPct:'气血上限', atkPct:'伤害', qiPct:'真气上限', wardPct:'护体' };
+    Object.keys(u.perm).forEach(k=>{
+      const v = u.perm[k] * po.mul;
+      s.pillPerm[k] = (s.pillPerm[k] || 0) + v;
+      parts.push(`${label[k]||k} 永久 +${Math.round(v*100)}%`);
+    });
+    /* 永久丹改的是战斗属性，正在打的话要立刻重算，否则本场看不到效果 */
+    if (ch) refreshChallengeStats();
+  }
+  /* ---- 限时战斗丹：接下来 N 场 ---- */
+  if (u.temp){
+    if (!s.pillTemp) s.pillTemp = { fights:0, atkPct:0, dmgCut:0, evade:0 };
+    const t = s.pillTemp;
+    /* ⚠️ 同类效果不叠加，只取更强的那一份，并把场次刷新为更长的那个。
+       否则囤十颗爆元丹就是无脑通关（这是第 25 轮特意挡掉的）。 */
+    t.fights = Math.max(t.fights || 0, u.temp.fights || 1);
+    if (u.temp.atkPct) t.atkPct = Math.max(t.atkPct || 0, u.temp.atkPct * po.mul);
+    if (u.temp.dmgCut) t.dmgCut = Math.max(t.dmgCut || 0, u.temp.dmgCut * po.mul);
+    if (u.temp.evade)  t.evade  = Math.max(t.evade  || 0, u.temp.evade  * po.mul);
+    const bits = [];
+    if (t.atkPct) bits.push(`伤害 +${Math.round(t.atkPct*100)}%`);
+    if (t.dmgCut) bits.push(`受伤 −${Math.round(t.dmgCut*100)}%`);
+    if (t.evade)  bits.push(`闪避 +${Math.round(t.evade*100)}%`);
+    parts.push(`接下来 ${t.fights} 场：${bits.join('　')}`);
+    if (ch) refreshChallengeStats();
+  }
+
+  /* ---- 越品反噬：药力过盛，扣自己的底子 ---- */
+  let backlash = '';
+  if (po.bleed > 0){
+    const P = G.CONFIG.pill;
+    let amt = Math.round((s.maxLife || 100) * po.bleed);
+    if (ch){
+      /* 战斗中：扣的是**战斗气血**，而且不会把你直接打倒（保底 1 点） */
+      amt = Math.min(amt, Math.max(0, ch.hp - 1));
+      ch.hp -= amt;
+      backlash = `药力过盛，气血 −${amt}`;
+    } else {
+      amt = Math.min(amt, Math.max(0, s.life - P.overBleedFloor));
+      gainLife(-amt);
+      backlash = `药力过盛，寿元 −${amt}`;
+    }
+    parts.push(backlash);
+    ch ? pushLog(`【${name}】${po.note}`) : log(`【${name}】${po.note}`);
+  } else if (po.diff < 0){
+    ch ? pushLog(`【${name}】${po.note}`) : log(`【${name}】${po.note}`);
+  }
+  if (pillMul > 1 + (agg().pillSetMul || 0)) parts.push(`品级 ×${po.mul.toFixed(2)}`);
+  if ((agg().pillSetMul || 0) > 0) parts.push(`丹火不熄 ×${(1+(agg().pillSetMul||0)).toFixed(1)}`);
+
+  const msg = `服下【${name}】（${po.grade} 品）` + (parts.length ? '：' + parts.join('　') : '');
   if (ch) pushLog(msg);
   else log(msg);
   saveRun();                               // 吃药也落盘（第 22 轮的规矩）
   // 战斗内吃完要过一回合；战斗外没有回合这回事
-  return ch ? advanceRound() : { ok:true, msg, outOfBattle:true };
+  return ch ? advanceRound() : { ok:true, msg, outOfBattle:true, grade:po };
+}
+
+/* 限时战斗丹：一场仗打完扣一场，扣到 0 就整组散掉。
+   注意「boss_zhuji 那场」也在 resolveChallenge 的提前 return 路径里——
+   所以这个函数在那边也要调一次（见 resolveChallenge 的 majorUp 分支）。 */
+function tickTempPills(){
+  const t = s && s.pillTemp;
+  if (!t || !t.fights) return null;
+  t.fights -= 1;
+  if (t.fights <= 0){
+    t.fights = 0; t.atkPct = 0; t.dmgCut = 0; t.evade = 0;
+    log('限时丹药的药力散了。');
+  } else {
+    log(`限时丹药还剩 ${t.fights} 场。`);
+  }
+  return t.fights;
 }
 
 /* 身上还有哪些丹药（给「储物袋」面板用）。
-   数据全部来自牌组 —— 丹药是「一张牌 = 一枚」，用完就没了。 */
+   数据全部来自牌组 —— 丹药是「一张牌 = 一枚」，用完就没了。
+   ⚠️ 第 25 轮：每一条都带上**品级**与「此刻吃下去会怎样」，
+   界面直接拿 outcome 去显示，不再自己算一遍。 */
 function inventory(){
   if (!s || !s.deck) return [];
   const count = {};
@@ -7221,17 +7680,21 @@ function inventory(){
     const u = c.use || {};
     out.push({
       name: n, card: c, count: count[n],
+      grade: c.grade || 1,
+      outcome: pillOutcome(n),
+      battle: c.battle || '',
+      kind: u.perm ? 'perm' : (u.temp ? 'temp' : 'use'),
       effect: {
         life: u.life || 0, cult: u.cult || 0,
-        lifeMax: u.lifeMax || 0, karma: u.karma || 0
+        lifeMax: u.lifeMax || 0, karma: u.karma || 0,
+        perm: u.perm || null, temp: u.temp || null
       },
       desc: c.desc || '',
       rarity: c.rarity
     });
   });
-  /* 稀有度高的排前面，同档按名字稳定排序 */
-  const order = { '道':0, '玄':1, '良':2, '凡':3 };
-  out.sort((a,b)=> (order[a.rarity] - order[b.rarity]) || a.name.localeCompare(b.name));
+  /* 品级高的排前面，同档按名字稳定排序 */
+  out.sort((a,b)=> (b.grade - a.grade) || a.name.localeCompare(b.name));
   return out;
 }
 /* 丹药总数（给底栏角标用） */
@@ -7334,7 +7797,8 @@ function resolveChallenge(){
     const boss = G.BOSSES[ch.bossId];
 
     if (win && boss && boss.kind === 'final'){
-      // 渡雷池成功 → 开闸进入筑基（不再是结局——筑基只是第二站）
+      // 结丹天劫成功 → 开闸进入金丹（不再是结局——金丹只是第三站）
+      tickTempPills();                    // 这一场也算「用掉一场限时丹」
       const asc = advanceMajor();
       out.majorUp = asc;
       out.end = null;
@@ -7349,6 +7813,11 @@ function resolveChallenge(){
   }
 
   challenge = null;
+
+  /* 限时战斗丹的场次在这里消耗（第 25 轮）。
+     ⚠️ 必须在战斗**结算之后**扣：combatStats() 是在开场时冻结的，
+     先扣的话最后一场就吃不到加成了。输赢都算用掉一场。 */
+  tickTempPills();
 
   /* 天骄：不论输赢都算「遭遇过」，打赢另记一笔终身成就（第 22 轮） */
   if (ch.tianjiaoId) markTianjiaoMet(ch.tianjiaoId);
@@ -7985,7 +8454,7 @@ function doSanxiuAction(kind){
     d.pillTick++;
     if (d.pillTick >= Math.max(3, 8 - homeLv('danlu'))){
       d.pillTick = 0;
-      const pool = Object.keys(G.CARDS).filter(function(k){ return G.CARDS[k].type==='丹药'; });
+      const pool = pillPool();
       const pick = pool[Math.floor(s.rng()*pool.length)];
       addCard(pick);
       s._sxNote = '丹炉炼成了【' + pick + '】';
@@ -8287,6 +8756,112 @@ function tianjiaoDefeated(){ return (meta && meta.tianjiao) || []; }
 /* 玩家在这一局里的名号（比武夺魁等） */
 function titles(){ return (s && s.titles) || []; }
 
+/* ---------------- 「榜」面板要用的查询（第 25 轮） ----------------
+   玩家反馈：「我还是找不到有关比武大会和天骄榜的任何线索」。
+   之前的实现里，这两套系统**只存在于事件与引擎内部**：
+   比武的请帖是一闪而过的弹窗，天骄榜更是只有抽到特定事件才能看见一行字。
+   界面里没有任何地方能随时查「擂台什么时候开」「榜上都有谁」。
+   下面这几个函数就是给那个面板供数的——规则与 tourneyReady() 同源，
+   面板不会承诺一个不会到来的窗口。 */
+
+/* 下一次「开擂」是第几次行动（已开过的那个窗口不算） */
+function tourneyNextAt(){
+  const period = G.TOURNEY.period || 40;
+  const a = s ? (s.actions || 0) : 0;
+  let next = Math.ceil((a + 1) / period) * period;
+  if (next < (G.TOURNEY.firstAt || 0)) next = G.TOURNEY.firstAt || 0;
+  return next;
+}
+
+/* 你现在为什么上不了台（空字符串 = 随时可以上台）。
+   这段文字直接显示在「榜」面板上——「为什么没请帖」必须是有答案的，
+   否则玩家只会觉得这个系统坏了。 */
+function tourneyBlockReason(){
+  if (!s || s.ended) return '这一局已经结束了';
+  if (s.chapter !== 'zongmen') return '散修篇没有擂台。山里不设台。';
+  const cur = G.REALMS[s.realmIdx];
+  if (!cur) return '境界未知';
+  const b = G.TOURNEY_BRACKETS.find(x=>x.major===cur.major);
+  if (!b) return '你所在的境界还没有设台';
+  if ((s.tourneyDone || []).indexOf(b.id) >= 0) return '这条赛道你已经打过了（一局一次）';
+  if ((cur.sub || 0) < b.needSub) return `还差 ${b.needSub - (cur.sub || 0)} 层才够资格上台`;
+  const ratio = s.maxLife > 0 ? s.life / s.maxLife : 1;
+  if (ratio < 0.45) return '寿元不足四成半——宗门不会在这时候推你上台（会顺延，不作废）';
+  return '';
+}
+
+/* 比武大会的完整状态（面板用） */
+function tourneyStatus(){
+  const cur = s ? G.REALMS[s.realmIdx] : null;
+  const mine = cur ? (G.TOURNEY_BRACKETS.find(x=>x.major===cur.major) || null) : null;
+  const done = (s && s.tourneyDone) || [];
+  return {
+    period: G.TOURNEY.period,
+    rounds: G.TOURNEY.rounds,
+    brackets: G.TOURNEY_BRACKETS.map(b=>({
+      id:b.id, major:b.major, name:b.name, desc:b.desc, needSub:b.needSub,
+      reward:b.reward, champion:b.champion,
+      mine: !!mine && b.id === mine.id,
+      cleared: done.indexOf(b.id) >= 0,
+      cur: !!cur && b.major === cur.major
+    })),
+    mine: mine,
+    nextAt: tourneyNextAt(),
+    inActions: Math.max(0, tourneyNextAt() - ((s && s.actions) || 0)),
+    block: tourneyBlockReason(),
+    titles: titles()
+  };
+}
+
+/* 天骄榜的完整状态（面板用）：按大境界分组，附「我见过 / 我赢过」 */
+function tianjiaoStatus(){
+  const cur = s ? G.REALMS[s.realmIdx] : null;
+  const met = (s && s.tianjiaoMet) || [];
+  const beaten = tianjiaoDefeated();
+  const mine = cur ? cur.major : 1;
+  return {
+    mine: mine,
+    heard: !!(s && s.flags && s.flags.indexOf('heard_tianjiao') >= 0),
+    /* 能不能现在就循名去找人 */
+    seekable: !!(s && !s.ended && s.flags && s.flags.indexOf('heard_tianjiao') >= 0 && tianjiaoForRealm()),
+    rows: G.TIANJIAO.map(t=>({
+      id:t.id, name:t.name, major:t.major, epithet:t.epithet, sub:t.sub,
+      cur: t.major === mine,
+      metThisRun: met.indexOf(t.id) >= 0,
+      beatenThisRun: !!(s && s.flags && s.flags.indexOf('tj_beaten_' + t.id) >= 0),
+      beatenEver: beaten.indexOf(t.id) >= 0,
+      reward: t.reward
+    }))
+  };
+}
+
+/* 循着传闻去找当前境界的天骄（第 25 轮）。
+   ------------------------------------------------------------
+   天骄原本只在机缘 / 宗门事件里以 22~28% 的小概率出现，
+   一局下来很可能一次都碰不上（实测：只有 64% 的局能遇到）。
+   玩家反馈「找不到任何线索」——问题不在概率，在于**没有第二条路**。
+
+   现在：只要你在茶棚那张榜上记住了名字（flag: heard_tianjiao），
+   就可以花一次行动主动去找当前境界的那一位。
+   ⚠️ 找到之后就直接开打——这不是「找到人聊两句」，
+   天骄的设定就是「除非数值远超同境界，否则不可能战胜」。
+   所以这个按钮是一次**自愿踏入的险境**，不是福利。
+   代价也只有一次行动的寿元；打输的后果走挑战自己的 outcome。 */
+function seekTianjiao(){
+  if (!s || s.ended) return { ok:false, msg:'这一局已经结束了' };
+  if (!s.flags || s.flags.indexOf('heard_tianjiao') < 0)
+    return { ok:false, msg:'你还不知道榜上有谁。先在山下茶棚里见过那张榜。' };
+  const tj = tianjiaoForRealm();
+  if (!tj) return { ok:false, msg:'这个境界上，榜里没有你还没见过的人。' };
+  const cost = actionCost();
+  if (s.life - cost <= 0) return { ok:false, msg:'寿元不足' };
+  gainLife(-cost);
+  s.actions = (s.actions || 0) + 1;
+  s.worldActions = (s.worldActions || 0) + 1;
+  log(`你循着传闻去找${tj.name}。`);
+  return { ok:true, cost:cost, tj:tj, cfg: tianjiaoChallenge(tj), intro: tj.intro };
+}
+
 /* ---------------- 宗门：贡献 · 职衔 · 藏经阁 · 月俸 · 主线 ---------------- */
 function sectContrib(){ return s.sectContrib || 0; }
 function sectRank(){
@@ -8473,24 +9048,49 @@ function doBuild(id){
 }
 
 /* ---------------- 天劫 ----------------
-   强度随境界缓涨。伤害已压低：打输只是重伤，不会直接重开。 */
-function startTribulation(){
+   第 25 轮重做。旧版把强度写成 `t.basePower * (1 + 境界序数*0.16)`，
+   而 basePower 是 36~48 —— 那是属性表还只有 41 个值时拍的魔法数字。
+   现在玩家伤害走 G.foePowerAt() 那条曲线，金丹期已经是几千点，
+   217 点的「天劫」连挠痒都算不上。
+
+   新版沿用敌人强度的**唯一来源**（G.foePowerAt × 难度阶梯），
+   只是梯级换成 G.ENEMY_TIERS.tribulation（×2.6，比同阶凶物略轻）。
+   三种劫（雷/风/火）的差别改走 cfg.power 的 ±% 微调通道：
+   这样「火劫比风劫狠」这件事仍然成立，而且含义是可解释的。 */
+function tribulationScale(extreme){
+  const T = G.CONFIG.tribulation;
+  return extreme ? (T.extremeMul || 1) : 1;
+}
+
+/* 把「劫的种类差」与「逆天加成」折算成一个 ±% 微调值，交给 startChallenge。
+   两种加成在这里是加法关系（1+f+e），而不是连乘 ——
+   连乘会让「火劫 + 逆天」叠到 ×2.1，那是另一场 Boss 的强度，不是门槛。 */
+function tribulationFineTune(t, extreme){
+  const flavor    = ((t.mul || 1) - 1) * 100;          // 风 −15 / 雷 0 / 火 +10
+  const extremePct = (tribulationScale(extreme) - 1) * 100;  // 逆天 +50
+  return Math.round(flavor + extremePct);
+}
+
+function startTribulation(extreme){
   const names = Object.keys(G.TRIBULATIONS);
   const key = names[Math.floor(s.rng()*names.length)];
   const t = G.TRIBULATIONS[key];
-  const scale = 1 + s.realmIdx*0.16 + s.karma*0.03;
   return startChallenge({
     type:'tribulation',
     tbName:key,
     name:key,
-    power: Math.round(t.basePower * scale),
+    tier:'tribulation',
+    power: tribulationFineTune(t, extreme),
+    extreme: !!extreme,
     rounds: t.rounds,
     txt: t.txt
   });
 }
 
 /* ---------------- 业障满：天谴 ----------------
-   这是唯一「打输可能真的死」的战斗，也是业障唯一的用处。 */
+   这是唯一「打输可能真的死」的战斗，也是业障唯一的用处。
+   ⚠️ 天谴不是「天劫」——它和境界无关，什么时候业障满了什么时候来。
+   所以它不受 CONFIG.tribulation 那套大境界门槛的约束。 */
 function karmaOverflow(){
   return s.karma >= G.CONFIG.tribulation.killerKarma;
 }
@@ -8499,11 +9099,12 @@ function startKillerTribulation(){
   const names = Object.keys(G.TRIBULATIONS);
   const key = names[Math.floor(s.rng()*names.length)];
   const t = G.TRIBULATIONS[key];
-  const scale = 1 + s.realmIdx*0.18 + s.karma*0.04;
   return startChallenge({
     type:'tribulation', killer:true, tbName:key,
     name:'天谴 · ' + key,
-    power: Math.round(t.basePower * scale * 1.5),
+    tier:'terror',
+    /* 天谴比天劫狠一档：阶梯 terror(2.8) + 额外 +50% */
+    power: 50,
     rounds: t.rounds,
     txt: '云不是从天上来的。\n是从你自己身上长出来的。\n\n' + t.txt
   });
@@ -8763,22 +9364,31 @@ function availableActions(){
 
   if (st.canBreak){
     const nextRealm = G.REALMS[st.realmIdx+1];
+    /* 第 25 轮：这里必须**如实**告诉玩家会不会挨雷。
+       天劫的规则是「跨大境界 且 目标大境界 >= 金丹」，
+       所以 canBreak 这一档（小境界）永远不降劫，文案里就不要提天劫。 */
+    const tb = shouldTribulate(G.REALMS[st.realmIdx], nextRealm);
     list.unshift({
       id:'break',
       name:'★ 突破 · ' + (nextRealm?nextRealm.name:'—'),
       cost:0,
-      desc:'修为已足。破境。寿元上限与当前寿元都将大增——但可能引来天劫。',
-      meta:`需修为 ${st.breakNeed}　现有 ${st.cult}`,
+      desc: tb.yes
+        ? '修为已足。这一破要跨大境界——天上会有东西来看你。'
+        : '修为已足。破境，寿元上限与当前寿元都将提升。',
+      meta:`需修为 ${st.breakNeed}　现有 ${st.cult}` +
+           (tb.yes ? '　⚡ 会降天劫' : ''),
       primary:true, special:'break'
     });
   } else if (st.canAscend){
-    // 炼气九层 → 筑基：不是普通突破，是「渡雷池」
+    /* 筑基九层 → 金丹：第一场天劫，写成剧本（「雷池之影」）。
+       ⚠️ 第 25 轮改动：这里原本写的是「炼气九层 → 筑基」和
+       「已是此界之巅」——那是早期草稿把筑基当结局时留下的。 */
     list.unshift({
       id:'break',
-      name:'★ 渡 雷 池 · 筑基',
+      name:'★ 结 丹 之 劫 · 金丹',
       cost:0,
-      desc:'炼气九层，已是此界之巅。雷池就在前面——走进去，就没有回头路了。',
-      meta:`需修为 ${st.breakNeed}　现有 ${st.cult}`,
+      desc:'筑基九层，气已经满了。结丹要在一瞬间把那口气收回去——收不回去的，就在这里散掉。',
+      meta:`需修为 ${st.breakNeed}　现有 ${st.cult}　⚡ 天劫`,
       primary:true, special:'break'
     });
   } else if (st.canCapstone){
@@ -8837,7 +9447,7 @@ G.Engine = {
 
   // 行动
   state, availableActions, doAction,
-  doBreak, breakNeed, canBreak, canAscend, isAtEnd, advanceMajor,
+  doBreak, breakNeed, canBreak, canAscend, isMajorCrossing, isAtEnd, advanceMajor,
   canCapstone,
   explore,
   pickEvent, addClue,
@@ -8849,6 +9459,11 @@ G.Engine = {
   checkChallengeEnd: checkCombatEnd,   // 兼容旧名
   basicAttack, useTechnique, usePill,
   inventory, pillCount,                 // 储物袋（第 24 轮）
+  pillOutcome, myPillGrade,             // 丹药品级（第 25 轮）
+  get pillPerm(){ return (s && s.pillPerm) || {}; },
+  get pillTemp(){ return (s && s.pillTemp) || {}; },
+  // 榜（比武大会 / 天骄榜）第 25 轮
+  tourneyStatus, tianjiaoStatus, tourneyNextAt, seekTianjiao,
   techCostOf, techCostBlock,           // 招式的材料成本（灵石 / 阳寿）
   get challenge(){ return challenge; },
   startTribulation, startKillerTribulation,
@@ -9288,6 +9903,29 @@ function renderRun(){
   powEl.textContent = `气血 ${cs.maxHp}　攻 ${cs.basicAtk} · ${fightHint(cs)}`;
   powEl.className = 'pow' + (cs.maxHp >= 400 ? ' strong' : '');
 
+  /* ---- 丹药加成条（第 25 轮）----
+     永久丹是本局永久的成长，限时丹只剩几场就要散——
+     这两件事玩家必须随时看得见，否则「我明明吃过丹」会变成疑问。 */
+  const boost = $('pillBoost');
+  if (boost){
+    const perm = G.Engine.pillPerm || {};
+    const temp = G.Engine.pillTemp || {};
+    const bits = [];
+    if (perm.hpPct)   bits.push(`<span class="pb-perm">气血 +${Math.round(perm.hpPct*100)}%</span>`);
+    if (perm.atkPct)  bits.push(`<span class="pb-perm">伤害 +${Math.round(perm.atkPct*100)}%</span>`);
+    if (perm.qiPct)   bits.push(`<span class="pb-perm">真气 +${Math.round(perm.qiPct*100)}%</span>`);
+    if (perm.wardPct) bits.push(`<span class="pb-perm">护体 +${Math.round(perm.wardPct*100)}%</span>`);
+    if (temp.fights > 0){
+      const tb = [];
+      if (temp.atkPct) tb.push(`伤害 +${Math.round(temp.atkPct*100)}%`);
+      if (temp.dmgCut) tb.push(`受伤 −${Math.round(temp.dmgCut*100)}%`);
+      if (temp.evade)  tb.push(`闪避 +${Math.round(temp.evade*100)}%`);
+      bits.push(`<span class="pb-temp">限时 ${temp.fights} 场：${tb.join('　')}</span>`);
+    }
+    boost.innerHTML = bits.length ? '丹力 ' + bits.join('　') : '';
+    boost.style.display = bits.length ? '' : 'none';
+  }
+
   // 行动列表
   const main = $('runMain');
   main.innerHTML = '';
@@ -9396,6 +10034,21 @@ function fightHint(cs){
 
 const RARITY_COLOR = { '凡':'#8a8078', '良':'#5fae8f', '玄':'#5b7fa8', '道':'#c9a227' };
 
+/* 品质 / 类型角标（第 25 轮抽成函数）
+   ------------------------------------------------------------
+   玩家反馈：战斗里的招式按钮只有光秃秃一个名字，看不出这张牌
+   是凡品还是道品，也看不出它是功法、术法还是法宝。
+   抽卡界面（showCardPick）一直有这两个角标，战斗界面却没有。
+   现在两边共用同一个函数，以后不会再走散。 */
+function rarityTag(nameOrCard){
+  const c = (typeof nameOrCard === 'string') ? G.CARDS[nameOrCard] : nameOrCard;
+  if (!c) return '';
+  const col = RARITY_COLOR[c.rarity] || '#8a8078';
+  const kind = c.type || '';
+  return `<span class="card-tag" style="color:${col};border-color:${col}">${c.rarity || '凡'}</span>` +
+         (kind ? `<span class="card-tag">${kind}</span>` : '');
+}
+
 /* ---- 三选一：机缘 ---- */
 let cardChooserOpen = false;
 
@@ -9439,8 +10092,7 @@ function showCardPick(cards, onDone){
       : '——';
     b.innerHTML =
       `<div class="ev-ctext">${name}
-         <span class="card-tag" style="color:${RARITY_COLOR[c.rarity]||'#8a8078'};border-color:${RARITY_COLOR[c.rarity]||'#8a8078'}">${c.rarity}</span>
-         <span class="card-tag">${c.type}</span>
+         ${rarityTag(c)}
        </div>
        <div class="ev-cmeta">${stat}　${c.desc||''}</div>`;
     b.addEventListener('click', ()=>{
@@ -9819,7 +10471,9 @@ function doBreakSequence(){
      不给「突破」，因为前面那一段还没有被写出来。 */
   if (r.capstone){ capstoneFlow(); return; }
 
-  // 炼气九层 → 筑基：交给终极 Boss「雷池之影」
+  /* 筑基九层 → 金丹：第一场天劫，剧本写在 boss_zhuji 里。
+     ⚠️ 第 25 轮改动：这个门槛原在「炼气九层 → 筑基」。
+     用户要求清掉那段早期草稿，天劫只留在金丹期起的大境界突破上。 */
   if (r.needBoss){
     const boss = G.BOSSES[r.needBoss];
     if (boss){ showBoss(boss); return; }
@@ -9828,7 +10482,7 @@ function doBreakSequence(){
   toast(`破境！${r.realm}　寿元上限 ${r.maxLife}`,'epic');
   renderRun();
   if (r.tribulation){
-    setTimeout(()=>startTribulationFlow('破境之时，天上有东西在看。'), 420);
+    setTimeout(()=>startTribulationFlow(null, r.extreme), 420);
     return;
   }
   // 破境后也可能撞上 Boss（例如青云观主、心魔）
@@ -9937,9 +10591,10 @@ const api = G.Engine.makeActions({
 /* ---- 挑战（战斗 / 天劫） ---- */
 let activeChallenge = null;
 
-function startTribulationFlow(preText){
-  const ch = G.Engine.startTribulation();
-  ch.cfg.preText = preText;
+function startTribulationFlow(preText, extreme){
+  const ch = G.Engine.startTribulation(extreme);
+  ch.cfg.preText = preText || '破境之时，天上有东西在看。';
+  if (extreme) ch.cfg.preText = '这一次的天，比平常低。\n它认得你。\n\n' + ch.cfg.preText;
   activeChallenge = ch;
   autoSave();                       // 战斗一旦开始就落盘，避免中途关掉丢局面
   renderChallenge();
@@ -10058,8 +10713,10 @@ function renderChallenge(){
     if (t.kind!=='dmg' && t.mul) effect += '　伤害约 ' + Math.round(ch.stats.techPower * (ch.stats.techMul||1) * t.mul);
     const stateTxt = cd>0 ? ('冷却 ' + cd) : (noQi ? ('真气不足 需' + t.qi) : ('真气 ' + t.qi));
     const b = el('button','ev-choice');
+    /* 第 25 轮：名字后面挂上品质与类型角标。
+       战斗是玩家最需要「这张牌值不值得用」的地方，之前却只有光名字。 */
     b.innerHTML =
-      '<div class="ev-ctext">' + n + '　<span class="tag-inf ' + (cd>0?'dim':'') + '">' + stateTxt + '</span></div>' +
+      '<div class="ev-ctext">' + n + rarityTag(n) + '　<span class="tag-inf ' + (cd>0?'dim':'') + '">' + stateTxt + '</span></div>' +
       '<div class="ev-cmeta">' + effect + '　冷却 ' + t.cd + ' 回合' +
         (costTxt ? '　<span class="' + (noCost?'cost-lack':'cost-ok') + '">' + costTxt + '</span>' : '') + '</div>';
     if (cd>0 || noQi || noCost) b.disabled = true;
@@ -10074,7 +10731,7 @@ function renderChallenge(){
   pills.slice(0,3).forEach(function(n){
     const c = G.CARDS[n];
     const b = el('button','ev-choice');
-    b.innerHTML = '<div class="ev-ctext">服丹 · ' + n + '</div>' +
+    b.innerHTML = '<div class="ev-ctext">服丹 · ' + n + rarityTag(c) + '</div>' +
       '<div class="ev-cmeta">' + (c.desc||'').slice(0,20) + '　（用掉一枚）</div>';
     b.addEventListener('click', function(){ doFightAct(function(){ return G.Engine.usePill(n); }); });
     acts.appendChild(b);
@@ -10204,6 +10861,7 @@ function showBag(){
   const body = el('div');
 
   const inBattle = !!(G.Engine.challenge && G.Engine.challenge.active);
+  const myGrade = G.Engine.myPillGrade();
 
   body.appendChild(el('div','arc-i',
     `储物袋里有 <b style="color:#c9a227">${G.Engine.pillCount()}</b> 枚丹药。\n` +
@@ -10211,6 +10869,17 @@ function showBag(){
       ? '<span style="color:#f0a99f">你正在战斗中 —— 这里吃丹会消耗一个回合。</span>'
       : '战斗内外都能服用。回血的丹在战斗里补气血，在战斗外补寿元。') +
     '<br><span style="color:#6f6459">（功法、术法、法宝在「牌组」里看）</span>'));
+
+  /* ---- 品级说明（第 25 轮）----
+     品级 = 这枚丹是给哪个大境界炼的；你自己的品级就是你的大境界序号。
+     越品伤身、低品减效——这两句话必须在吃之前就让玩家看见，
+     否则「丹药突然扣我寿元」会像是 bug 而不是规则。 */
+  body.appendChild(el('div','pill-grade-head',
+    `丹 药 品 级　<span class="pg-mine">你现在是 ${myGrade} 品（${st.realmName}）</span>`));
+  body.appendChild(el('div','pill-grade-note',
+    `品级 = 这枚丹是给哪个大境界的修士炼的。\n` +
+    `· 吃 <b>高于自己</b> 的丹 → 药力过盛：效果打折，还会反噬寿元\n` +
+    `· 吃 <b>低于自己</b> 的丹 → 药力过时：每低 1 品，效果 ×0.70（最低 ×0.15）`));
 
   if (!list.length){
     body.appendChild(el('div','arc-empty','袋子是空的。\n\n丹药来自：探索、机缘、丹房、散修洞府的丹炉。'));
@@ -10225,13 +10894,24 @@ function showBag(){
     if (it.effect.cult) eff.push('修为 +' + it.effect.cult);
     if (it.effect.lifeMax) eff.push('寿元上限 +' + it.effect.lifeMax);
     if (it.effect.karma) eff.push('业障 ' + (it.effect.karma>0?'+':'') + it.effect.karma);
+    /* 永久 / 限时战斗丹：把它们真正的卖点写清楚（第 25 轮） */
+    if (it.battle) eff.push(it.battle);
     const nameCls = it.rarity==='道' ? 'var(--gold2)' : (it.rarity==='玄' ? 'var(--blue)' : 'var(--ink)');
+    /* 品级角标 + 「此刻吃下去会怎样」的预判。
+       越品用红色、低品用灰色——玩家一眼能看出这枚丹现在值不值得吃。 */
+    const pgCls = it.outcome.kind === 'danger' ? 'pg-bad'
+                : it.outcome.kind === 'warn'   ? 'pg-warn'
+                : it.outcome.kind === 'dim'    ? 'pg-dim' : 'pg-ok';
+    const shownMul = it.outcome.mul !== 1
+      ? `　<span class="pg-mul">实际效果 ×${it.outcome.mul.toFixed(2)}</span>` : '';
     row.innerHTML =
       `<div class="bld-info">
          <div class="bld-name"><span style="color:${nameCls}">${it.name}</span>` +
+         `<span class="lv pg-tag ${pgCls}">${it.grade} 品</span>` +
          `<span class="lv" style="color:${RARITY_TEXT[it.rarity]}">${it.rarity}</span>` +
          `<span class="lv">×${it.count}</span></div>
-         <div class="bld-desc">${eff.join('　')}</div>
+         <div class="bld-desc">${eff.join('　')}${shownMul}</div>
+         <div class="bld-desc ${pgCls}" style="font-size:12px">${it.outcome.note}</div>
          <div class="bld-desc" style="color:#5c5349">${it.desc}</div>
        </div>`;
     const bt = el('button','bld-btn','服 用');
@@ -10260,10 +10940,165 @@ function showBag(){
   ]);
 }
 
+/* ---- 榜：比武大会 + 天骄榜（第 25 轮新增） ----
+   ------------------------------------------------------------
+   玩家反馈：「我还是找不到有关比武大会和天骄榜的任何线索」。
+
+   诊断（dev/dbg-discover.js）：比武请帖其实出现在 94% 的局里，
+   天骄也有 64% 的局能遇到——**但界面里没有任何地方能主动查到它们**。
+   请帖是一闪而过的弹窗，天骄榜更是只有抽中特定事件才看见一行字。
+   信息在，入口不在。这个面板就是那个入口。
+
+   面板分两段：
+     ① 比武大会：我的赛道 / 门槛 / 资格 / 下一次开擂还有几次行动 /
+        为什么现在上不了台（有答案，不是「坏了」）/ 已夺名号 / 四条赛道图鉴
+     ② 天骄榜：八个名字按境界分组，标出「未遇 / 已交手 / 已胜」，
+        并且——如果你在山下茶棚见过那张榜——可以**循名去找人**。 */
+function showRank(){
+  const st = G.Engine.state();
+  if (!st) return;
+  const T = G.Engine.tourneyStatus();
+  const J = G.Engine.tianjiaoStatus();
+  const body = el('div');
+
+  /* ==================== ① 比武大会 ==================== */
+  body.appendChild(el('div','rank-h','一　比 武 大 会'));
+  body.appendChild(el('div','rank-note',
+    `宗门设台，**按大境界分赛道**。同一条台上只会遇到同一个大境界的人。\n` +
+    `每条赛道每 ${T.period} 次行动开一次，一局只能打一次；共 ${T.rounds} 轮，输一场下台——比武不伤性命。`));
+
+  if (T.mine){
+    const b = T.mine;
+    const cur = G.REALMS[st.raw.realmIdx];
+    const cleared = T.brackets.find(x=>x.id===b.id).cleared;
+    const box = el('div','rank-card' + (T.block ? '' : ' hot'));
+    box.innerHTML =
+      `<div class="rank-card-h">我的赛道：${b.name}</div>
+       <div class="rank-card-d">${b.desc}</div>
+       <div class="rank-card-m">门槛：${b.needSub} 层　` +
+        `你现在：${cur.name}　` +
+        (T.block ? `<span class="rk-bad">${T.block}</span>`
+                 : `<span class="rk-ok">有资格上台</span>`) +
+      `</div>
+       <div class="rank-card-m">` +
+        (cleared ? '这条赛道你已经打过了（一局一次）。'
+                 : `下一次开擂：第 <b>${T.nextAt}</b> 次行动（还有 <b>${T.inActions}</b> 次）`) +
+      `</div>
+       <div class="rank-card-m">四轮对手：弱旅 → 寻常 → 好手 → 强敌　` +
+        `夺冠奖励：灵石 ${b.champion.stone}　修为 ~${b.champion.cult}　贡献 ${b.champion.contrib}　人情 ${b.champion.favor}</div>`;
+    body.appendChild(box);
+  } else {
+    body.appendChild(el('div','rank-note','你所在的境界还没有设台。'));
+  }
+
+  body.appendChild(el('div','rank-sub', '四条赛道（你只能报自己这一条）'));
+  T.brackets.forEach(b=>{
+    const row = el('div','rank-row' + (b.mine?' me':'') + (b.cleared?' done':''));
+    row.innerHTML =
+      `<div class="rr-name">${b.name}${b.mine?'　<span class="rk-ok">← 你在这儿</span>':''}</div>
+       <div class="rr-desc">${b.desc}</div>
+       <div class="rr-meta">门槛 ${b.needSub} 层　夺冠：灵石 ${b.champion.stone}　名号「${b.champion.title}」` +
+        (b.cleared ? '　<span class="rk-ok">已参赛</span>' : '') + `</div>`;
+    body.appendChild(row);
+  });
+  if (T.titles.length){
+    body.appendChild(el('div','rank-note','你这一世挣到的名号：<b style="color:#c9a227">' +
+      T.titles.join('　') + '</b>'));
+  }
+
+  /* ==================== ② 天骄榜 ==================== */
+  body.appendChild(el('div','rank-h','二　天 骄 榜'));
+  body.appendChild(el('div','rank-note',
+    `榜上的人**远超同境界修士**——气血与攻击都是同阶凶物的数倍。\n` +
+    `同境界撞上他们，基本没有胜算；只有把数值堆到明显超出同阶（大量元界修复 + 好牌）才有把握。\n` +
+    `打赢一次就记进档案柜，是终身成就。一局只会遇到同一个人一次。`));
+
+  const byMajor = {};
+  J.rows.forEach(r=>{ (byMajor[r.major] = byMajor[r.major] || []).push(r); });
+  Object.keys(byMajor).sort((a,b)=>a-b).forEach(m=>{
+    const realmName = (G.MAJOR_REALMS && G.MAJOR_REALMS[m-1]) || (m+'');
+    const sec = el('div','rank-sec');
+    sec.appendChild(el('div','rank-sub', realmName + '　' + (Number(m)===J.mine ? '（你在这儿）' : '')));
+    byMajor[m].forEach(r=>{
+      const tag = r.beatenThisRun ? '<span class="rk-ok">这一世赢过</span>'
+                : r.metThisRun   ? '<span class="rk-bad">交过手（败）</span>'
+                : r.beatenEver   ? '<span class="rk-ok">从前赢过</span>'
+                : '<span class="rk-dim">尚未谋面</span>';
+      const row = el('div','rank-row' + (r.cur?' me':'') + (r.beatenThisRun?' done':''));
+      row.innerHTML =
+        `<div class="rr-name">${r.name}　<span class="rr-epi">${r.epithet}</span></div>
+         <div class="rr-meta">${realmName}${r.sub}层　胜过他的报酬：灵石 ${r.reward.stone}　修为 ~${r.reward.cult}` +
+         (r.reward.title ? `　名号「${r.reward.title}」` : '') + `</div>
+         <div class="rr-meta">${tag}</div>`;
+      sec.appendChild(row);
+    });
+    body.appendChild(sec);
+  });
+
+  const foot = [];
+  if (J.seekable){
+    /* 第 25 轮：给天骄一条「可以自己走的路」。
+       只在见过茶棚那张榜之后才出现——机缘仍然是入口，
+       但它不再是唯一入口。 */
+    const b = btn('循 名 去 找 他（寿元 −' + st.cost + '）','btn-main', ()=>{
+      const r = G.Engine.seekTianjiao();
+      if (!r || !r.ok){ toast((r&&r.msg)||'找不到','bad'); return; }
+      closeSheet();
+      autoSave();
+      startTianjiaoFlow(r);
+    });
+    foot.push(b);
+  } else if (!J.heard){
+    body.appendChild(el('div','rank-note',
+      '（你还没见过山下茶棚里那张榜。见过之后，这里会多一个「循名去找人」。）'));
+  } else {
+    body.appendChild(el('div','rank-note',
+      '（这个境界上，榜里没有你还没见过的人了。往上走，才碰得到更上面的名字。）'));
+  }
+  foot.push(btn('关 上','btn-main',()=>closeSheet()));
+  sheet('榜', body, foot);
+}
+
+/* 循名去找天骄 → 直接开打。
+   走的是和机缘事件里完全一样的那条挑战通道（tianjiaoChallenge），
+   所以数值、战果、终身成就的记账都不会有第二套实现。 */
+function startTianjiaoFlow(r){
+  const tj = r.tj;
+  const b = el('div');
+  b.innerHTML =
+    `<div class="ev-text">${(r.intro||'').replace(/\n/g,'<br>')}</div>` +
+    `<div class="ev-flavor">你走了很久，最后在一处没有名字的地方见到了他。\n\n` +
+    `“你找我？”他说。\n“你知道我要来。”\n“知道。”\n\n` +
+    `他没有问你为什么来。他站起来了。</div>`;
+  const wrap = el('div');
+  wrap.style.marginTop = '10px';
+  wrap.appendChild(btn('动 手','btn-main btn-go',()=>{
+    closeSheet();
+    startChallengeFlow(r.cfg);
+  }));
+  wrap.appendChild(btn('算 了（已经花掉的寿元不退）','btn-main',()=>{
+    closeSheet();
+    renderRun();
+  }));
+  b.appendChild(wrap);
+
+  /* ⚠️ 这里不能像事件那样「先看文本再决定」——
+     挑战配置已经生成，所以「算了」= 白白跑一趟。
+     这是有意的：找上门这件事本身就该有代价。 */
+  sheet(tj.title || tj.name, b, []);
+}
+
 /* ---- 牌组 / 宗门 / 记事 ---- */
 function showDeck(){
   const raw = G.Engine.state().raw;
   const cs2 = G.Engine.combatStats();   // 第 20 轮：卡面要显示「战斗里真正的数值」
+  /* ⚠️ 第 25 轮修：这一句原本写在函数**末尾**（「总计」那一段前面），
+     但上面的卡牌循环里已经用到了 a.pillSetMul（丹药的实际效果要乘丹火不熄）。
+     于是只要身上有**任意一枚丹药**，打开「牌组」就会抛
+     ReferenceError: Cannot access 'a' before initialization —— 整个面板白屏。
+     这类 TDZ 错误在浏览器里只表现为「点了没反应」，很难查，所以把声明提到最前面。
+     （是 dev/verify-uiclaims.js 渲染面板时抓出来的。） */
+  const a = G.Engine.agg();
   const body = el('div');
   const groups = { '功法':[], '术法':[], '法宝':[], '丹药':[] };
   const counted = {};
@@ -10324,8 +11159,15 @@ function showDeck(){
       } else if (g.c.use) {
         const u = g.c.use;
         const pm = 1 + (a.pillSetMul||0);
-        powTxt = [u.life?('气血 +'+Math.round(u.life*pm)):'', u.cult?('修为 +'+Math.round(u.cult*pm)):'',
-                  u.lifeMax?('寿元上限 +'+Math.round(u.lifeMax*pm)):''].filter(Boolean).join('　');
+        /* 第 25 轮：丹药还带品级 —— 牌组里也把「几品」和实际倍率写出来，
+           免得玩家在牌组看到的数字和储物袋里的对不上。 */
+        const po = (typeof G.Engine.pillOutcome === 'function') ? G.Engine.pillOutcome(g.n) : null;
+        const m2 = pm * ((po && po.mul) || 1);
+        powTxt = [u.life?('气血 +'+Math.round(u.life*m2)):'', u.cult?('修为 +'+Math.round(u.cult*m2)):'',
+                  u.lifeMax?('寿元上限 +'+Math.round(u.lifeMax*m2)):''].filter(Boolean).join('　');
+        if (po) powTxt = `${po.grade} 品　` + powTxt +
+          (po.mul !== 1 ? `　<span class="pg-mul">×${po.mul.toFixed(2)}</span>` : '');
+        if (g.c.battle) powTxt += '　' + g.c.battle;
       }
       const d = el('div','card-item');
       d.innerHTML =
@@ -10344,8 +11186,8 @@ function showDeck(){
   /* ---- 总计 ----
      第 20 轮：这里以前显示 agg().power / agg().ward 的原始值，
      而战斗里一分钱都不算——等于在骗玩家。现在**显示战斗真正用的数值**，
-     并且把「卡牌对你伤害的乘数」讲清楚。 */
-  const a = G.Engine.agg();
+     并且把「卡牌对你伤害的乘数」讲清楚。
+     ⚠️ agg() 的结果 a 已经在函数开头取好了（见上方的 TDZ 说明）。 */
   const sum = el('div','arc-sec');
   sum.appendChild(el('div','arc-h','总 计'));
   sum.appendChild(el('div','arc-i',
@@ -11019,6 +11861,7 @@ function init(){
   $('btnAttr').addEventListener('click', showAttrs);
   $('btnDeck').addEventListener('click', showDeck);
   $('btnBag').addEventListener('click', showBag);
+  $('btnRank').addEventListener('click', showRank);
   $('btnSect').addEventListener('click', showSect);
   $('btnClue').addEventListener('click', showClue);
   $('btnLog').addEventListener('click', showLog);
@@ -11060,6 +11903,17 @@ function init(){
 }
 
 G.UI = { init, toast, show, renderMeta, renderRun, showEnding };
+
+/* 开发期测试钩子（第 25 轮）。
+   ------------------------------------------------------------
+   这些内部函数挂出来，是为了让**界面的承诺**也能被测到：
+   「战斗中显示品质」「榜里能查到天骄和擂台」这类话，
+   只有真的渲染一次、去生成的 HTML 里找，才算验证过。
+   正式游戏代码不读这个对象，它只服务 dev/ 下的脚本。 */
+G.UI.__dev = {
+  rarityTag, renderChallenge, showRank, showBag, sheet, closeSheet,
+  startTianjiaoFlow, renderRun, showDeck
+};
 
 document.addEventListener('DOMContentLoaded', init);
 

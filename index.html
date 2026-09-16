@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta name="build" content="2026/9/16 19:02:49">
-<!-- build: 2026/9/16 19:02:49 -->
+<meta name="build" content="2026/9/16 19:39:27">
+<!-- build: 2026/9/16 19:39:27 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#0d0b0a">
@@ -417,6 +417,36 @@ button:disabled{opacity:.35;cursor:not-allowed}
 }
 .pill-boost .pb-perm{color:var(--gold2)}
 .pill-boost .pb-temp{color:#d9a24a}
+
+/* ---------------- 内景（境界养成，第 26 轮） ----------------
+   它和修为共用一个池子，所以摘要条紧挨着修为进度条放；
+   全貌在「属性」面板里。 */
+.daoji-text{
+  font-size:11px;line-height:1.7;margin-top:5px;color:var(--ink2);
+}
+.daoji-text b{color:var(--gold2);font-weight:400;letter-spacing:1px}
+.daoji-text .dj-gain{color:var(--jade)}
+.daoji-text .dj-cost{color:var(--ink3)}
+.daoji-text.ready .dj-cost{color:#d9a24a}
+.daoji-text.maxed b{color:var(--jade)}
+
+.daoji-card{
+  background:var(--bg2);border:1px solid var(--line);border-radius:8px;
+  padding:11px 12px;margin-bottom:10px;
+}
+.daoji-card.maxed{border-color:var(--jade);background:rgba(95,174,143,.07)}
+.dj-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.dj-name{font-size:14px;color:var(--gold2);letter-spacing:3px}
+.daoji-card.maxed .dj-name{color:var(--jade)}
+.dj-lv{font-size:11.5px;color:var(--ink3)}
+.dj-bar{height:5px;background:var(--panel2);border-radius:3px;overflow:hidden;margin:7px 0 8px}
+.dj-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));border-radius:3px}
+.daoji-card.maxed .dj-fill{background:var(--jade)}
+.dj-desc{font-size:11.5px;color:var(--ink3);line-height:1.7}
+.dj-stats{font-size:12px;color:var(--ink2);margin-top:7px}
+.dj-stats b{color:var(--gold2);font-weight:400}
+.dj-next{font-size:11.5px;color:var(--ink2);margin-top:6px;line-height:1.7}
+.dj-next b{color:var(--gold2);font-weight:400}
 
 /* ---------------- 榜（比武大会 / 天骄榜，第 25 轮） ----------------
    之前这两套系统在界面里完全没有入口：请帖是一闪而过的弹窗，
@@ -874,6 +904,8 @@ button{touch-action:manipulation;}
         </div>
         <!-- 丹药加成条（第 25 轮）：永久丹与剩余场次的限时丹。空的时候整条隐藏 -->
         <div class="pill-boost" id="pillBoost" style="display:none"></div>
+        <!-- 内景（第 26 轮）：境界养成的层数与全属性加成。紧挨着修为条 -->
+        <div class="daoji-text" id="daoJiText"></div>
       </div>
     </header>
 
@@ -1551,8 +1583,24 @@ G.TUNE = {
   /* 一场仗下来，玩家大概掉多少比例的气血。
      ⚠️ 这个值直接决定「压力感」：
      0.65 时实测打完还剩 46~84% 气血（偏松）；
-     调到 0.80 后落在 35~70%，中途真的会开始担心血线。 */
-  hpLossPerFight: 0.80,
+     调到 0.80 后落在 35~70%，中途真的会开始担心血线。
+
+     ⚠️⚠️ 第 26 轮：0.80 → **0.84**。起因是新增的「内景」在每个大境界
+     都给了玩家约 +25% 气血 / +30% 伤害，于是「走到元婴九层」的比率
+     从 84% 涨到 95% —— 那已经不是「略难」而是「几乎不会失败」了。
+     玩家要求「略微上调一点点对敌的难度（主要集中在天骄和宗门比武的顶级高手上）」，
+     所以分三处加：
+       · 全局：0.80 → 0.84（敌人攻击 +5%，只加一点点）
+       · 天骄：倍率 4.6/2.6 → 5.2/2.9（← 主要落点）
+       · 比武：半决赛 ×1.18、决赛 ×1.35（← 主要落点；前两轮不动，新手不该被劝退）
+
+     ⚠️ 试过 0.92，退回来了。原因是**全局这一档会同时作用在天骄与比武上**：
+     0.92 时天骄元婴段的胜率从 53~68% 掉到 35~40% —— 等于把「集中在
+     天骄和比武」的要求做成了「天骄挨两刀」，而通关率几乎没动
+     （95.3% → 93.0%，在噪声范围内）。也就是说这一档买不到全局难度，
+     只会过度惩罚那两处。所以压回 0.84。
+     真正决定一局长短的是寿元与行动预算，不是单场战斗掉多少血。 */
+  hpLossPerFight: 0.84,
   /* 敌人是否跟随玩家的成长曲线：1.0 = 完全跟随 */
   curveHp:  1.0,
   curveAtk: 1.0
@@ -1595,13 +1643,32 @@ G.TOURNEY = {
   period: 40,
   firstAt: 22,         // 最早在第几次行动出现
   rounds: 4,           // 共几轮
-  /* 每轮的对手阶梯与名字 */
+  /* 每轮的对手阶梯与名字。
+     ⚠️ 第 26 轮：加了 `mul`（相对同阶的额外倍率）与 `note`。
+     起因是新增的「内景」让玩家在每一段都多了约 +25% 气血 / +30% 伤害，
+     玩家要求「略微上调一点点对敌的难度，主要集中在宗门比武的顶级高手上」。
+     所以前两轮**基本不动**（新手不该被劝退），把增量压在半决赛与决赛：
+       初赛 ×1.00　复赛 ×1.06　半决赛 ×1.18　决赛 ×1.35
+     走的是 startChallenge 的 ±% 微调通道，血和攻一起放大。 */
   ladder: [
-    { tier:'weak',   label:'初赛',   title:'擂 台 初 试' },
-    { tier:'normal', label:'复赛',   title:'复 赛' },
-    { tier:'elite',  label:'半决赛', title:'半 决 赛' },
-    { tier:'boss',   label:'决赛',   title:'决 赛' }
+    { tier:'weak',   label:'初赛',   title:'擂 台 初 试', mul:1.00,
+      note:'台上是来碰运气的散修。' },
+    { tier:'normal', label:'复赛',   title:'复 赛',       mul:1.06,
+      note:'留下来的都有两下子。' },
+    { tier:'elite',  label:'半决赛', title:'半 决 赛',     mul:1.18,
+      note:'这一场开始，对面是真正练过的人。' },
+    { tier:'boss',   label:'决赛',   title:'决 赛',       mul:1.35,
+      note:'台上站的是这一境有字号的人。台下没人说话。' }
   ]
+};
+
+/* 决赛对手专用名字池（第 26 轮）。
+   「顶级高手」应该有个像样的名号，而不是从复赛那批人里再抽一个。 */
+G.TOURNEY_FINAL_NAMES = {
+  1: ['铁面书生','断刀陈九','一口气道人'],
+  2: ['青锋首座','谢家三郎','北冥剑奴'],
+  3: ['玄阴真人','鬼手书生','枯木道人'],
+  4: ['白鹿书院祭酒','无量寺首座','天机阁大推演']
 };
 
 /* 赛道：一个大境界一条。needSub = 需要走到该大境界的第几层 */
@@ -1727,8 +1794,8 @@ G.TIANJIAO = [
 
 /* 天骄的数值倍率（相对「同境界的凶物」）——刻意逼近不可战胜 */
 G.TIANJIAO_MUL = {
-  hp: 4.6,
-  atk: 2.6
+  hp: 5.2,
+  atk: 2.9
 };
 
 /* 【天骄】称号（打赢之后挂在档案柜里） */
@@ -1881,6 +1948,75 @@ G.WHEEL_SLICES = [
 
 /* 敌人强度换算式（兼容旧接口，实际数值由 G.TUNE 控制） */
 G.ENEMY_FORMULA = { hpMul: 1.0, hpBase: 0, atkMul: 1.0, atkBase: 0 };
+
+/* ============================================================
+   境界养成：内景（第 26 轮新增）
+   ------------------------------------------------------------
+   设计意图（玩家原话）：
+     「金丹期，顾名思义，修士在体内养成一个金丹，通过消耗修为来培养金丹，
+      通过金丹的成长来反哺给玩家数值上的成长；元婴也如此，
+      金丹化作元婴，玩家可以消耗修为来供养元婴，元婴成长后给玩家对应的数值成长」
+
+   落地成四条规则（其中三条是和玩家确认过的）：
+
+     ① **每个大境界都有一个内景**，名字随境界变：
+          炼气=气海　筑基=道基　金丹=金丹　元婴=元婴　化神=元神
+          炼虚=虚境　合体=合道　大乘=法身　渡劫=劫身
+     ② **跨大境界时保留一半层数**（向下取整）。
+        「金丹化作元婴」——旧的那颗没了，但它的修为留下一半。
+     ③ **养它花的是修为，而修为同时是突破的门票**。
+        所以你手上的修为要么拿去破境、要么拿去养丹，
+        这是本作里第一次出现「修为的第二种用法」，也是这一轮的设计核心。
+     ④ **加成统一落在全属性上**（六维各加同一个数），
+        不同的只是「每个大境界每一层加多少」。
+
+   ⚠️ 养成不消耗行动、不消耗寿元 —— 它只花修为。
+   寿元已经在「修行」那一步付过了，再收一次就是双重收费。
+
+   数值来源（不是拍的）：
+     per = 「该大境界第九层的裸 attrSum × 30% ÷ 6」
+     也就是「养满 5 层 ≈ 该境界全属性 +30%」。
+     这样它在每一段的体感是一样的，不会前期无敌、后期噪音。
+     实测表见 dev/verify-daoji.js。                                    */
+G.DAOJI_COST = [0.06, 0.08, 0.10, 0.12, 0.15];   // 第 n 层消耗 = breakNeed() × 这个数
+G.DAOJI_CARRY = 0.5;                              // 跨大境界保留一半层数
+
+G.DAOJI = [
+  { major:1, name:'气海', max:5, per:1,  title:'气 海',
+    desc:'丹田里那一团还没成形的东西。你只知道它在，说不清它是什么。',
+    grow:'你引气归海。那团东西又厚了一点。' },
+  { major:2, name:'道基', max:5, per:3,  title:'道 基',
+    desc:'气海沉下去，结成了一层底。上面能盖东西了。',
+    grow:'你把修为压实，铺在道基上。它托得住更重的东西了。' },
+  { major:3, name:'金丹', max:5, per:6,  title:'金 丹',
+    desc:'一颗很小的、很沉的东西，在丹田里慢慢转。它转一圈，你就老一点。',
+    grow:'金丹又亮了一分。你能感觉到它在里面转动时的重量。' },
+  { major:4, name:'元婴', max:5, per:10, title:'元 婴',
+    desc:'它长得和你一样，只是小。你闭眼的时候能看见它睁着眼。',
+    grow:'元婴长开了一点。它的手指第一次能握住了。' },
+  /* ⚠️ 下面五个大境界**还没有被实测过** —— 本世上限锁在元婴，
+     玩家走不到那儿。数值按「该境界第九层 attrSum 的 30%」外推出来的，
+     放开上限（G.CONFIG.realmCap）之前请先跑一遍 dev/verify-daoji.js。 */
+  { major:5, name:'元神', max:5, per:15, title:'元 神',
+    desc:'元婴睁开眼睛之后，就不再是一个婴儿了。',
+    grow:'元神凝实了一点。它看东西的时候，你也看得见。' },
+  { major:6, name:'虚境', max:5, per:22, title:'虚 境',
+    desc:'你身体里那块地方开始不像身体了。',
+    grow:'那片虚空又扩了一点。边界远得看不清。' },
+  { major:7, name:'合道', max:5, per:29, title:'合 道',
+    desc:'元婴、神识、肉身合成一个。合成之后，你分不清哪一个是自己。',
+    grow:'三者又贴近了一分。你越来越少想「我是哪一个」这个问题。' },
+  { major:8, name:'法身', max:5, per:38, title:'法 身',
+    desc:'你现在的样子，只是你愿意让别人看见的样子。',
+    grow:'法身又多了一重。别人看见的那一重，更不像你了。' },
+  { major:9, name:'劫身', max:5, per:39, title:'劫 身',
+    desc:'身上带着雷的味道。走到哪儿，哪儿的云就低一点。',
+    grow:'劫身又硬了一分。你开始觉得天上的东西在等你了。' }
+];
+G.daoJiDef = function(major){
+  return G.DAOJI.find(d=>d.major===major) || G.DAOJI[0];
+};
+
 /* ---------------- 元层升级（7 类 · 26 项） ----------------
    ⚠️ 第 25 轮：**战斗类升级全部从「固定数值」改成「百分比」**。
 
@@ -2179,7 +2315,7 @@ window.G = window.G || {};
 
 /* ---------------- 全局配置（想自己调数值就改这里） ---------------- */
 G.CONFIG = {
-  version: '0.5.0',
+  version: '0.6.0',
   saveKey: 'jiyi_xiufu_ju_v1',
 
   /* ---------------- 境界上限（第 21 轮） ----------------
@@ -5953,6 +6089,118 @@ function stoneBonus(){ return ((meta.up && meta.up.startStone) || 0) * 0.06; }
 /* 静养回复倍率（静养）：放大「静养的基础回复量」 */
 function restBonus(){ return ((meta.up && meta.up.restGain) || 0) * 0.08; }
 
+/* ---------------- 内景 · 境界养成（第 26 轮） ----------------
+   见 chars.js 的 G.DAOJI 说明。这里只做四件事：
+     ① 算下一层要多少修为
+     ② 算当前给了多少属性
+     ③ 花修为升一层
+     ④ 跨大境界时把层数折半、换个名字
+   加成统一落在**全属性**上（六维各加同一个数）。 */
+
+function daoJi(){ return (s && s.daoJi) || { major:1, lv:0 }; }
+function daoJiDef(){ return G.daoJiDef(daoJi().major); }
+function daoJiLevel(){ return daoJi().lv || 0; }
+function daoJiMaxed(){ return daoJiLevel() >= daoJiDef().max; }
+
+/* 下一层要多少修为。没有任何可养的目标时返回 null。
+   ⚠️ 基数是 breakNeed() —— 也就是「这一层的突破门票」。
+   用它做基数有两个好处：
+     · 自动随境界缩放，不用给 73 档各写一个数
+     · 「养一层丹 ≈ 0.06~0.15 次突破」这个比例在任何境界都成立，
+       所以取舍的份量不会走样（实测：养满 5 层 = 5.1 次修行，各境界一致） */
+function daoJiCost(){
+  if (!s || s.ended) return null;
+  const lv = daoJiLevel();
+  if (lv >= daoJiDef().max) return null;
+  const c = G.DAOJI_COST[Math.min(lv, G.DAOJI_COST.length-1)];
+  return Math.max(1, Math.round(breakNeed() * c));
+}
+/* 已养成的层数一共给了多少（**每项属性**加这么多） */
+function daoJiPerAttr(){
+  return daoJiDef().per * daoJiLevel();
+}
+/* 满层会给多少（给界面显示「练满能到多少」） */
+function daoJiPerAttrMax(){
+  const d = daoJiDef();
+  return d.per * d.max;
+}
+
+/* 花修为养一层。返回 { ok, msg, cost, lv, per }
+   不消耗行动、不消耗寿元 —— 寿元已经在「修行」那一步付过了。 */
+function nurtureDaoJi(){
+  if (!s || s.ended) return { ok:false, msg:'这一局已经结束了' };
+  const d = daoJiDef();
+  const lv = daoJiLevel();
+  if (lv >= d.max) return { ok:false, msg:`${d.name}已经养成圆满了` };
+  const cost = daoJiCost();
+  if (s.cult < cost) return { ok:false, msg:`修为不足（需 ${cost}，有 ${s.cult}）` };
+
+  s.cult -= cost;
+  if (!s.daoJi) s.daoJi = { major:d.major, lv:0 };
+  s.daoJi.lv = lv + 1;
+  const per = d.per * s.daoJi.lv;
+  const word = (d.grow || '你把修为压进' + d.name + '。');
+  log(`${d.name}养到第 ${s.daoJi.lv} 层（全属性 +${per}）。`);
+  return { ok:true, msg:`${word}　全属性 +${d.per}（累计 +${per}）`,
+           cost:cost, lv:s.daoJi.lv, max:d.max, gain:d.per, total:per, name:d.name };
+}
+
+/* 跨大境界时调用：内景跟着蜕变。
+   「金丹化作元婴」——旧的那颗没了，但它的修为留下一半（向下取整）。
+   注意 doBreak 与 advanceMajor 两条突破路径都要调，漏一条就会出现
+   「明明到了元婴，身上还挂着金丹」的错位。 */
+function syncDaoJi(){
+  if (!s) return null;
+  const maj = (G.REALMS[s.realmIdx] || {major:1}).major;
+  if (!s.daoJi) { s.daoJi = { major:maj, lv:0 }; return null; }
+  if (s.daoJi.major === maj) return null;
+  const oldDef = G.daoJiDef(s.daoJi.major);
+  const newDef = G.daoJiDef(maj);
+  const carried = Math.floor((s.daoJi.lv || 0) * (G.DAOJI_CARRY || 0));
+  const from = s.daoJi.lv || 0;
+  s.daoJi = { major:maj, lv:carried };
+  log(`${oldDef.name}化作${newDef.name}：养成的 ${from} 层里，留下 ${carried} 层。`);
+  return { from:from, to:carried, fromName:oldDef.name, toName:newDef.name };
+}
+
+/* 老存档 / 异常状态的兜底：把内景对齐到「当前大境界」。
+   ⚠️ 第 26 轮补。原因是踩过一次：状态字面量里写的是 `daoJi`，
+   而内部函数一路用的是 `daoji`（小写 j），于是整套系统悄悄跑在一个
+   根本不存在的字段上 —— 界面上「金丹」永远显示成「气海」，
+   而且每局都会新建一个幽灵字段。dev/verify-daoji.js 第 2/3/8 节把它抓出来了。
+   现在所有地方统一用 `daoJi`，并且进出局都过一遍这个函数。 */
+function normalizeDaoJi(){
+  if (!s) return null;
+  const maj = (G.REALMS[s.realmIdx] || {major:1}).major;
+  const cur = s.daoJi;
+  if (!cur || typeof cur !== 'object') { s.daoJi = { major:maj, lv:0 }; return s.daoJi; }
+  if (cur.major !== maj) { s.daoJi = { major:maj, lv:0 }; return s.daoJi; }
+  const d = G.daoJiDef(maj);
+  cur.lv = Math.max(0, Math.min(d.max, cur.lv|0));
+  return cur;
+}
+
+/* 给界面用的一整块状态 */
+function daoJiStatus(){
+  const d = daoJiDef();
+  const lv = daoJiLevel();
+  const cost = daoJiCost();
+  return {
+    major: d.major, name: d.name, title: d.title, desc: d.desc,
+    lv: lv, max: d.max, maxed: lv >= d.max,
+    per: d.per, have: daoJiPerAttr(), full: daoJiPerAttrMax(),
+    cost: cost,
+    affordable: cost !== null && !!s && s.cult >= cost,
+    /* 突破和养丹抢的是同一池修为 —— 界面要把这件事说出来 */
+    breakNeed: s ? breakNeed() : 0,
+    carry: G.DAOJI_CARRY || 0,
+    nextName: (function(){
+      const nxt = G.DAOJI.find(x=>x.major === d.major + 1);
+      return nxt ? nxt.name : null;
+    })()
+  };
+}
+
 /* ---------------- 局内状态 ---------------- */
 let s = null;             // run state
 let challenge = null;     // 进行中的挑战
@@ -6032,11 +6280,16 @@ function newRun(lots, seed){
     seenEvents: [],     // 已触发事件 id
     log: [],            // 记事
 
-    /* 第 22 轮：比武大会 与 天骄榜 */
+    /* 第 25 轮：比武大会 与 天骄榜 */
     tourney: null,        // 进行中的赛事 { id, round, total, wins, alive }
     tourneyDone: [],      // 本局已参加过的赛道 id
     titles: [],           // 本局挣到的名号（如「炼气魁首」）
     tianjiaoMet: [],      // 本局已遭遇过的天骄 id
+
+    /* 第 26 轮：内景（境界养成）
+       major = 这个内景是属于哪个大境界的（气海/道基/金丹/元婴…）
+       lv    = 已经养到第几层（0 ~ G.DAOJI[max]） */
+    daoJi: { major: (G.REALMS[0] || {major:1}).major, lv: 0 },
 
     /* 第 25 轮：丹药的两类战斗加成
        pillPerm —— 「永久战斗丹」在本局内累加，下一局归零
@@ -6066,6 +6319,7 @@ function newRun(lots, seed){
   }
   if (s.deck.length===0) addCard('吐纳诀', true);
 
+  normalizeDaoJi();                 // 内景对齐当前大境界（第 26 轮）
   log(`你以「${role.name}」的身份入了山门。${consti.desc}`);
   return s;
 }
@@ -6547,6 +6801,10 @@ function doBreak(){
   // 恢复类行动的次数上限随境界重置
   s.restUsed = 0;
   s.nourishUsed = 0;
+  /* 第 26 轮：跨大境界时内景跟着蜕变（金丹 → 元婴）。
+     ⚠️ 必须在 realmIdx++ 之后立刻调 —— 这一步返回的 realm 名字
+     和「内景还挂在旧大境界上」会打架。 */
+  const djShift = syncDaoJi();
 
   // 寿元上限提升 + 奖励寿元
   const reward = cur.reward || 40;
@@ -6573,9 +6831,11 @@ function doBreak(){
   const judge = shouldTribulate(fromRealm, next);
   if (judge.yes){
     return { realm: next.name, tribulation: true, reward: reward,
-             maxLife: s.maxLife, tribReason: judge.reason, extreme: judge.extreme };
+             maxLife: s.maxLife, tribReason: judge.reason, extreme: judge.extreme,
+             daoJi: djShift };
   }
-  return { realm: next.name, tribulation: false, reward: reward, maxLife: s.maxLife };
+  return { realm: next.name, tribulation: false, reward: reward, maxLife: s.maxLife,
+           daoJi: djShift };
 }
 
 /* ---------------- 天劫门槛判定 ----------------
@@ -6653,6 +6913,14 @@ function maxAttrPossible(){
   G.REALM_ATTR_GAIN.forEach(g=>{
     G.ATTRS.forEach(a=>{ best[a.id] += Math.round((g[a.id]||0) * agMul); });
   });
+  /* 第 26 轮：内景也要算进「理论上限」。
+     这个上限是给「逆天招劫」用的（属性达到上限的 92% → 这一劫更狠）。
+     内景是一条人人都能走的养成线，不算进去的话，
+     练满内景反而会被系统当成「异常」而招来更狠的天劫。
+     另外六个大境界各养一遍是不可能的（内景会蜕变），
+     所以这里只取**当前大境界**练满的量，与 attrs() 的实际算法一致。 */
+  const djFull = daoJiPerAttrMax();
+  if (djFull > 0) G.ATTRS.forEach(a=>{ best[a.id] += djFull; });
   _maxAttrCache = G.ATTRS.reduce((n,a)=>n + best[a.id], 0);
   return _maxAttrCache;
 }
@@ -7056,6 +7324,14 @@ function attrs(){
   const bonus = s.attrBonus || {};
   G.ATTRS.forEach(a=>{ out[a.id] += (bonus[a.id]||0); });
 
+  /* ③.5 内景（第 26 轮）：六维各加同一个数。
+     ⚠️ 它和「根骨」是两回事，别混：
+       根骨 乘的是**境界成长**那一项（乘法），内景是**另加一份**（加法）。
+     所以根骨练满不会把内景也放大 —— 这是有意的，
+     否则「全属性 +300」会被根骨再乘 1.3，两个系统互相放大就没人算得清了。 */
+  const dj = daoJiPerAttr();
+  if (dj > 0) G.ATTRS.forEach(a=>{ out[a.id] += dj; });
+
   // ④ 功法与法宝的常驻加成
   if (s.deck){
     s.deck.forEach(name=>{
@@ -7181,6 +7457,9 @@ function advanceMajor(){
   s.attrGain = Math.min(G.REALM_ATTR_GAIN.length, (s.attrGain||0) + 1);
   s.restUsed = 0;
   s.nourishUsed = 0;
+  /* 第 26 轮：这一条路径（打赢结丹天劫）同样要蜕变内景。
+     漏掉它就会出现「已经是金丹了，内景还叫气海」的错位。 */
+  const djShift = syncDaoJi();
 
   const oldMax = s.maxLife;
   const consti = G.CONSTITUTIONS.find(function(c){ return c.id===s.constId; });
@@ -7191,7 +7470,8 @@ function advanceMajor(){
 
   const md = G.MAJOR_DEFS[next.major-1];
   return { from: oldMajor, to: next.major, realm: next.name,
-           majorName: md ? md.name : '?', desc: next.desc, maxLife: s.maxLife };
+           majorName: md ? md.name : '?', desc: next.desc, maxLife: s.maxLife,
+           daoJi: djShift };
 }
 
 /* ---------------- 挑战（战斗 / 天劫共用） ----------------
@@ -8644,6 +8924,9 @@ function loadRun(){
     d.rng = makeRng((d.seed||'x') + '#' + (d.actions||0));
     s = d;
     challenge = null;
+    /* 第 26 轮：老存档里没有内景字段（它是这一轮才有的）。
+       对齐一次，免得玩家读回旧档之后看到「元婴期挂着气海」。 */
+    normalizeDaoJi();
     /* 把没打完的那场战斗接回来。
        stats 不存盘（它由 attrs/agg 派生），这里按当前局面重算，
        所以读档后的战斗数值永远和当前 build 一致。 */
@@ -8730,15 +9013,24 @@ function tourneyNextOpponent(){
   if (!b) return null;
   const step = G.TOURNEY.ladder[t.round];
   if (!step) return null;
-  const pool = G.TOURNEY_NAMES[G.REALMS[s.realmIdx].major]
-            || G.TOURNEY_NAMES[1] || ['无名散修'];
+  const maj = G.REALMS[s.realmIdx].major;
+  /* 第 26 轮：决赛换一套专用的名字池，让「顶级高手」有人样。
+     前几轮仍然从大众池里抽。 */
+  const finalPool = G.TOURNEY_FINAL_NAMES && G.TOURNEY_FINAL_NAMES[maj];
+  const pool = (step.tier === 'boss' && finalPool && finalPool.length)
+             ? finalPool
+             : (G.TOURNEY_NAMES[maj] || G.TOURNEY_NAMES[1] || ['无名散修']);
   const name = pool[Math.floor(s.rng()*pool.length)];
   return {
     name: name,
     tier: step.tier,
     type: 'tourney',
     rounds: 40,
-    tourney: { bracket:b.id, round:t.round, total:t.total, label:step.label },
+    /* 第 26 轮：每一轮的额外难度（决赛最重）。
+       走 ±% 微调通道 —— startChallenge 会把它同时乘到敌人的血和攻上。 */
+    power: Math.round(((step.mul || 1) - 1) * 100),
+    tourney: { bracket:b.id, round:t.round, total:t.total, label:step.label,
+               note: step.note || '', mul: step.mul || 1 },
     /* 比武输了不死：只淘汰，战果只是面子与灵石。
        注：战斗本身不额外扣寿元（寿元只在「行动」和「战败转盘」上扣），
        所以参加比武的代价是「占用了行动预算」，不是「额外赔命」。 */
@@ -9388,7 +9680,9 @@ function state(){
     challenge: challenge,
     discipleCount: s.discipleCount,
     buildings: s.buildings,
-    collapsed: s.sectCollapsed
+    collapsed: s.sectCollapsed,
+    /* 第 26 轮：内景（境界养成） */
+    daoJi: daoJiStatus()
   };
 }
 
@@ -9450,6 +9744,33 @@ function availableActions(){
       ? `寿元上限 +${Math.round(16*(1+s.realmIdx*0.16)*(1+lifeCapBonus()))}　本境界还可 ${nourishLeft} 次`
       : '本境界已经养过了。'
   });
+
+  /* ---------------- 内景（第 26 轮） ----------------
+     玩家原话：「修士在体内养成一个金丹，通过消耗修为来培养金丹，
+     通过金丹的成长来反哺给玩家数值上的成长」。
+     ⚠️ 它**不消耗行动、不消耗寿元**，只花修为 ——
+     寿元已经在「修行」那一步付过了。
+     放在这里是为了让玩家在做「修行 / 探索 / 破境」的决定时，
+     一眼看见「修为还有第二个用法」。 */
+  {
+    const dj = daoJiStatus();
+    const costTxt = dj.maxed ? '已圆满' : `需修为 ${dj.cost}`;
+    list.push({
+      id:'daoji',
+      name: `★ ${dj.name} · 第 ${dj.lv + (dj.maxed?0:1)} 层`,
+      cost: 0,                       // 不花寿元
+      desc: dj.maxed
+        ? `${dj.name}已经养成圆满。${dj.desc}`
+        : `${dj.desc}\n（养它花的是**修为**，而修为同时是突破的门票——两者互抢。）`,
+      meta: dj.maxed
+        ? `已圆满　共 ${dj.lv}/${dj.max} 层　全属性 +${dj.have}`
+        : `${costTxt}　现有 ${st.cult}　` +
+          `养成后全属性 +${dj.have + dj.per}（每层 +${dj.per}）　${dj.lv}/${dj.max} 层`,
+      disabled: dj.maxed || !dj.affordable,
+      primary: !dj.maxed && dj.affordable,
+      special: 'daoji'
+    });
+  }
 
   if (st.canBreak){
     const nextRealm = G.REALMS[st.realmIdx+1];
@@ -9553,6 +9874,8 @@ G.Engine = {
   get pillTemp(){ return (s && s.pillTemp) || {}; },
   // 榜（比武大会 / 天骄榜）第 25 轮
   tourneyStatus, tianjiaoStatus, tourneyNextAt, seekTianjiao,
+  // 内景（境界养成）第 26 轮
+  nurtureDaoJi, daoJiStatus, daoJiCost, daoJiLevel, daoJiPerAttr, daoJiDef,
   techCostOf, techCostBlock,           // 招式的材料成本（灵石 / 阳寿）
   get challenge(){ return challenge; },
   startTribulation, startKillerTribulation,
@@ -10015,6 +10338,23 @@ function renderRun(){
     boost.style.display = bits.length ? '' : 'none';
   }
 
+  /* ---- 内景（第 26 轮）----
+     它是「修为的第二种用法」，所以必须和修为进度条挨着放，
+     否则玩家不会意识到「这 800 修为可以拿去养丹，也可以留着突破」。 */
+  const djEl = $('daoJiText');
+  if (djEl){
+    const dj = st.daoJi;
+    if (dj){
+      djEl.innerHTML = dj.maxed
+        ? `<b>${dj.name}</b> ${dj.lv}/${dj.max} · 圆满　<span class="dj-gain">全属性 +${dj.have}</span>`
+        : `<b>${dj.name}</b> ${dj.lv}/${dj.max} · 全属性 +${dj.have}` +
+          `<span class="dj-cost">　下一层 ${dj.cost} 修为（+${dj.per}）</span>`;
+      djEl.className = 'daoji-text' + (dj.maxed ? ' maxed' : (dj.affordable ? ' ready' : ''));
+    } else {
+      djEl.innerHTML = '';
+    }
+  }
+
   // 行动列表
   const main = $('runMain');
   main.innerHTML = '';
@@ -10238,6 +10578,7 @@ function onAction(a){
   if (a.special==='break'){ doBreakSequence(); return; }
   if (a.special==='capstone'){ capstoneFlow(); return; }
   if (a.special==='leavesect'){ leaveSectFlow(); return; }
+  if (a.special==='daoji'){ doNurtureFlow(); return; }
 
   const res = G.Engine.doAction(a.id);
   if (!res.ok) return;
@@ -10259,6 +10600,27 @@ function onAction(a){
     return;
   }
   afterActionFlow();
+}
+
+/* ---- 内景：滋养一次（第 26 轮） ----
+   它**不是行动**：不扣寿元、不推进事件与比武窗口。
+   它只是把你已经攒下的修为换成一个更硬的底子。
+   所以这里不走 afterActionFlow，只存盘 + 刷新界面。 */
+function doNurtureFlow(){
+  const r = G.Engine.nurtureDaoJi();
+  if (!r || !r.ok){ toast((r&&r.msg)||'养不了','bad'); return; }
+  toast(r.msg, 'epic');
+  autoSave();
+  renderRun();
+  /* 养满的时候多给一句：这一段到此为止，下一段要等破境 */
+  if (r.lv >= r.max){
+    const st = G.Engine.state();
+    setTimeout(()=>{
+      toast(`${r.name}已圆满（全属性 +${r.total}）。${st.daoJi.nextName
+        ? '再往上，它会在你破境的那一天化作' + st.daoJi.nextName + '。'
+        : '这一世到此为止。'}`, 'good');
+    }, 900);
+  }
 }
 
 /* ============================================================
@@ -11073,8 +11435,11 @@ function showRank(){
         (cleared ? '这条赛道你已经打过了（一局一次）。'
                  : `下一次开擂：第 <b>${T.nextAt}</b> 次行动（还有 <b>${T.inActions}</b> 次）`) +
       `</div>
-       <div class="rank-card-m">四轮对手：弱旅 → 寻常 → 好手 → 强敌　` +
-        `夺冠奖励：灵石 ${b.champion.stone}　修为 ~${b.champion.cult}　贡献 ${b.champion.contrib}　人情 ${b.champion.favor}</div>`;
+       <div class="rank-card-m">四轮难度：` +
+        (G.TOURNEY.ladder||[]).map((s,i)=>
+          `${s.label} <b>×${(s.mul||1).toFixed(2)}</b>`).join('　→　') +
+      `</div>
+       <div class="rank-card-m">夺冠奖励：灵石 ${b.champion.stone}　修为 ~${b.champion.cult}　贡献 ${b.champion.contrib}　人情 ${b.champion.favor}</div>`;
     body.appendChild(box);
   } else {
     body.appendChild(el('div','rank-note','你所在的境界还没有设台。'));
@@ -11332,6 +11697,43 @@ function showAttrs(){
       const a = G.ATTRS.find(x=>x.id===k); return (a?a.name:k) + ' +' + st.raw.attrBonus[k];
     }).join('　') : '暂无'}<br>` +
     `每突破一个境界，六维都会成长，且境界越高加成越大。`));
+
+  /* ---------------- 内景（第 26 轮） ----------------
+     境界养成是这一轮的新东西，玩家必须在一个地方能看到它的**全貌**：
+     它叫什么、养到第几层、每层给多少、下一层要多少修为、
+     以及最关键的一句 ——「它和突破抢的是同一池修为」。
+     主界面上只有一行摘要（够用），全貌在这儿。 */
+  const dj = st.daoJi;
+  if (dj){
+    body.appendChild(el('div','arc-h','内 景'));
+    const pctLv = Math.round(dj.lv / dj.max * 100);
+    const card = el('div','daoji-card' + (dj.maxed ? ' maxed' : ''));
+    card.innerHTML =
+      `<div class="dj-top"><span class="dj-name">${dj.title}</span>` +
+      `<span class="dj-lv">${dj.lv} / ${dj.max} 层</span></div>
+       <div class="dj-bar"><div class="dj-fill" style="width:${pctLv}%"></div></div>
+       <div class="dj-desc">${dj.desc}</div>
+       <div class="dj-stats">
+         每层 <b>全属性 +${dj.per}</b>　已得 <b>全属性 +${dj.have}</b>　养满 <b>全属性 +${dj.full}</b>
+       </div>` +
+      (dj.maxed
+        ? `<div class="dj-next">已经圆满。${dj.nextName
+            ? `破境那一天，它会化作<b>${dj.nextName}</b>，并把 ${Math.round(dj.carry*100)}% 的层数带过去（${Math.floor(dj.lv*dj.carry)} 层）。`
+            : '这一世到此为止。'}</div>`
+        : `<div class="dj-next">下一层要 <b>${dj.cost}</b> 修为`
+          + `（现有 ${st.cult}）　→ 全属性 +${dj.per}</div>`);
+    body.appendChild(card);
+
+    body.appendChild(el('div','arc-i',
+      `养它花的是**修为**，而修为同时是突破的门票 —— 两者互抢。<br>` +
+      `本境界突破需要 <b>${dj.breakNeed}</b> 修为；把修为花在内景上，破境就会晚一点。<br>` +
+      `<span style="color:#6f6459">养内景本身不消耗寿元，也不占用行动 —— ` +
+      `寿元已经在「修行」那一步付过了。</span><br>` +
+      (dj.nextName
+        ? `<span style="color:#6f6459">跨大境界时，${dj.name}会化作${dj.nextName}，` +
+          `并把 ${Math.round(dj.carry*100)}% 的层数带过去。</span>`
+        : `<span style="color:#6f6459">已经是最后一个大境界。</span>`)));
+  }
 
   /* 第 22 轮：名号（比武夺魁等）——本局挣到的面子 */
   const ttl = G.Engine.titles();
@@ -12001,7 +12403,7 @@ G.UI = { init, toast, show, renderMeta, renderRun, showEnding };
    正式游戏代码不读这个对象，它只服务 dev/ 下的脚本。 */
 G.UI.__dev = {
   rarityTag, renderChallenge, showRank, showBag, sheet, closeSheet,
-  startTianjiaoFlow, renderRun, showDeck
+  startTianjiaoFlow, renderRun, showDeck, showAttrs, doNurtureFlow
 };
 
 document.addEventListener('DOMContentLoaded', init);

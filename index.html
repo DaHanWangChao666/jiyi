@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta name="build" content="2026/9/16 19:39:27">
-<!-- build: 2026/9/16 19:39:27 -->
+<meta name="build" content="2026/9/16 22:29:25">
+<!-- build: 2026/9/16 22:29:25 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#0d0b0a">
@@ -448,6 +448,89 @@ button:disabled{opacity:.35;cursor:not-allowed}
 .dj-next{font-size:11.5px;color:var(--ink2);margin-top:6px;line-height:1.7}
 .dj-next b{color:var(--gold2);font-weight:400}
 
+/* ============================================================
+   演出（第 27 轮）
+   ------------------------------------------------------------
+   玩家反馈：「事件的展示还是过于单一」「三月初七远没有达到预期，
+   可能只觉得是个普通小事件」。所以这里做三件事：
+
+     ① 逐段浮现（.fade-p / .story-p）：正文按空行拆段，一段一段淡入。
+        一次性把五段文字砸到眼前，玩家会直接划到底点按钮；
+        一段一段出现，他才会读。
+     ② 分类色调（.ev-cat-*）：人事 / 世界 / 线索 / 修行 / 凶险
+        各一种颜色，让玩家在点开之前就知道这是什么味道的事。
+     ③ 大事件放大（.story-*）：主线用专属封面 + 大字号 + 结果卡，
+        和普通事件拉开**一眼能看出**的档次差。
+   ============================================================ */
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(6px)}
+  to{opacity:1;transform:none}
+}
+.fade-p{opacity:0;animation:fadeUp .46s ease forwards}
+@media (prefers-reduced-motion: reduce){
+  .fade-p{animation:none;opacity:1}
+}
+
+/* ---- 事件分类色调 ---- */
+.ev-cat{
+  display:inline-block;font-size:10px;letter-spacing:2px;
+  padding:1px 7px;border-radius:3px;border:1px solid var(--line2);
+  color:var(--ink3);margin-bottom:7px;
+}
+.ev-cat-人事{color:#c9a227;border-color:#6b5a1e}
+.ev-cat-世界{color:#5b9fd8;border-color:#2f4d68}
+.ev-cat-线索{color:#b07fd8;border-color:#523a68}
+.ev-cat-修行{color:#5fae8f;border-color:#2f5c4a}
+.ev-cat-凶险{color:#e07a6a;border-color:#6b332b}
+.ev-cat-宗门{color:#c9a227;border-color:#6b5a1e}
+
+/* ---- 《三月初七》专属演出 ---- */
+.story-body{padding:2px 0 4px}
+.story-cover{
+  border-left:3px solid var(--gold2);
+  padding:2px 0 2px 12px;margin-bottom:14px;
+  animation:fadeUp .5s ease both;
+}
+.story-cover.done{border-left-color:var(--jade)}
+.story-kicker{
+  font-size:10.5px;letter-spacing:3px;color:var(--ink3);margin-bottom:4px;
+}
+.story-title{
+  font-size:19px;letter-spacing:5px;color:var(--gold2);
+}
+.story-cover.done .story-title{color:var(--jade)}
+.story-text .story-p{
+  opacity:0;animation:fadeUp .6s ease forwards;
+  font-size:14px;line-height:2.05;color:var(--ink);
+  margin-bottom:14px;
+}
+.story-text.result .story-p{color:var(--ink2);font-size:13.5px}
+.story-text .story-p b{color:var(--gold2);font-weight:400}
+.story-choices{opacity:0;animation:fadeUp .5s ease forwards;margin-top:4px}
+.story-choice{animation:none}
+.story-clues{
+  opacity:0;animation:fadeUp .5s ease forwards;
+  border:1px solid #523a68;background:rgba(176,127,216,.07);
+  border-radius:8px;padding:10px 12px;margin:6px 0 12px;
+}
+.story-clues-h{font-size:10.5px;letter-spacing:2px;color:#b07fd8;margin-bottom:6px}
+.story-clue{font-size:12.5px;color:var(--ink2);line-height:1.8}
+.story-next{
+  opacity:0;animation:fadeUp .5s ease forwards;
+  font-size:11.5px;color:var(--ink3);line-height:1.8;
+  border-top:1px dashed var(--line);padding-top:9px;
+}
+.story-next b{color:var(--gold2);font-weight:400}
+
+/* ---- 秘境的分层进度条（第 27 轮） ---- */
+.mj-prog{display:flex;gap:5px;margin:2px 0 14px;animation:fadeUp .5s ease both}
+.mj-seg{
+  flex:1;height:5px;border-radius:3px;
+  background:var(--panel2);border:1px solid var(--line);
+}
+.mj-seg.done{background:var(--gold2);border-color:var(--gold2)}
+.mj-seg.now{background:rgba(201,162,39,.35);border-color:var(--gold2)}
+
 /* ---------------- 榜（比武大会 / 天骄榜，第 25 轮） ----------------
    之前这两套系统在界面里完全没有入口：请帖是一闪而过的弹窗，
    天骄榜只有抽中事件才看见一行字。这块样式就是那个缺失的入口。 */
@@ -482,6 +565,22 @@ button:disabled{opacity:.35;cursor:not-allowed}
 .rk-bad{color:#e07a6a}
 .rk-dim{color:var(--ink3)}
 .rr-meta b{color:var(--gold2);font-weight:400}
+
+/* ---- 天骄榜的分页页签（第 27 轮） ---- */
+.tj-tabs{display:flex;gap:6px;margin:10px 0 10px;flex-wrap:wrap}
+.tj-tab{
+  position:relative;flex:1 1 20%;min-width:0;
+  padding:8px 4px 7px;border-radius:8px;font-size:12px;letter-spacing:1px;
+  background:var(--panel);border:1px solid var(--line);color:var(--ink2);
+}
+.tj-tab em{display:block;font-style:normal;font-size:10px;color:var(--ink3);margin-top:2px}
+.tj-tab i{display:block;font-style:normal;font-size:9px;color:var(--gold2);margin-top:1px}
+.tj-tab.on{border-color:var(--gold2);color:var(--gold2);background:rgba(201,162,39,.08)}
+.tj-tab.on em{color:var(--gold2)}
+.tj-tab.mine:not(.on){border-color:var(--line2)}
+.tj-tab:active{background:var(--panel2)}
+.tj-pane-h{font-size:12px;color:var(--ink2);margin-bottom:8px;line-height:1.7}
+.rr-where{color:var(--ink3);font-size:10.5px}
 
 .log-i{font-size:12px;color:var(--ink2);line-height:1.9;padding:5px 0;border-bottom:1px dashed #221d1a}
 .log-i b{color:var(--gold2);font-weight:400}
@@ -916,6 +1015,7 @@ button{touch-action:manipulation;}
       <button class="foot-btn" id="btnDeck">牌组 <em id="deckCount">0</em></button>
       <button class="foot-btn" id="btnBag">储物袋 <em id="bagCount">0</em></button>
       <button class="foot-btn" id="btnRank">榜</button>
+      <button class="foot-btn" id="btnMijing">秘境</button>
       <button class="foot-btn" id="btnSect">宗门</button>
       <button class="foot-btn" id="btnClue">线索 <em id="clueCount">0</em></button>
       <button class="foot-btn" id="btnLog">记事</button>
@@ -1470,6 +1570,24 @@ G.CARDS = {
   '镜中花':   { type:'法宝', rarity:'玄', desc:'你照镜子的时候，镜子里的人比你慢半拍。', eff:{power:14, costReduce:1, flag:'mirror'}, flags:['mirror'] },
   '无名指环': { type:'法宝', rarity:'玄', desc:'内圈刻着两个字，磨损得很厉害。像是一个名字。', eff:{cultMul:0.12}, flags:['ring'] },
   '拾遗石':   { type:'法宝', rarity:'良', desc:'捡来的。它总在你想找东西的时候变热。', eff:{findBonus:1} },
+
+  /* ---------- 消耗型法宝：问影香（第 27 轮新增） ----------
+     玩家要求：「增添一种道具，通过这个道具可以向你展示当前的大境界的某位天骄
+     可能在哪里，并让你选择要不要去找那位天骄，这个道具可以在局内获取」。
+
+     为什么需要它：天骄原本只在机缘/宗门事件里露面，实测一局只有 25% 的局
+     能撞上（而且那还是靠运气挑对了选项）。「榜」里的「循名去找人」虽然可用，
+     但它要求你先在茶棚听过那张榜 —— 一个纯粹的抽卡前提。
+     问影香把「找人」变成一件**你可以主动花钱买的事**：
+       · 点着之后，烟会往一个方向飘（展示当前大境界某位还没见过的天骄）
+       · 你可以选择去找他（花一次行动，直接开打），也可以不去
+     它是一次性消耗品，靠探索 / 机缘 / 秘境掉落，所以不会变成无限刷天骄。
+
+     ⚠️ 它是「法宝」不是「丹药」—— 丹药那套品级规则不该管到一支香上。
+     所以走的是新的 `consumable:true` 标记，储物袋与 usePill 都认这个标记。 */
+  '问影香':   { type:'法宝', rarity:'玄', consumable:true, minMajor:1,
+    desc:'三支。点着之后烟不往上走，只往一个方向飘。\n据说闻过的人，第二天都会往那个方向去。',
+    use:{ tianjiao:true } },
 
   /* ---------- 丹药（一次性） ----------
      ⚠️ 第 25 轮新增「品级」（grade 1~9）。
@@ -2315,7 +2433,7 @@ window.G = window.G || {};
 
 /* ---------------- 全局配置（想自己调数值就改这里） ---------------- */
 G.CONFIG = {
-  version: '0.6.0',
+  version: '0.7.0',
   saveKey: 'jiyi_xiufu_ju_v1',
 
   /* ---------------- 境界上限（第 21 轮） ----------------
@@ -2589,7 +2707,7 @@ G.SECT_STORY = {
   title:'三月初七',
   stages: [
     { id:'st1', name:'第一页 · 一个日子',
-      at:25,   /* 需要累计若干次宗门行动才推进 */
+      contrib:12,   /* 第 27 轮：需要「累计宗门贡献」达到这个数才翻页 */
       text:'你在执事堂帮忙对账。\n账本很厚，你翻到一半，看见一行字：\n\n「三月初七，支灵石三百，用途：—」\n\n用途那一栏是空的。\n你往前翻，往前翻，又翻到三次。\n每一次都是三月初七。',
       choices:[
         { label:'问管账的老执事', hint:'他管了三十年账',
@@ -2604,7 +2722,7 @@ G.SECT_STORY = {
       ] },
 
     { id:'st2', name:'第二页 · 三个说法',
-      at:70,
+      contrib:35,
       text:'你问了三个人。\n\n师父说：“三月初七？那天我在闭关。”\n大师兄说：“那天你还没来。”\n伙房的老实人说：“那天支了三百灵石，我记得清楚，因为那天没米下锅。”\n\n三个人说的是同一天。\n三个说法对不上，但三个人都很确定。',
       choices:[
         { label:'去查记档（需要 20 贡献）', hint:'记档不会说谎',
@@ -2620,7 +2738,7 @@ G.SECT_STORY = {
       ] },
 
     { id:'st3', name:'第三页 · 名单',
-      at:140,
+      contrib:70,
       text:'你在藏经阁最里面的架子上，找到了一本册子。\n\n封面没有字。里面是一列名字，一行一个。\n二十三个名字。\n\n你数了数：**有六个名字，你从来没有听说过**。\n你去问别人，别人说：“有吗？我不记得。”\n\n你再翻一页。\n最后一行的名字，被人用很重的墨涂掉了。\n但透光看，还看得出笔画。',
       choices:[
         { label:'对着光看清那个名字', hint:'你需要知道那是谁',
@@ -2635,7 +2753,7 @@ G.SECT_STORY = {
       ] },
 
     { id:'st4', name:'第四页 · 下一个',
-      at:230,
+      contrib:110,
       text:'今天早上，你去伙房打饭。\n\n打饭的换了一个人。\n\n“老实人呢？”你问。\n“哪个老实人？”\n\n你描述了半天：个子不高，脸上有疤，管了十几年伙房的那个。\n\n对方摇摇头：“管伙房的一直是我啊。”\n\n你回到屋里，找出那张写着三个说法的纸。\n纸上只剩两个说法了。\n\n**你记得自己写过三行。**',
       choices:[
         { label:'把这件事写下来，再抄三份藏在不同的地方', hint:'对抗遗忘',
@@ -2761,19 +2879,24 @@ G.LORE = {
   ],
   // 世界观内：由事件触发，进档案柜。集齐 7 条 = 隐藏结局
   zongmen: [
-    { id:'clue_name',   text:'大师兄的名字，你今天听人叫了两次。两次不一样。' },
-    { id:'clue_book',   text:'藏经阁里多了一本书。所有人都说学过，没有一个人记得内容。' },
-    { id:'clue_master', text:'师父叫你的时候，叫了另一个名字，然后立刻改口。' },
-    { id:'clue_disciple',text:'有个弟子消失了半个月，回来后谁都不认识他。他自己也不认识。' },
-    { id:'clue_page',   text:'你在一本功法里翻出一页纸。上面的字你认识，但顺序不对。' },
-    { id:'clue_dream',  text:'你梦见自己已经不是第一次坐在这里了。' },
-    { id:'clue_mirror', text:'镜子里的人比你慢半拍。你停下的时候，他还在动。' },
-    { id:'clue_xinmo',  text:'它说：“我是上一次没修好的那一页。”\n“你念完我，我就没了。”' },
-    { id:'clue_world',  text:'有一件事正在发生：有人在画一座很大的阵，\n画完之后，这个世界就没有了。' },
-    { id:'clue_date',   text:'“三月初七”。\n宗门里所有人都记得这一天，但没有一个人说得清是什么事。\n记档上那一页，被人用尺子压着整齐地撕掉了。' },
-    { id:'clue_erased', text:'一本没有封面的册子，上面写着二十三个名字。\n有六个你从没听说过。\n最后一行被人用重墨涂掉了——透光看，那是你认识的人的名字。' }
+    { id:'clue_name',   title:'两个名字', text:'大师兄的名字，你今天听人叫了两次。两次不一样。' },
+    { id:'clue_book',   title:'多出来的一本', text:'藏经阁里多了一本书。所有人都说学过，没有一个人记得内容。' },
+    { id:'clue_master', title:'改口', text:'师父叫你的时候，叫了另一个名字，然后立刻改口。' },
+    { id:'clue_disciple',title:'回来的那个人', text:'有个弟子消失了半个月，回来后谁都不认识他。他自己也不认识。' },
+    { id:'clue_page',   title:'顺序不对的一页', text:'你在一本功法里翻出一页纸。上面的字你认识，但顺序不对。' },
+    { id:'clue_dream',  title:'不是第一次', text:'你梦见自己已经不是第一次坐在这里了。' },
+    { id:'clue_mirror', title:'慢半拍', text:'镜子里的人比你慢半拍。你停下的时候，他还在动。' },
+    { id:'clue_xinmo',  title:'上一次没修好的那一页', text:'它说：“我是上一次没修好的那一页。”\n“你念完我，我就没了。”' },
+    { id:'clue_world',  title:'有人在画一座阵', text:'有一件事正在发生：有人在画一座很大的阵，\n画完之后，这个世界就没有了。' },
+    { id:'clue_date',   title:'三月初七', text:'“三月初七”。\n宗门里所有人都记得这一天，但没有一个人说得清是什么事。\n记档上那一页，被人用尺子压着整齐地撕掉了。' },
+    { id:'clue_erased', title:'涂掉的那个名字', text:'一本没有封面的册子，上面写着二十三个名字。\n有六个你从没听说过。\n最后一行被人用重墨涂掉了——透光看，那是你认识的人的名字。' }
   ]
 };
+/* 按 id 查一条线索（界面上要拿标题/正文来展示）。
+   ⚠️ 第 27 轮补：以前 UI 只能拿到 id 和一段正文，没有标题，
+   于是「结果卡」里列线索只能列原文首行。现在每条线索都有 title。 */
+G.CLUE_LIST = G.LORE.zongmen;
+G.clueById = function(id){ return G.CLUE_LIST.find(c=>c.id===id) || null; };
 
 
 /* ===== events.js ===== */
@@ -5981,6 +6104,330 @@ G.EVENTS_NEW = (G.EVENTS_NEW || []).concat([
 ]);
 
 
+/* ===== mijing.js ===== */
+/* ============================================================
+   秘境（第 27 轮新增）
+   ------------------------------------------------------------
+   玩家原话：
+     「我希望增添一个『秘境』功能，玩家可以前往秘境中进行探索，
+      秘境中可以获得各种各样的机缘，也可能伴随着危险。
+      但秘境不是那么容易才能开启的，秘境可能也会限制境界进入」
+   + 追问后的补充：
+     「我希望第一种可以参考。还有一种秘境是『大众型秘境』，
+      到了一定时间后秘境自动会开启，到时候会引发广大修士的注意」
+   + 结构选择：「分层探索，可以中途退出」
+
+   所以一共三类约束，落成下面这套：
+
+   ── 两种开启方式 ──────────────────────────────
+   ① **残片型（私密）**：探索时有小概率捡到「秘境图残片」。
+      集齐 G.MIJING_SHARD.need 片，可以在主界面「推演」出一处入口。
+      推演出来的那处只属于你 —— 因为没有第二个人知道它在哪。
+   ② **大众型（公开）**：每 G.MIJING_PUBLIC.period 次行动，
+      天地间某处会自己裂开一道口子。消息传得比人快，
+      几天之内全天下的修士都在往那边赶。
+      它**限时**（G.MIJING_PUBLIC.window 次行动），过时不候。
+      里面会碰到别的修士 —— 这是大众型独有的东西。
+
+   ── 境界限制 ─────────────────────────────────
+   每个秘境都有 minMajor / maxMajor。
+   低于门槛进不去（里面的东西你扛不住）；
+   高于上限也进不去（那道口子认修为，修为太高会被弹出来）。
+
+   ── 结构：分层探索 ────────────────────────────
+   进去之后一层一层往下走，每层三个选择：
+   稳妥 / 激进 / 或者就此回头。
+   每层结算一次，随时可以「带着已经拿到的东西出去」。
+   越深越肥，也越容易把命留在里面。
+
+   ── 写法约定（沿用前面几轮）────────────────────
+   文案里出现的每一个数字都必须真的加（verify-mijing.js 会对账）。
+   用 a.cult(n) 的返回值拼字符串，不要手写。
+   ============================================================ */
+
+G.MIJING_SHARD  = { need:3, chance:0.10 };   // 探索时 10% 捡到一片；集齐 3 片可推演
+G.MIJING_PUBLIC = { period:58, firstAt:40, window:14 };  // 大众型：每 58 次行动开一次，开 14 次行动
+
+G.MIJING = [
+
+/* ============================================================
+   残片型 ①：寒泉洞（炼气 ~ 筑基）
+   ============================================================ */
+{
+  id:'mj_hanquan', kind:'shard', name:'寒泉洞', epithet:'一口不结冰的泉',
+  minMajor:1, maxMajor:2, floors:3,
+  desc:'残片上画的是一口泉，泉边没有雪。',
+  intro:'洞口比你想的小。\n\n里面没有风，但很冷——冷得不像山里那种冷，\n像是有什么东西在很深的地方一直吸着热气。\n\n泉在洞底，是黑的。水面上浮着一层很薄的白气，\n白气不散，也不升。',
+  plan:[
+    { text:'第一层 · 泉边\n\n泉边有一圈石头，摆得很整齐，像是有人坐过。\n石头上结着霜，但泉水不结冰。\n\n你蹲下去，看见水底有东西在反光。',
+      choices:[
+        { label:'伸手去够', hint:'水很深，但看起来不远',
+          eff:(s,a)=>{ const hurt = Math.round(s.maxLife*0.08); a.life(-hurt);
+            const c = a.cult(26,'mid');
+            return '你的手伸进去，冷得像被咬了一口。\n\n指尖碰到一个硬的、圆的东西。你把它捞上来——\n是一颗珠子，里面冻着一小段没说完的话。\n\n你听不懂，但它在你手心里化了。\n修为 +' + c + '　寿元 −' + a.lifePct(0.08); } },
+        { label:'先用石头探一探', hint:'稳一点',
+          eff:(s,a)=>{ const c = a.cult(14,'low');
+            return '你捡了块石头丢下去。\n\n石头落到一半就停了——水把它托住了。\n你等了一会儿，石头才慢慢沉下去。\n\n你知道了：这水不让人随便拿东西。\n修为 +' + c; } },
+        { label:'不碰水，绕着泉走一圈', hint:'先看清地形',
+          eff:(s,a)=>{ const c = a.cult(18,'low'); a.flag('mj_hanquan_circle');
+            return '你绕着泉走了一圈。走到第三圈的时候你发现：\n\n石头围出来的不是圆，是一个**没画完的圈**。\n缺口正对着洞的深处。\n\n修为 +' + c; } }
+      ] },
+    { text:'第二层 · 缺口\n\n缺口后面是一条窄道，只够一个人侧身过去。\n\n道壁上刻着字，从洞口一直排到看不见的地方。\n字很浅，像是用指甲划的。\n\n你读了几行——是同一个人在反复写同一句话。',
+      choices:[
+        { label:'一直读下去', hint:'你想知道那句话是什么',
+          eff:(s,a)=>{ a.clue('clue_erased'); const c = a.cult(30,'mid');
+            return '你读了很久。读到第七十几行的时候，你终于看懂了：\n\n那句话是「别往回看」。\n\n你停下来，慢慢转过身。\n窄道里什么也没有，只有你自己的脚印。\n\n修为 +' + c + '　线索 +1'; } },
+        { label:'侧身穿过去', hint:'不读了，往里走',
+          eff:(s,a)=>{ const hurt = Math.round(s.maxLife*0.06); a.life(-hurt);
+            const c = a.cult(24,'mid'); a.flag('mj_hanquan_through');
+            return '你侧着身子往里挤。\n\n石头刮破了你的肩。挤到一半的时候，\n你听见身后有人在念那句话——念得和你刚才一样慢。\n\n你没有回头。\n修为 +' + c + '　寿元 −' + a.lifePct(0.06); } },
+        { label:'用刀把字刮下来带走', hint:'总得带点什么',
+          eff:(s,a)=>{ a.karma(2); a.addCard('拾遗石');
+            return '你把那一整面墙的字刮了下来——刮成了石粉。\n\n装在袋子里带出去的时候，石粉还是温的。\n（得到【拾遗石】）\n业障 +2'; } }
+      ] },
+    { text:'第三层 · 泉底\n\n窄道的尽头是一个更大的洞。\n\n这里没有泉，只有一口井。井口很小，井壁上有抓痕。\n\n井底传来水声。水声很有规律——像有人在下面慢慢数数。',
+      choices:[
+        { label:'下井', hint:'最深处的东西通常最好',
+          eff:(s,a)=>{ a.challenge({ name:'井里的东西', tier:'elite', rounds:40,
+              outcome:{ win:{ flag:'mj_hanquan_win', card:'寒渊剑诀' },
+                        lose:{ lifePct:-0.30 } } });
+            return '你把绳子系好，下去了。\n\n下到第三丈的时候，绳子自己松了。'; } },
+        { label:'往井里丢灵石，然后走', hint:'有些地方不该去',
+          eff:(s,a)=>{ a.stone(-40); a.karma(-2); const c = a.cult(40,'high');
+            return '你摸出四十块灵石，一块一块丢下去。\n\n数到第三十九块的时候，水声停了。\n你把最后一块也丢了下去。\n\n水声重新响起来，比刚才慢了一点。\n你转身走了。\n修为 +' + c + '　业障 −2'; } },
+        { label:'记下位置，先出去', hint:'回去准备再来',
+          eff:(s,a)=>{ a.flag('mj_hanquan_marked'); const c = a.cult(20,'mid');
+            return '你在井边堆了三块石头，又用刀在洞壁上刻了个记号。\n\n做完这些，你原路退了出去。\n外面的天已经黑了。\n\n修为 +' + c; } }
+      ] }
+  ]
+},
+
+/* ============================================================
+   残片型 ②：古镜台（筑基 ~ 金丹）
+   ============================================================ */
+{
+  id:'mj_gujing', kind:'shard', name:'古镜台', epithet:'一面照不出人的镜子',
+  minMajor:2, maxMajor:3, floors:3,
+  desc:'残片上是一座台子，台上立着一面镜子。镜子里没有画东西。',
+  intro:'台子有三层，每层都比下面小一圈。\n\n顶上立着一面镜子，比人还高，铜框锈成了黑色。\n\n你走到台前，镜子里没有你。\n镜子里是这个台子——从另一个角度看过去的台子，\n台上站着一个人，背对着你。',
+  plan:[
+    { text:'第一层 · 镜前\n\n你在镜子前面站了很久。\n\n镜子里那个人也站了很久。他一直背对着你，\n但你能看见他的肩膀在动——他在呼吸。',
+      choices:[
+        { label:'绕到镜子后面', hint:'看看背面有什么',
+          eff:(s,a)=>{ const c = a.cult(30,'mid'); a.flag('mj_gujing_back');
+            return '镜子背面刻满了名字。\n\n最上面一行是一个你不认识的名字，刻得很深。\n往下每一行都更浅一点，浅到最后一行几乎看不出来。\n\n最后一行只有两个字，你辨认了很久——\n**是你。**\n\n修为 +' + c; } },
+        { label:'敲一敲镜面', hint:'听声音',
+          eff:(s,a)=>{ const c = a.cult(22,'mid'); a.life(-Math.round(s.maxLife*0.05));
+            return '你屈起手指敲了一下。\n\n镜子没有响。**你的手响了。**\n\n指节上裂开一道口子，血滴在镜面上，\n顺着铜框流下去，一滴也没留下。\n\n修为 +' + c + '　寿元 −' + a.lifePct(0.05); } },
+        { label:'对着镜子报自己的名字', hint:'看它认不认',
+          eff:(s,a)=>{ a.clue('clue_name'); a.karma(1); const c = a.cult(26,'mid');
+            return '你报了自己的名字。\n\n镜子里那个人停了一下。\n然后他也报了一个名字。\n\n不是你刚才说的那个。\n\n修为 +' + c + '　线索 +1　业障 +1'; } }
+      ] },
+    { text:'第二层 · 台内\n\n你从台侧的门进去了。\n\n里面是一圈回廊，墙上全是镜子，一面挨着一面。\n每一面镜子里的你，动作都比上一面**慢一点**。\n\n走到第七面的时候，镜子里的你还没走进来。',
+      choices:[
+        { label:'站在原地等', hint:'等他跟上',
+          eff:(s,a)=>{ const c = a.cult(44,'high'); a.clue('clue_mirror');
+            return '你站住了。\n\n第七面镜子里的你还在门口。他一步一步往里走，\n走得很慢，但每一步都和你刚才走过的一模一样。\n\n等他走到你面前，你们对视了一下。\n\n然后他穿过了你，继续往前走。\n\n修为 +' + c + '　线索 +1'; } },
+        { label:'继续往前走，不看他', hint:'别停',
+          eff:(s,a)=>{ const c = a.cult(36,'high'); a.flag('mj_gujing_pass');
+            return '你一直走到回廊尽头。\n\n身后那些镜子里的你，一个都没跟上来。\n\n尽头有一扇门。门上没有把手，只写着一行字：\n「进来的人，都要留下一个。」\n\n修为 +' + c; } },
+        { label:'砸碎第七面镜子', hint:'有些东西不该存在',
+          eff:(s,a)=>{ a.karma(4); a.life(-Math.round(s.maxLife*0.12)); a.addCard('镜中花');
+            return '你用剑柄砸了下去。\n\n镜子碎的时候，你听见有人在很远的地方喊了一声。\n喊的是你的名字。\n\n碎片里每一片都还有你，只是都碎了。\n（得到【镜中花】）\n业障 +4　寿元 −' + a.lifePct(0.12); } }
+      ] },
+    { text:'第三层 · 台顶\n\n门后面就是台顶。你回到了镜子前面——\n从另一个方向。\n\n镜子还立在那儿。这一次镜子里**有你**了。\n\n只是你身后的台子上，站着另一个人。',
+      choices:[
+        { label:'回头', hint:'总得知道那是谁',
+          eff:(s,a)=>{ a.challenge({ name:'台上的人', tier:'terror', rounds:50,
+              outcome:{ win:{ flag:'mj_gujing_win', cult:120, clue:'clue_xinmo' },
+                        lose:{ lifePct:-0.34 } } });
+            return '你回过头。\n\n那个人穿着和你一样的衣服，站着你一样的姿势。\n他先开的口：\n\n“你照到我了。”'; } },
+        { label:'不回头，走下台子', hint:'有些答案不要也罢',
+          eff:(s,a)=>{ a.life(20); const c = a.cult(60,'high');
+            return '你盯着镜子里的自己，一步一步往后退。\n\n退到台子边缘的时候，镜子里那个人——\n那个站在你身后的——朝你点了点头。\n\n你转身下了台。\n\n修为 +' + c + '　寿元 +' + 20; } },
+        { label:'把镜子推倒', hint:'让它再也照不到人',
+          eff:(s,a)=>{ a.karma(6); a.life(-Math.round(s.maxLife*0.20)); const c = a.cult(110,'high');
+            return '你用尽全身力气去推铜框。\n\n镜子倒下去的时候没有碎，而是**软了下去**，\n像一块化掉的冰。台面上留下一滩银色的水，\n水里还有半个你，正在慢慢散开。\n\n修为 +' + c + '　业障 +6　寿元 −' + a.lifePct(0.20); } }
+      ] }
+  ]
+},
+
+/* ============================================================
+   残片型 ③：云墟（金丹 ~ 元婴）
+   ============================================================ */
+{
+  id:'mj_yunxu', kind:'shard', name:'云墟', epithet:'天上掉下来的一座城',
+  minMajor:3, maxMajor:4, floors:4,
+  desc:'残片上是半座城的轮廓，城的另一半在云里。',
+  intro:'它不在山里，在天上。\n\n你抬头能看见它——一座倒过来的城，屋脊朝下，\n街道朝天。云从街中间穿过去。\n\n走到它正下方的时候，你脚下开始变轻。\n\n你没有飞。是这座城在往下掉，掉得很慢，\n慢到你有时间走进去。',
+  plan:[
+    { text:'第一层 · 朝天街\n\n你落在一条街上。\n\n街是朝天的，所以你是踩在屋檐上。\n两边的门都开着，门里也是天。\n\n街上很干净——干净得不像没有人，\n像是有人刚扫过。',
+      choices:[
+        { label:'进最近的一扇门', hint:'先看看屋里有什么',
+          eff:(s,a)=>{ const c = a.cult(70,'mid'); a.addCard('地脉珠');
+            return '屋里没有家具，只有一张桌子。\n桌上放着一颗珠子，珠子里有一条河在流。\n\n你把它拿起来的时候，河停了一下，\n像是在确认拿它的人是谁。\n（得到【地脉珠】）\n修为 +' + c; } },
+        { label:'沿着街一直走', hint:'走到头看看',
+          eff:(s,a)=>{ const c = a.cult(90,'high'); a.flag('mj_yunxu_walk');
+            return '你沿着街走了很久。\n\n走到最后你发现——这条街是个圈。\n你回到了起点，但起点的那扇门**关上了**。\n\n修为 +' + c; } },
+        { label:'站在街上等', hint:'看这座城要干什么',
+          eff:(s,a)=>{ const c = a.cult(60,'mid');
+            return '你站在街心不动。\n\n过了很久，你听见很轻的一声——\n是城又往下掉了一截。\n\n云从你身边穿过去，带着一点雨的味道。\n修为 +' + c; } }
+      ] },
+    { text:'第二层 · 扫地的人\n\n街的尽头有一个人。\n\n他在扫地。扫帚很短，他扫得很慢，\n但地上的叶子一直在变多。\n\n他抬起头看你，说：“你也是被掉下来的？”',
+      choices:[
+        { label:'“是。”', eff:(s,a)=>{ const c = a.cult(100,'high'); a.favor(3);
+            return '他点点头，继续扫。\n\n“那你也扫一会儿。”他把扫帚递给你，\n“扫到不掉了，就能出去。”\n\n你扫了很久。叶子真的少了。\n人情 +3　修为 +' + c; } },
+        { label:'“这座城是什么？”', eff:(s,a)=>{ a.clue('clue_world'); const c = a.cult(120,'high');
+            return '他停下来，想了想。\n\n“是图纸。”他说，\n“有人在下面画一座很大的东西，画错了几笔，\n这几笔就掉下来了。”\n\n“掉下来的地方，我们管它叫云墟。”\n\n线索 +1　修为 +' + c; } },
+        { label:'不跟他说话，绕过去', eff:(s,a)=>{ const c = a.cult(80,'mid'); a.karma(1);
+            return '你从他身边绕过去。\n\n走了十几步，你听见身后扫地的声音停了。\n然后他开口了，声音很近：\n\n“绕过去的，一般都回不来。”\n\n修为 +' + c + '　业障 +1'; } }
+      ] },
+    { text:'第三层 · 城心\n\n城心是一口井——和寒泉洞那口很像，\n只是这一口是朝天的，从上面看下去，\n能看见真正的天空。\n\n井边架着一座很小的阵。阵还在转。',
+      choices:[
+        { label:'拆了它', hint:'它不该还在转',
+          eff:(s,a)=>{ a.karma(5); a.challenge({ name:'守阵的', tier:'terror', rounds:50,
+              outcome:{ win:{ flag:'mj_yunxu_break', cult:200, clue:'clue_world' },
+                        lose:{ lifePct:-0.36 } } });
+            return '你伸手去掰阵上的一块石头。\n\n手还没碰到，井里就伸出来一只手。'; } },
+        { label:'把阵记下来', hint:'抄一遍再走',
+          eff:(s,a)=>{ a.clue('clue_world'); a.clue('clue_page'); const c = a.cult(150,'high');
+            return '你趴在井边，把阵的纹路一笔一笔抄在地上。\n\n抄到一半你发现：这座阵和宗门记档里被撕掉的那一页，\n**是同一座**。\n\n线索 +2　修为 +' + c; } },
+        { label:'把灵石投进井里', hint:'像在寒泉洞那样',
+          eff:(s,a)=>{ a.stone(-120); const c = a.cult(180,'high'); a.karma(-3);
+            return '你把灵石一块一块投进井里。\n\n它们没有落下去——它们往上飞，飞进了真正的天空里。\n你一直投到手空。\n\n阵停了一下，又转了起来。\n修为 +' + c + '　业障 −3'; } }
+      ] },
+    { text:'第四层 · 掉下去\n\n城又开始掉了。这次掉得很快。\n\n你脚下的屋檐在碎。街两边的门一扇一扇关上。\n\n井边那个阵转得越来越快——\n它不是在守这座城，它是在**拽着它**。\n\n现在它拽不住了。',
+      choices:[
+        { label:'跳进井里', hint:'往上跳，就是往下掉',
+          eff:(s,a)=>{ a.challenge({ name:'井底的天', tier:'boss', rounds:60,
+              outcome:{ win:{ flag:'mj_yunxu_win', cult:300, lifeMax:40, card:'太虚剑典' },
+                        lose:{ lifePct:-0.45 } } });
+            return '你朝井里跳了下去。\n\n风从下面往上灌。你分不清自己是在落，还是在升。'; } },
+        { label:'抓住阵，跟它一起下去', hint:'赌它知道路',
+          eff:(s,a)=>{ const c = a.cult(220,'high'); a.life(-Math.round(s.maxLife*0.22));
+            return '你抱住了阵的一块石头。\n\n阵带着你穿过整座城，穿过云，穿过你看不见的东西。\n落地的时候你在一座山的山顶上，怀里只剩一块烫手的石头。\n\n修为 +' + c + '　寿元 −' + a.lifePct(0.22); } },
+        { label:'什么都不做，让它掉', hint:'掉到底就是地面',
+          eff:(s,a)=>{ a.life(40); const c = a.cult(120,'high');
+            return '你松开手，躺在屋檐上。\n\n城掉得很快，但落到一半就散了——\n散成云，散成雨，散在你脸上。\n\n你躺在自己宗门后山的草地上。天亮了。\n修为 +' + c + '　寿元 +40'; } }
+      ] }
+  ]
+},
+
+/* ============================================================
+   大众型 ①：大阵遗址（到时自动开启，全天下都知道）
+   ============================================================ */
+{
+  id:'mj_dazhen', kind:'public', name:'大阵遗址', epithet:'地底下浮出来的一角',
+  minMajor:1, maxMajor:4, floors:3,
+  desc:'每隔一阵子，某处地下会浮出一角阵纹。看到的人不止你一个。',
+  intro:'地动了三天。\n\n第四天早上，山那边的天变成了青的——\n不是云，是一层很薄的青光，像有什么东西在地下亮着。\n\n你到的时候，坡上已经站了三十几个人。\n有宗门的，有散修，有几个你认得，有几个蒙着脸。\n\n他们都没动。因为浮出来的那一角阵纹还在长。',
+  plan:[
+    { text:'第一层 · 坡上\n\n阵纹长到半亩地那么大的时候停了。\n\n三十几个人开始往下走。走得很慢，谁也不想第一个。\n\n有人在你旁边低声说：“里面是死路，上次进去了九个，出来三个。”',
+      choices:[
+        { label:'跟着人群一起下', hint:'人多安全一点',
+          eff:(s,a)=>{ const c = a.cult(40,'mid'); a.flag('mj_dazhen_crowd');
+            return '你混在人群里往下走。\n\n走到阵纹边缘的时候，所有人都停了一下——\n像是一起想起了什么，又一起忘了。\n\n然后大家一起迈了进去。\n修为 +' + c; } },
+        { label:'等他们先下，自己数人数', hint:'稳一点',
+          eff:(s,a)=>{ const c = a.cult(30,'mid'); a.flag('mj_dazhen_counted');
+            return '你站在坡上数。\n\n进去三十一个。\n\n过了一炷香，出来两个。\n又过了一炷香，出来一个。\n\n然后就没有了。你这才往下走。\n修为 +' + c; } },
+        { label:'绕到阵的另一头', hint:'入口不止一个',
+          eff:(s,a)=>{ const c = a.cult(60,'high'); a.life(-Math.round(s.maxLife*0.07));
+            return '你绕了很远，从背阴的一面摸下去。\n\n那里果然还有一个口子，窄得多，也冷得多。\n你钻进去的时候，石头划破了背。\n\n但这边没有人。\n修为 +' + c + '　寿元 −' + a.lifePct(0.07); } }
+      ] },
+    { text:'第二层 · 阵里\n\n阵里面没有路，只有一层一层往下的台阶。\n\n台阶是活的——你踩上去的时候它会往下沉，\n沉到你抬脚的那一瞬间才停。\n\n你在第七级台阶上碰到了一个人。\n他受了伤，坐在地上，正在自己缠手。',
+      choices:[
+        { label:'替他缠完', hint:'同行的人越多越好',
+          eff:(s,a)=>{ a.karma(-4); a.favor(3); a.life(-Math.round(s.maxLife*0.06));
+            const c = a.cult(70,'high'); a.flag('mj_dazhen_ally');
+            return '你蹲下去，把他的伤口重新缠了一遍。\n\n他一直没说话。缠完的时候他问：“你叫什么？”\n你说了。他点点头：“记住了。”\n\n然后他站起来，走在你前面。\n人情 +3　业障 −4　修为 +' + c + '　寿元 −' + a.lifePct(0.06); } },
+        { label:'问他下面有什么', hint:'情报比人值钱',
+          eff:(s,a)=>{ a.clue('clue_world'); const c = a.cult(50,'mid');
+            return '“下面有什么？”\n\n“有画。”他说，“画了一半的画。”\n\n“谁画的？”\n\n他看了你一眼，没有回答，扶着墙站起来，往下走了。\n线索 +1　修为 +' + c; } },
+        { label:'不惹麻烦，从旁边过去', hint:'你不想带着一个伤员',
+          eff:(s,a)=>{ a.karma(3); const c = a.cult(90,'high');
+            return '你从他身边绕了过去。\n\n走到下面几级的时候，你听见上面传来一声很轻的响——\n像是什么东西坐回了地上。\n\n你没有回头。\n修为 +' + c + '　业障 +3'; } }
+      ] },
+    { text:'第三层 · 画\n\n台阶到头了。底下是一间很大的屋子，\n屋子中间的地上画着一座阵——和外面浮出来的那一角，是同一座。\n\n三十几个人，只剩四个站在这里。\n\n阵没画完。差最后三笔。\n\n那三个人看着你。',
+      choices:[
+        { label:'上去补那三笔', hint:'阵是活的，补完会发生什么没人知道',
+          eff:(s,a)=>{ a.karma(5); a.clue('clue_world'); a.challenge({ name:'补完的阵', tier:'terror', rounds:50,
+              outcome:{ win:{ flag:'mj_dazhen_done', cult:200, lifeMax:30 },
+                        lose:{ lifePct:-0.38 } } });
+            return '你拿起地上那支笔。\n\n另外三个人没有拦你——他们退开了一步。\n\n第一笔画完，屋子亮了。\n第二笔画完，屋子没了。\n\n第三笔，你画在了自己身上。'; } },
+        { label:'把笔踢开，让大家一起出去', hint:'有些东西画完就晚了',
+          eff:(s,a)=>{ a.karma(-6); a.favor(5); const c = a.cult(140,'high');
+            return '你一脚把笔踢到了墙角。\n\n“走。”你说。\n\n有一个人犹豫了一下，另外两个跟着你走了。\n出去的时候天已经黑了，坡上还有人守着。\n他们看你的眼神，你会记很久。\n人情 +5　业障 −6　修为 +' + c; } },
+        { label:'站在原地，看他们怎么选', hint:'不表态',
+          eff:(s,a)=>{ const c = a.cult(100,'high');
+            return '你退到墙边，抱着手看。\n\n他们三个互相看了很久。最后谁也没去捡那支笔。\n\n你们一起走出去的。一路上谁也没说话。\n修为 +' + c; } }
+      ] }
+  ]
+},
+
+/* ============================================================
+   大众型 ②：忘川渡（到时自动开启）
+   ============================================================ */
+{
+  id:'mj_wangchuan', kind:'public', name:'忘川渡', epithet:'一条不流水的河',
+  minMajor:2, maxMajor:4, floors:3,
+  desc:'每隔一阵子，某条河会停下来。停下来的时候，河底会开门。',
+  intro:'河是横着停的——不是水干了，是水**不动了**。\n\n一整条河立在那里，像一块很长的玻璃。\n你能看见里面的鱼，也能看见河底。\n\n河底有一道门，门是开的。\n\n岸边聚了很多人。没有一个人下水。\n因为水虽然停了，但**门在往里吸**——离得近的草木，都朝着门的方向倒。',
+  plan:[
+    { text:'第一层 · 岸边\n\n有人试过下水了。\n\n一个散修捏着避水诀跳了下去，刚碰到水面就被吸了进去，\n连声音都没来得及出。\n\n过了一会儿，门里飘出来一件他的衣服。\n衣服是干的。',
+      choices:[
+        { label:'直接跳进去', hint:'越犹豫越不敢',
+          eff:(s,a)=>{ const c = a.cult(60,'mid'); a.life(-Math.round(s.maxLife*0.10));
+            return '你跳了下去。\n\n没有水声。你穿过那层停住的河水，像穿过一层布。\n\n门里的光是白的，白得看不见台阶。\n落地的时候你摔了一下。\n修为 +' + c + '　寿元 −' + a.lifePct(0.10); } },
+        { label:'先看看那件衣服', hint:'他至少留下点什么',
+          eff:(s,a)=>{ const c = a.cult(45,'mid'); a.addCard('养魂木');
+            return '你把那件衣服捞了起来。\n\n口袋里有一块木头，温的。\n你把它揣进怀里的时候，木头动了一下——\n像是有什么东西在里面翻了个身。\n（得到【养魂木】）\n修为 +' + c; } },
+        { label:'在岸边等到人少了再下', hint:'别有用心',
+          eff:(s,a)=>{ const c = a.cult(70,'high'); a.flag('mj_wangchuan_late');
+            return '你在岸边坐到天黑。\n\n人一个一个走了，也有几个像你一样坐着不动。\n\n到最后你们互相看了一眼，一起站了起来。\n\n没有人抢在前面。\n修为 +' + c; } }
+      ] },
+    { text:'第二层 · 河底\n\n门后面是河底，但水在外面。\n\n你走在河底的沙上，头顶是一整条立着的河。\n鱼悬在里面，一动不动。\n\n前面有一个人，蹲在地上写字。他没有回头，\n只是说：“别踩线。”',
+      choices:[
+        { label:'停下来，看清地上的线', hint:'他说的是真的',
+          eff:(s,a)=>{ const c = a.cult(90,'high'); a.clue('clue_erased');
+            return '你低头看。沙上确实有线——很细，一圈一圈，\n把整个河底画成了一座阵。\n\n你已经踩断了两条。\n\n“没事。”他说，“断了的，本来也就不算数了。”\n线索 +1　修为 +' + c; } },
+        { label:'问他在写什么', hint:'',
+          eff:(s,a)=>{ const c = a.cult(110,'high'); a.clue('clue_world');
+            return '“在写名字。”他说。\n\n“写谁的名字？”\n\n“写来过的人。”他写完最后一个字，站起来，\n“写上就不算白来。”\n\n你低头看，沙上密密麻麻全是名字。\n最后一行，是你的。\n线索 +1　修为 +' + c; } },
+        { label:'不管线，直接往前走', hint:'快一点',
+          eff:(s,a)=>{ a.karma(4); a.life(-Math.round(s.maxLife*0.14));
+            return '你大步往前走，踩断了七八条线。\n\n走到第十步的时候，头顶那条河**动了一下**。\n\n只有一下。但你整个人像被从里面拧了一把。\n\n他没有回头。\n业障 +4　寿元 −' + a.lifePct(0.14); } }
+      ] },
+    { text:'第三层 · 门\n\n河底走到头，是另一道门。\n\n这道门是关的，门上有把手。把手是热的。\n\n写名字那个人站在你身后，说：\n“这道门后面，是出去的路。”\n\n“但一个人只能出去一次。”',
+      choices:[
+        { label:'拉开门', hint:'出去',
+          eff:(s,a)=>{ const c = a.cult(130,'high'); a.life(30);
+            return '你握住把手，拉开了门。\n\n门后面是白天。是你下水的那条河，岸边站着人，\n有人在喊你的名字。\n\n你走出去的时候，回头看了一眼——\n门里的沙上，又多了一行字。\n修为 +' + c + '　寿元 +30'; } },
+        { label:'让他先出去', hint:'他在这儿待得比你久',
+          eff:(s,a)=>{ a.karma(-8); a.favor(6); const c = a.cult(160,'high');
+            return '你退开一步，把把手让给他。\n\n他愣了一下，然后笑了。\n“我等这句话等了很久。”他说。\n\n他拉开门走了。门关上的时候，你听见外面有人在哭。\n\n然后门又开了。这次是为你开的。\n人情 +6　业障 −8　修为 +' + c; } },
+        { label:'先把河底那一整片名字抄下来', hint:'那些名字比出去重要',
+          eff:(s,a)=>{ a.clue('clue_erased'); a.clue('clue_name'); a.life(-Math.round(s.maxLife*0.12));
+            const c = a.cult(200,'high');
+            return '你没有去拉门，而是蹲下来，把沙上的名字一个一个抄。\n\n抄到一半的时候，头顶的河开始流了。\n\n你是被水冲出去的。\n\n但你抄下来的那一页纸还在，湿了，字没化。\n线索 +2　修为 +' + c + '　寿元 −' + a.lifePct(0.12); } }
+      ] }
+  ]
+}
+
+];
+
+/* 按 id 取 */
+G.mijingById = function(id){ return G.MIJING.find(m=>m.id===id) || null; };
+/* 按大境界筛出「你能进的那些」（残片型按 kind 再分） */
+G.mijingFor = function(major, kind){
+  return G.MIJING.filter(function(m){
+    if (kind && m.kind !== kind) return false;
+    if (major < (m.minMajor||1)) return false;
+    if (m.maxMajor && major > m.maxMajor) return false;
+    return true;
+  });
+};
+
+
 /* ===== engine.js ===== */
 /* ============================================================
    《记忆修复局》游戏引擎
@@ -6551,12 +6998,35 @@ function doAction(kind){
       (a.cultFlat ? `　增益 +${a.cultFlat}` : '') +
       (active.length ? `　${active.join('　')}` : '') + '）');
   }
+  else if (kind==='explore'){
+    /* ⚠️ 第 27 轮：这一分支以前**根本不存在** —— explore() 是死代码。
+       现在接回来：灵石 + 修为 + 可能受伤 + 可能捡到秘境图残片。
+       得卡不在这里做，走第 8 步的统一入口（见 explore() 的说明）。 */
+    const ex = explore();
+    if (ex.stone) msgs.push(`灵石 +${ex.stone}`);
+    if (ex.cult)  msgs.push(`修为 +${ex.cult}`);
+    if (ex.hurt)  msgs.push(`受了点伤　寿元 −${ex.hurt}`);
+    (ex.msgs || []).forEach(m=>msgs.push(m));
+    if (s.life <= 0){
+      const d = checkDeath('life');
+      if (d && !d.saved) return { ok:false, cost:cost, msgs:msgs, dead:d };
+    }
+  }
   else if (kind==='sectwork'){
     const gain = 8 + Math.round(6 * (1 + a.cultMul*0.4));
     gainStone(gain);
     gainSectQi(2 + s.buildings.jiangjing);
     gainFavor(1);
-    msgs.push(`灵石 +${gain}　宗门气运 +${2+s.buildings.jiangjing}　人情 +1`);
+    /* ⚠️ 第 27 轮：主页面的「宗门事务」现在**自动给贡献**。
+       以前只有「进宗门面板 → 点宗门任务」才给贡献，于是：
+         · 主线《三月初七》的进度全靠宗门行动次数，逼玩家反复点同一件事
+         · 藏经阁折扣、职衔、剧情选项的门槛也都挂在贡献上
+         · 结果就是「想在宗门里做点事」必须绕一层界面
+       现在主页面这一下就给。宗门面板里的任务仍在，给得**更多**，
+       但它变成了「我今天想专门赚贡献」的选项，而不是必经之路。 */
+    const contrib = 3 + Math.floor(s.realmIdx / 9);   // 炼气 3 → 元婴 6
+    gainContrib(contrib);
+    msgs.push(`灵石 +${gain}　宗门气运 +${2+s.buildings.jiangjing}　人情 +1　贡献 +${contrib}`);
     // 宗门事务也沾一点修行（修行不必是唯一出路）
     const cg = Math.round(G.cultBase(s.realmIdx) * 0.5);
     gainCult(cg);
@@ -7033,7 +7503,17 @@ function cardBonus(){
   return ((meta.up && meta.up.cardLuck) || 0);
 }
 
-/* ---------------- 探索 ---------------- */
+/* ---------------- 探索 ----------------
+   ⚠️⚠️ 第 27 轮抓到的**旧 bug**：这个函数原本**从来没有被调用过**。
+   `doAction` 里没有 `kind==='explore'` 的分支，于是「探索」这条路
+   实际上只拿得到第 8 步那份通用的三选一卡牌 ——
+   下面算的灵石、修为、受伤、以及新加的秘境图残片，全是死代码。
+
+   什么时候坏的已不可考（大概率是第 20~21 轮重排 doAction 时漏接的），
+   但这解释了一件旧事：玩家一直觉得「探索」比「修行」薄。
+   现在把它接回 doAction 的 explore 分支，并且**只留一份实现**：
+   得卡仍旧走第 8 步的统一入口（rollCardChance 里 explore = 72%），
+   这里不再自己掷一次，否则探索会变成两次抽卡。 */
 function explore(){
   const a = agg();
   const up = meta.up||{};
@@ -7045,7 +7525,7 @@ function explore(){
   gainStone(stoneGain);
   gainCult(cultGain);
 
-  const res = { stone: stoneGain, cult: cultGain, cards: null, hurt: 0 };
+  const res = { stone: stoneGain, cult: cultGain, hurt: 0, msgs: [] };
 
   // 机缘事件：受伤
   if (s.rng() < 0.22 - Math.min(0.12, a.evade*0.2)){
@@ -7054,9 +7534,15 @@ function explore(){
     res.hurt = hurt;
   }
 
-  // 得卡：改为「三选一」，交给界面
-  if (s.rng() < 0.72 + a.findBonus*0.04){
-    res.cards = offerCards(3, { bonus: cardBonus() });
+  /* 第 27 轮：探索时小概率捡到「秘境图残片」。
+     它是残片型秘境的唯一来源 —— 玩家要攒够 G.MIJING_SHARD.need 片
+     才能在主界面推演出一处入口。之所以挂在这里：
+     探索本来就是「往外走」的行动，而秘境是「走出去才会碰上」的东西。 */
+  if (s.rng() < (G.MIJING_SHARD.chance||0.10)){
+    gainMijingShard(1);
+    res.shard = (miJing() || {}).shards || 0;
+    res.msgs.push('你在一处塌了半边的洞里摸到一片硬东西——是张残图。' +
+                  `（秘境图残片 ${res.shard}/${(G.MIJING_SHARD.need||3)}）`);
   }
   return res;
 }
@@ -7918,9 +8404,14 @@ function pillOutcome(name){
 
    ⚠️ 第 25 轮：加入**品级**。见 pillOutcome()——
    越品伤身、低品减效，两种惩罚都在这里执行。 */
+/* 是否是「可以吃/可以用掉的一次性东西」。
+   第 27 轮：「问影香」是法宝但也是一次性消耗品，
+   所以判据从「type==='丹药'」放宽到「丹药 或 标了 consumable」。 */
+function isConsumable(c){ return !!c && (c.type === '丹药' || c.consumable === true); }
+
 function usePill(name){
   const c = G.CARDS[name];
-  if (!c || c.type !== '丹药') return { ok:false, msg:'这不是丹药' };
+  if (!isConsumable(c)) return { ok:false, msg:'这个东西不是一次性的' };
   if (!s || s.ended) return { ok:false, msg:'这一局已经结束了' };
   const idx = s.deck.indexOf(name);
   if (idx < 0) return { ok:false, msg:`你身上没有【${name}】` };
@@ -7954,6 +8445,28 @@ function usePill(name){
     parts.push(`寿元上限 +${v}`);
   }
   if (u.karma){ gainKarma(u.karma); parts.push(`业障 ${u.karma > 0 ? '+' : ''}${u.karma}`); }
+
+  /* ---- 问影香：把「当前大境界某位还没见过的天骄」指给你看（第 27 轮） ----
+     它不产生任何数值效果，只产生**信息**与**一个选择**。
+     所以这里把目标放进返回值，由界面接手弹「去 / 不去」。
+     ⚠️ 不在这里就开打 —— 玩家得先看见那是谁、在哪儿，再决定。
+     这也是玩家的原话：「向你展示……并让你选择要不要去找那位天骄」。 */
+  if (u.tianjiao){
+    const tj = tianjiaoForRealm();
+    if (!tj){
+      /* 这一境已经见完了。香还是要烧掉的（它是一次性道具），
+         但要把话说清楚，不能让玩家觉得东西白没了。 */
+      const major = (G.REALMS[s.realmIdx]||{major:1}).major;
+      s.deck.push(name);                    // 退还：这不是玩家的错
+      return { ok:false, outOfBattle:true,
+               msg:`烟直着往上走了，没有偏向任何一边。\n\n这一境榜上的人，你已经都见过了。\n（【${name}】没有烧掉）` };
+    }
+    const dir = HAUNT_DIRS[Math.floor((s.rng ? s.rng() : Math.random()) * HAUNT_DIRS.length)];
+    log(`你点着了${name}。烟往${dir}飘。`);
+    saveRun();                              // 香已经烧了，先落盘
+    return { ok:true, outOfBattle:true, tianjiaoCompass:true, tj:tj, dir:dir,
+             msg:`烟从香头上起来，没有往上走。它往${dir}飘。` };
+  }
 
   /* ---- 永久战斗丹：本局内永久累加 ---- */
   if (u.perm){
@@ -8043,7 +8556,7 @@ function inventory(){
   const out = [];
   Object.keys(count).forEach(n=>{
     const c = G.CARDS[n];
-    if (!c || c.type !== '丹药') return;
+    if (!isConsumable(c)) return;
     const u = c.use || {};
     out.push({
       name: n, card: c, count: count[n],
@@ -8067,7 +8580,7 @@ function inventory(){
 /* 丹药总数（给底栏角标用） */
 function pillCount(){
   if (!s || !s.deck) return 0;
-  return s.deck.filter(n=>{ const c=G.CARDS[n]; return c && c.type==='丹药'; }).length;
+  return s.deck.filter(n=>isConsumable(G.CARDS[n])).length;
 }
 
 function pushLog(t){
@@ -8944,6 +9457,220 @@ function clearRun(){
   try{ localStorage.removeItem(RUN_KEY); }catch(e){}
 }
 
+/* ============================================================
+   秘境（第 27 轮）
+   ------------------------------------------------------------
+   见 src/mijing.js 的设计说明。这里只做状态机：
+
+     s.mijing = {
+       shards : 已捡到的秘境图残片数
+       known  : 已推演出来的残片型秘境 id
+       done   : 一局里已经探索过的秘境 id
+       run    : 正在探索的那一次 { id, floor, deepest, cost } —— 可存档
+       nextAt : 大众型下一次开启的行动数
+       openId / openUntil : 当前开着的大众型秘境与它的关门时刻
+     }
+
+   规则要点：
+     · **进入要花一次行动**（扣寿元），层内的选择不额外扣寿元
+     · 层内随时可以退出，已经拿到的东西带走
+     · 一处秘境一局只能探索一次（残片型靠再推演，大众型靠下一次开）
+     · 境界不够进不去 —— 这是玩家点名要的「限制境界进入」
+   ============================================================ */
+
+function miJing(){ return (s && s.mijing) || null; }
+function miJingEnsure(){
+  if (!s) return null;
+  if (!s.mijing || typeof s.mijing !== 'object'){
+    s.mijing = { shards:0, known:[], done:[], run:null,
+                 nextAt:(G.MIJING_PUBLIC.firstAt||40), openId:null, openUntil:0 };
+  }
+  const m = s.mijing;
+  m.shards = m.shards||0; m.known = m.known||[]; m.done = m.done||[];
+  if (m.run === undefined) m.run = null;
+  if (!m.nextAt) m.nextAt = (G.MIJING_PUBLIC.firstAt||40);
+  if (m.openId === undefined) m.openId = null;
+  if (!m.openUntil) m.openUntil = 0;
+  return m;
+}
+function myMajorIdx(){ return (G.REALMS[s.realmIdx] || {major:1}).major; }
+
+/* 现在能进哪些秘境 */
+function miJingOpenList(){
+  const m = miJingEnsure();
+  if (!m || !s || s.ended) return [];
+  const out = [];
+  const maj = myMajorIdx();
+  (m.known||[]).forEach(id=>{
+    if (m.done.indexOf(id) >= 0) return;
+    const def = G.mijingById(id);
+    if (!def) return;
+    if (maj < (def.minMajor||1) || (def.maxMajor && maj > def.maxMajor)) return;
+    out.push({ def:def, via:'shard' });
+  });
+  if (m.openId && (s.actions||0) < (m.openUntil||0)){
+    const def = G.mijingById(m.openId);
+    if (def && m.done.indexOf(def.id) < 0
+        && maj >= (def.minMajor||1) && !(def.maxMajor && maj > def.maxMajor)){
+      out.push({ def:def, via:'public', left: m.openUntil - (s.actions||0) });
+    }
+  }
+  return out;
+}
+
+/* 能不能推演入口（残片够了 && 有可推演的目标） */
+function miJingCanDivine(){
+  const m = miJingEnsure();
+  if (!m || !s || s.ended) return null;
+  if (m.shards < (G.MIJING_SHARD.need||3)) return null;
+  const maj = myMajorIdx();
+  const pool = G.mijingFor(maj, 'shard').filter(d=>
+    m.known.indexOf(d.id) < 0 && m.done.indexOf(d.id) < 0);
+  return pool.length ? { pool:pool, shards:m.shards, need:G.MIJING_SHARD.need } : null;
+}
+
+/* 推演入口：消耗残片，得到一处属于你的秘境 */
+function divineMijing(){
+  const st = miJingCanDivine();
+  if (!st) return { ok:false, msg:'残片还不够，或者这一境已经没有可推演的地方了' };
+  const m = miJingEnsure();
+  const pick = st.pool[Math.floor((s.rng?s.rng():Math.random()) * st.pool.length)];
+  m.shards -= (G.MIJING_SHARD.need||3);
+  m.known.push(pick.id);
+  log(`你把残片拼了起来。它们指向「${pick.name}」。`);
+  saveRun();
+  return { ok:true, def:pick, shards:m.shards };
+}
+
+/* 捡到一片残片（探索时调） */
+function gainMijingShard(n){
+  const m = miJingEnsure();
+  if (!m) return false;
+  m.shards = (m.shards||0) + (n||1);
+  return true;
+}
+
+/* 大众型的时钟：每次行动后调一次。
+   到点了就开一处，并返回它 —— 界面拿去做「天地异动」的公告。 */
+function tickMijingClock(){
+  const m = miJingEnsure();
+  if (!m || !s || s.ended) return null;
+  if (m.openId && (s.actions||0) >= (m.openUntil||0)){
+    const closed = G.mijingById(m.openId);
+    m.openId = null; m.openUntil = 0;
+    if (closed) log(`「${closed.name}」的口子合上了。`);
+  }
+  if (!m.openId && (s.actions||0) >= (m.nextAt||0)){
+    const maj = myMajorIdx();
+    const pool = G.mijingFor(maj, 'public').filter(d=>m.done.indexOf(d.id) < 0);
+    m.nextAt = (s.actions||0) + (G.MIJING_PUBLIC.period||58);
+    if (!pool.length) return null;
+    const pick = pool[Math.floor((s.rng?s.rng():Math.random()) * pool.length)];
+    m.openId = pick.id;
+    m.openUntil = (s.actions||0) + (G.MIJING_PUBLIC.window||14);
+    log(`天地异动：「${pick.name}」开了。`);
+    saveRun();
+    return { def:pick, until:m.openUntil, left:m.openUntil-(s.actions||0) };
+  }
+  return null;
+}
+
+/* 进入一处秘境。花一次行动（扣寿元），开始分层探索。 */
+function enterMijing(id){
+  const m = miJingEnsure();
+  if (!m || !s || s.ended) return { ok:false, msg:'现在进不去' };
+  if (m.run) return { ok:false, msg:'你已经在里面了' };
+  const open = miJingOpenList().find(x=>x.def.id===id);
+  if (!open) return { ok:false, msg:'这处秘境现在进不去（境界不合，或者已经探索过了）' };
+  const cost = actionCost();
+  if (s.life - cost <= 0) return { ok:false, msg:'寿元不足' };
+  gainLife(-cost);
+  s.actions++;
+  s.worldActions = (s.worldActions||0)+1;
+  m.run = { id:id, floor:0, deepest:0, cost:cost };
+  log(`你进了「${open.def.name}」。`);
+  saveRun();
+  return { ok:true, def:open.def, via:open.via, cost:cost, floor:0 };
+}
+
+/* 当前这一层的数据 */
+function miJingFloor(){
+  const m = miJing();
+  if (!m || !m.run) return null;
+  const def = G.mijingById(m.run.id);
+  if (!def) return null;
+  const plan = def.plan[m.run.floor];
+  if (!plan) return null;
+  return { def:def, floor:m.run.floor, total:def.plan.length, text:plan.text,
+           choices:plan.choices, deepest:m.run.deepest };
+}
+
+/* 在第 floor 层做出选择 */
+function miJingPick(idx){
+  const m = miJing();
+  if (!m || !m.run) return { ok:false, msg:'你不在秘境里' };
+  const cur = miJingFloor();
+  if (!cur) return { ok:false, msg:'这一层没有路了' };
+  const c = cur.choices[idx];
+  if (!c) return { ok:false, msg:'没有这个选项' };
+  const api = makeActions({ onDeath:function(d){ if (s.mijing) s.mijing.run = null; } });
+  let text = '';
+  try { text = c.eff(s, api) || ''; }catch(e){ text = '（这里什么也没发生。）'; }
+  m.run.floor++;
+  m.run.deepest = Math.max(m.run.deepest, m.run.floor);
+  const def = G.mijingById(m.run.id);
+  const finished = m.run.floor >= def.plan.length;
+  const pending = { challenge: api._pendingChallenge, tianjiao: api._pendingTianjiao,
+                    tourney: api._pendingTourney, ended: api._ended };
+  saveRun();
+  return { ok:true, text:text, floor:m.run.floor, finished:finished,
+           pending:pending, def:def };
+}
+
+/* 退出：拿到的东西带走，秘境标记为已探索 */
+function leaveMijing(){
+  const m = miJing();
+  if (!m || !m.run) return null;
+  const def = G.mijingById(m.run.id);
+  const deepest = m.run.deepest;
+  const finished = def ? (m.run.floor >= def.plan.length) : false;
+  if (m.done.indexOf(m.run.id) < 0) m.done.push(m.run.id);
+  m.run = null;
+  log(`你从「${def ? def.name : '秘境'}」里出来了（走到第 ${deepest} 层）。`);
+  saveRun();
+  return { def:def, deepest:deepest, finished:finished };
+}
+
+/* 给界面用的一整块状态 */
+function miJingStatus(){
+  const m = miJingEnsure();
+  if (!m) return null;
+  const maj = myMajorIdx();
+  const open = miJingOpenList();
+  const div = miJingCanDivine();
+  const runDef = m.run ? G.mijingById(m.run.id) : null;
+  return {
+    shards: m.shards, need: (G.MIJING_SHARD.need||3),
+    canDivine: !!div,
+    divinePool: div ? div.pool.map(d=>d.name) : [],
+    open: open.map(x=>({ id:x.def.id, name:x.def.name, epithet:x.def.epithet,
+                         via:x.via, left:x.left||0, floors:x.def.plan.length,
+                         minMajor:x.def.minMajor, maxMajor:x.def.maxMajor })),
+    run: m.run ? { id:m.run.id, name:runDef?runDef.name:'?', floor:m.run.floor,
+                   total:runDef?runDef.plan.length:0, deepest:m.run.deepest } : null,
+    publicAt: m.nextAt, publicLeft: Math.max(0, (m.nextAt||0) - (s?s.actions:0)),
+    publicOpen: m.openId ? (G.mijingById(m.openId)||{}).name : null,
+    done: (m.done||[]).slice(),
+    all: G.MIJING.map(d=>({
+      id:d.id, name:d.name, epithet:d.epithet, kind:d.kind,
+      minMajor:d.minMajor, maxMajor:d.maxMajor, floors:d.plan.length,
+      entered: (m.done||[]).indexOf(d.id)>=0,
+      known: (m.known||[]).indexOf(d.id)>=0,
+      allowed: maj >= (d.minMajor||1) && !(d.maxMajor && maj > d.maxMajor)
+    }))
+  };
+}
+
 /* ---------------- 线索 ---------------- */
 function addClue(id){
   if (!s.clues.includes(id)) s.clues.push(id);
@@ -9077,6 +9804,10 @@ function clearTourney(){ if (s) s.tourney = null; }
 /* ============================================================
    天骄榜（第 22 轮）
    ============================================================ */
+
+/* 「问影香」的烟往哪边飘（第 27 轮）。纯风味，没有机制意义，
+   但它让「指路」这件事有画面。 */
+const HAUNT_DIRS = ['东南','正东','东北','正南','西南','西北'];
 
 /* 这一局里、当前境界能碰上的天骄（同大境界，且没打过） */
 function tianjiaoForRealm(){
@@ -9251,6 +9982,14 @@ function sectRank(){
 }
 function gainContrib(n){
   s.sectContrib = Math.max(0, (s.sectContrib||0) + n);
+  /* 第 27 轮：另外记一份**累计贡献**（只增不减）。
+     为什么需要它：原来的《三月初七》用「累计宗门行动次数」当进度门槛，
+     而那个数字只能靠一遍遍点宗门事务堆上去 —— 一局 213 次行动里要堆到 230。
+     现在主线改看累计贡献，而贡献是「做事就有」的正反馈，
+     不再要求玩家专门去做某一件重复劳动。
+     注意它和 sectContrib 的区别：sectContrib 会被剧情/藏经阁扣掉（是余额），
+     sectContribTotal 只增不减（是履历）。 */
+  if (n > 0) s.sectContribTotal = (s.sectContribTotal||0) + n;
   const before = s._lastRank || 'waimen';
   const r = sectRank().id;
   if (r !== before && s._lastRank){
@@ -9258,6 +9997,11 @@ function gainContrib(n){
     s._rankUp = sectRank();
   }
   s._lastRank = r;
+}
+/* 累计贡献（老存档没有这个字段时，用当前余额兜底） */
+function sectContribTotal(){
+  if (!s) return 0;
+  return Math.max(s.sectContribTotal||0, s.sectContrib||0);
 }
 
 /* 藏经阁价格：气运越高越便宜，职衔越高折扣越大 */
@@ -9321,7 +10065,13 @@ function paySalary(){
   return { amount:amount, rank:rank.name };
 }
 
-/* ---- 宗门主线《三月初七》---- */
+/* ---- 宗门主线《三月初七》----
+   ⚠️ 第 27 轮：进度门槛从「累计宗门行动次数」改成「累计宗门贡献」。
+   旧版四页要 25 / 70 / 140 / **230** 次宗门行动 ——
+   而一局总共才约 213 次行动，第四页**永远看不到**
+   （实测：正常玩只有 34% 的局能翻到第四页，而且那是靠模拟器硬刷出来的）。
+   同时主页面的「宗门事务」现在自动给贡献，所以这条线不再要求
+   「进宗门面板反复点任务」这种多此一举的操作。 */
 function storyStage(){
   const idx = s.storyStage || 0;
   if (idx >= G.SECT_STORY.stages.length) return null;
@@ -9330,8 +10080,15 @@ function storyStage(){
 function storyReady(){
   const st = storyStage();
   if (!st) return null;
-  if ((s.sectActions||0) < st.at) return null;
+  if (s.chapter !== 'zongmen') return null;      // 散了宗就没这条线了
+  if (sectContribTotal() < storyNeed(st)) return null;
   return st;
+}
+/* 一页需要多少累计贡献。老字段是 at（宗门行动次数），
+   为了不让老存档/老测试直接崩，这里做一次兼容读取。 */
+function storyNeed(st){
+  if (typeof st.contrib === 'number') return st.contrib;
+  return st.at || 0;
 }
 function advanceStory(){
   const st = storyStage();
@@ -9344,8 +10101,11 @@ function storyProgress(){
   const total = G.SECT_STORY.stages.length;
   const done = Math.min(s.storyStage||0, total);
   const next = storyStage();
+  const have = sectContribTotal();
   return { done:done, total:total, next:next,
-           need: next ? Math.max(0, next.at - (s.sectActions||0)) : 0 };
+           have: have,
+           need: next ? Math.max(0, storyNeed(next) - have) : 0,
+           needAll: next ? storyNeed(next) : 0 };
 }
 
 /* ---------------- 弟子 ---------------- */
@@ -9692,6 +10452,51 @@ function availableActions(){
   if (!st) return [];
   const list = [];
 
+  /* ---------------- 秘境（第 27 轮） ----------------
+     两件事在这里露头，都放在行动列表的**最上面**：
+       · 残片够了 → 「推演秘境入口」（不花寿元，只是拼图）
+       · 有开着的秘境 → 「进入 XXX」（花一次行动）
+     大众型还带一个倒计时（还剩几次行动就关门），
+     因为它是「过时不候」的 —— 这一点必须让玩家看见。 */
+  {
+    const mj = miJingStatus();
+    if (mj){
+      if (mj.canDivine){
+        list.push({
+          id:'mijingDivine', name:'★ 推演 · 秘境入口', cost:0,
+          desc:`你手里的秘境图残片已经够拼出一样东西了。\n` +
+               `拼出来之后，那处秘境只有你知道在哪。`,
+          meta:`残片 ${mj.shards}/${mj.need}　可推演：${mj.divinePool.join('、')}`,
+          primary:true, special:'mijingDivine'
+        });
+      }
+      mj.open.forEach(o=>{
+        list.push({
+          id:'mijingEnter:'+o.id, name:`★ 进入 · ${o.name}`, cost:st.cost,
+          desc:(G.mijingById(o.id)||{}).desc || '',
+          meta:(o.via==='public'
+                 ? `天地异动 · 全天下都看得见　<b style="color:#d9a24a">还剩 ${o.left} 次行动就关</b>　`
+                 : `只有你知道它在哪　`) +
+                `共 ${o.floors} 层　境界 ${G.MAJOR_REALMS[o.minMajor-1]}` +
+                (o.maxMajor && o.maxMajor!==o.minMajor ? `~${G.MAJOR_REALMS[o.maxMajor-1]}` : ''),
+          primary:true, special:'mijingEnter', mijingId:o.id
+        });
+      });
+      /* 没开也没得推的时候，给一行「还差多少」的提示 ——
+         否则玩家根本不知道有这么个系统（第 25 轮的教训）。 */
+      if (!mj.canDivine && !mj.open.length && (mj.shards>0 || mj.publicLeft<=8)){
+        const bits = [];
+        if (mj.shards > 0) bits.push(`秘境图残片 ${mj.shards}/${mj.need}`);
+        if (mj.publicLeft <= 8) bits.push(`下一次天地异动还有 ${mj.publicLeft} 次行动`);
+        list.push({
+          id:'mijingInfo', name:'秘境 · 尚无入口', cost:0, disabled:true,
+          desc:'秘境有两种开法：捡齐秘境图残片自己推演，或者等天地异动。',
+          meta: bits.join('　') || '探索时有机会捡到秘境图残片',
+          special:'mijingInfo'
+        });
+      }
+    }
+  }
   /* 修行按钮上的预估值 —— 必须和 doAction('cultivate') 用同一个公式，
      否则界面又在骗玩家（第 20 轮的教训）。 */
   const R = G.REALMS[s.realmIdx] || { speed:1, gain:1 };
@@ -9719,10 +10524,14 @@ function availableActions(){
     meta:'灵石 + 修为 + 几率得卡'
   });
 
+  const sectContribNow = 3 + Math.floor(s.realmIdx / 9);
   list.push({
     id:'sectwork', name:'宗门事务', cost:st.cost,
-    desc:'处理执事、采买、巡山、调解纠纷。赚灵石，稳住宗门气运。',
-    meta:'灵石 +　宗门气运 +　人情 +'
+    /* 第 27 轮：这里必须写明「贡献 +N」。
+       以前它不给贡献，玩家想做宗门的事只能进宗门面板点任务 —— 多此一举。
+       现在主页面这一下就给，而且主线《三月初七》看的就是累计贡献。 */
+    desc:'处理执事、采买、巡山、调解纠纷。赚灵石与宗门贡献，稳住宗门气运。',
+    meta:`灵石 +　贡献 +${sectContribNow}　宗门气运 +　人情 +`
   });
 
   const restLeft = Math.max(0, G.CONFIG.restPerRealm - (s.restUsed||0));
@@ -9876,6 +10685,11 @@ G.Engine = {
   tourneyStatus, tianjiaoStatus, tourneyNextAt, seekTianjiao,
   // 内景（境界养成）第 26 轮
   nurtureDaoJi, daoJiStatus, daoJiCost, daoJiLevel, daoJiPerAttr, daoJiDef,
+  // 秘境 第 27 轮
+  miJingStatus, miJingOpenList, miJingCanDivine, divineMijing, enterMijing,
+  miJingFloor, miJingPick, leaveMijing, gainMijingShard, tickMijingClock,
+  // 宗门主线（第 27 轮改成累计贡献）
+  sectContribTotal,
   techCostOf, techCostBlock,           // 招式的材料成本（灵石 / 阳寿）
   get challenge(){ return challenge; },
   startTribulation, startKillerTribulation,
@@ -10579,6 +11393,10 @@ function onAction(a){
   if (a.special==='capstone'){ capstoneFlow(); return; }
   if (a.special==='leavesect'){ leaveSectFlow(); return; }
   if (a.special==='daoji'){ doNurtureFlow(); return; }
+  /* 秘境（第 27 轮）：推演入口不花寿元，进入要花一次行动 */
+  if (a.special==='mijingDivine'){ doDivineMijing(); return; }
+  if (a.special==='mijingEnter'){ showMijingEnter(a.mijingId); return; }
+  if (a.special==='mijingInfo'){ showMijingBook(); return; }
 
   const res = G.Engine.doAction(a.id);
   if (!res.ok) return;
@@ -10602,6 +11420,42 @@ function onAction(a){
   afterActionFlow();
 }
 
+/* ---- 推演秘境入口（第 27 轮）----
+   不花寿元：它只是把手里的残片拼起来，不是一次出行。 */
+function doDivineMijing(){
+  const r = G.Engine.divineMijing();
+  if (!r || !r.ok){ toast((r&&r.msg)||'拼不出来','bad'); return; }
+  autoSave();
+  const body = el('div','story-body');
+  const cover = el('div','story-cover done');
+  cover.innerHTML =
+    `<div class="story-kicker">残 片 · 拼 合 完 毕</div>` +
+    `<div class="story-title">${r.def.name}</div>`;
+  body.appendChild(cover);
+  const txt = el('div','story-text');
+  renderStoryText(txt,
+    `你把三片残片摊在桌上，一片一片对。\n\n` +
+    `对到第三次的时候，它们自己滑到了一起——\n` +
+    `不是拼合，是**认**。三片残片认出彼此，然后就成了一整张。\n\n` +
+    `图上画的是一处地方。\n你从来没有听说过这个地方，但你知道它在哪。\n\n` +
+    `（${r.def.epithet}。${r.def.desc}）\n\n` +
+    `这张图只有你有。第二个人不会知道。`, 90);
+  body.appendChild(txt);
+  const info = el('div','story-next');
+  info.style.animationDelay = '520ms';
+  info.innerHTML = `剩余残片 <b>${r.shards}</b>　共 <b>${r.def.plan.length}</b> 层　` +
+    `<span class="rk-dim">入口会一直留着，直到你进去过一次</span>`;
+  body.appendChild(info);
+  const wrap = el('div','story-choices');
+  wrap.style.marginTop = '12px';
+  wrap.appendChild(btn('现 在 就 去','btn-main btn-go',()=>{
+    closeSheet(); showMijingEnter(r.def.id);
+  }));
+  wrap.appendChild(btn('先 收 起 来','btn-main',()=>{ closeSheet(); renderRun(); }));
+  body.appendChild(wrap);
+  sheet('◆ 秘 境 图', body, []);
+}
+
 /* ---- 内景：滋养一次（第 26 轮） ----
    它**不是行动**：不扣寿元、不推进事件与比武窗口。
    它只是把你已经攒下的修为换成一个更硬的底子。
@@ -10621,6 +11475,344 @@ function doNurtureFlow(){
         : '这一世到此为止。'}`, 'good');
     }, 900);
   }
+}
+
+/* ============================================================
+   问影香：指路（第 27 轮）
+   ------------------------------------------------------------
+   玩家要的东西：「增添一种道具，通过这个道具可以向你展示当前的大境界的
+   某位天骄可能在哪里，并让你选择要不要去找那位天骄」。
+
+   这个面板只做两件事：
+     ① 让你**看清那是谁**（名字 / 称号 / 为什么会出现在这个方向）
+     ② 给你一个明确的「去 / 不去」
+   它不替你做决定 —— 天骄依旧是「同境界基本打不过」的东西，
+   所以「知道他在哪儿」本身就是一条有用的信息，而不是一张必胜券。
+   ============================================================ */
+function showTianjiaoCompass(tj, dir){
+  if (!tj) return;
+  const st = G.Engine.state();
+  const body = el('div','story-body');
+
+  const cover = el('div','story-cover');
+  cover.innerHTML =
+    `<div class="story-kicker">问 影 香 · 烟 往 ${dir} 飘</div>` +
+    `<div class="story-title">${tj.title || tj.name}</div>`;
+  body.appendChild(cover);
+
+  const txt = el('div','story-text');
+  renderStoryText(txt,
+    `烟从香头上起来，笔直地走了一段，然后往${dir}偏。\n\n` +
+    `你顺着那个方向想了很久，想起来一个名字：\n\n` +
+    `${tj.name}——${tj.epithet}。\n\n` +
+    `香只烧了三寸，烟就散了。散之前它又偏了一下，像是在确认。\n\n` +
+    `（找上门要花一次行动。找到之后，**直接开打**——他不会问你为什么来。）`, 80);
+  body.appendChild(txt);
+
+  /* 数值预告：让玩家在决定之前就知道这一仗有多硬 */
+  const info = el('div','story-next');
+  info.style.animationDelay = '520ms';
+  info.innerHTML =
+    `境界：${(G.MAJOR_REALMS && G.MAJOR_REALMS[tj.major-1]) || '?'}${tj.sub}层　` +
+    `（你现在 ${st.realmName}）<br>` +
+    `胜过的报酬：灵石 ${tj.reward.stone}　修为 ~${tj.reward.cult}` +
+    (tj.reward.title ? `　名号「${tj.reward.title}」` : '') + `<br>` +
+    `<span class="rk-bad">同境界撞上他，基本没有胜算。想清楚再去。</span>`;
+  body.appendChild(info);
+
+  const wrap = el('div','story-choices');
+  wrap.style.marginTop = '12px';
+  wrap.appendChild(btn('循 着 烟 去 找 他（寿元 −' + st.cost + '）','btn-main btn-go',()=>{
+    const r = G.Engine.seekTianjiao();
+    if (!r || !r.ok){ toast((r&&r.msg)||'找不到','bad'); return; }
+    closeSheet();
+    autoSave();
+    startTianjiaoFlow(r);
+  }));
+  wrap.appendChild(btn('把 烟 掐 了（这次不去）','btn-main',()=>{
+    closeSheet();
+    toast('你把香按灭了。烟停在半空，然后散了。','');
+    renderRun();
+  }));
+  body.appendChild(wrap);
+
+  sheet('◆ 问 影 香', body, []);
+}
+
+/* ============================================================
+   秘境（第 27 轮）
+   ------------------------------------------------------------
+   三块界面，共用同一套「章节式」排版（和《三月初七》一致的演出语言）：
+     · showMijingNotice   —— 大众型开启时的「天地异动」公告
+     · showMijingEnter    —— 进洞口：读开场，选要不要下去
+     · showMijingFloor    —— 分层探索：每层三个选择 + 随时退出
+     · showMijingExit     —— 出来之后的结算（走到第几层、带了什么出来）
+   ============================================================ */
+
+/* 天地异动：大众型秘境自己开了。
+   用户原话：「到了一定时间后秘境自动会开启，到时候会引发广大修士的注意」。
+   所以这块演出要传达两件事：**全天下都知道了**，以及**它有时限**。 */
+function showMijingNotice(r){
+  const def = r.def;
+  const st = G.Engine.state();
+  const body = el('div','story-body');
+
+  const cover = el('div','story-cover');
+  cover.innerHTML =
+    `<div class="story-kicker">天 地 异 动</div>` +
+    `<div class="story-title">${def.name}</div>`;
+  body.appendChild(cover);
+
+  const txt = el('div','story-text');
+  renderStoryText(txt,
+    `消息传得比人快。\n\n` +
+    `你在半天之内听见了三拨人说起它：一拨在伙房，一拨在山门口，\n` +
+    `第三拨是从山下来的散修，他们已经走了两天。\n\n` +
+    `「${def.epithet}。」他们说，「去晚了就没了。」\n\n` +
+    `${def.desc}`, 100);
+  body.appendChild(txt);
+
+  const info = el('div','story-next');
+  info.style.animationDelay = '520ms';
+  info.innerHTML =
+    `入口只开 <b>${r.left}</b> 次行动（第 ${r.until} 次行动时合上）。<br>` +
+    `里面共 <b>${def.plan.length}</b> 层，随时可以带着拿到的东西退出来。<br>` +
+    `<span class="rk-bad">大众型的秘境里会有别的修士。他们不全是为了机缘来的。</span>`;
+  body.appendChild(info);
+
+  const wrap = el('div','story-choices');
+  wrap.style.marginTop = '12px';
+  wrap.appendChild(btn('现 在 就 去','btn-main btn-go',()=>{
+    closeSheet();
+    toast(`「${def.name}」开着。底栏上方会出现入口。`,'epic');
+    renderRun();
+  }));
+  wrap.appendChild(btn('先 记 下（回头再去）','btn-main',()=>{ closeSheet(); renderRun(); }));
+  body.appendChild(wrap);
+
+  sheet('◆ 天 地 异 动', body, []);
+}
+
+/* 进洞口：读开场 */
+function showMijingEnter(id){
+  const r = G.Engine.enterMijing(id);
+  if (!r || !r.ok){ toast((r&&r.msg)||'进不去','bad'); return; }
+  const def = r.def;
+  const body = el('div','story-body');
+
+  const cover = el('div','story-cover');
+  cover.innerHTML =
+    `<div class="story-kicker">${r.via==='public' ? '大 众 型 · 全 天 下 都 知 道' : '残 片 型 · 只 有 你 知 道'}` +
+    `　寿元 −${r.cost}</div>` +
+    `<div class="story-title">${def.name}</div>`;
+  body.appendChild(cover);
+
+  const txt = el('div','story-text');
+  renderStoryText(txt, def.intro, 100);
+  body.appendChild(txt);
+
+  const wrap = el('div','story-choices');
+  wrap.style.animationDelay = '620ms';
+  body.appendChild(wrap);
+  wrap.appendChild(btn('往 下 走','btn-main btn-go',()=>{ closeSheet(); showMijingFloor(); }));
+  wrap.appendChild(btn('算 了，掉头出去','btn-main',()=>{
+    G.Engine.leaveMijing();
+    closeSheet();
+    toast('你在洞口站了一会儿，转身走了。','');
+    renderRun();
+  }));
+
+  sheet('◆ ' + def.name, body, []);
+}
+
+/* 分层探索：这是秘境的主体 */
+function showMijingFloor(){
+  const cur = G.Engine.miJingFloor();
+  if (!cur){
+    // 没有下一层了 → 走完
+    showMijingExit(G.Engine.leaveMijing());
+    return;
+  }
+  const body = el('div','story-body');
+
+  const cover = el('div','story-cover');
+  cover.innerHTML =
+    `<div class="story-kicker">${cur.def.name}　第 ${cur.floor+1} 层 / 共 ${cur.total} 层</div>` +
+    `<div class="story-title">${cur.def.epithet}</div>`;
+  body.appendChild(cover);
+
+  /* 深度条：让玩家一眼看到自己走了多深 */
+  const prog = el('div','mj-prog');
+  for (let i=0;i<cur.total;i++){
+    const seg = el('div','mj-seg' + (i<cur.floor?' done':'') + (i===cur.floor?' now':''));
+    prog.appendChild(seg);
+  }
+  body.appendChild(prog);
+
+  const txt = el('div','story-text');
+  renderStoryText(txt, cur.text, 80);
+  body.appendChild(txt);
+
+  const wrap = el('div','story-choices');
+  wrap.style.animationDelay = (storyParagraphs(cur.text).length*170 + 220) + 'ms';
+  body.appendChild(wrap);
+
+  cur.choices.forEach((c,i)=>{
+    const b = el('button','ev-choice story-choice');
+    b.innerHTML = `<div class="ev-ctext">${i+1}. ${c.label}</div>` +
+      (c.hint?`<div class="ev-cmeta">${c.hint}</div>`:'');
+    b.addEventListener('click', ()=>resolveMijingPick(i));
+    wrap.appendChild(b);
+  });
+
+  /* 随时可以退出 —— 这是玩家选的「分层探索 + 中途退出」的另一半。
+     放在页脚而不是正文里，避免和正文的选项混在一起。 */
+  const foot = [ btn('带 着 东 西 出 去','btn-main',()=>{
+    const r = G.Engine.leaveMijing();
+    closeSheet();
+    showMijingExit(r);
+  }) ];
+  sheet('◆ ' + cur.def.name, body, foot);
+}
+
+/* 一次选择的结算：先演结果，再问「继续 / 出去」 */
+function resolveMijingPick(idx){
+  const r = G.Engine.miJingPick(idx);
+  if (!r || !r.ok){ toast((r&&r.msg)||'走不通','bad'); return; }
+  closeSheet();
+  autoSave();
+  renderRun();
+
+  const body = el('div','story-body');
+  const cover = el('div','story-cover done');
+  cover.innerHTML =
+    `<div class="story-kicker">${r.def.name}　第 ${r.floor} 层走完</div>` +
+    `<div class="story-title">${r.finished ? '到了最深处' : '再往下'}</div>`;
+  body.appendChild(cover);
+
+  const txt = el('div','story-text result');
+  renderStoryText(txt, r.text || '（什么也没有发生。）', 80);
+  body.appendChild(txt);
+
+  const wrap = el('div','story-choices');
+  wrap.style.marginTop = '12px';
+  body.appendChild(wrap);
+
+  const pend = r.pending || {};
+
+  function proceed(){
+    /* 战斗 / 天骄 / 请帖：和事件走同一条通道，
+       保证这类副作用只有一套实现（第 22 / 25 轮的教训）。 */
+    if (pend.challenge){ startChallengeFlow(pend.challenge); return; }
+    if (pend.tianjiao){ showTianjiao(pend.tianjiao); return; }
+    if (pend.tourney){ showTourneyInvite(pend.tourney); return; }
+    if (r.finished){
+      const out = G.Engine.leaveMijing();
+      showMijingExit(out);
+      return;
+    }
+    showMijingFloor();
+  }
+
+  if (r.finished){
+    wrap.appendChild(btn('走 出 去','btn-main btn-go', proceed));
+  } else {
+    wrap.appendChild(btn('再 往 下 一 层','btn-main btn-go', proceed));
+    wrap.appendChild(btn('就 到 这 里，出 去','btn-main',()=>{
+      const out = G.Engine.leaveMijing();
+      closeSheet();
+      showMijingExit(out);
+    }));
+  }
+  sheet('◆ ' + r.def.name, body, []);
+}
+
+/* 出洞结算 */
+function showMijingExit(out){
+  if (!out || !out.def) { renderRun(); return; }
+  const body = el('div','story-body');
+  const cover = el('div','story-cover' + (out.finished?' done':''));
+  cover.innerHTML =
+    `<div class="story-kicker">${out.finished ? '走 到 了 最 深 处' : '提 前 出 来'}</div>` +
+    `<div class="story-title">${out.def.name}</div>`;
+  body.appendChild(cover);
+
+  const txt = el('div','story-text result');
+  renderStoryText(txt,
+    out.finished
+      ? `你从最深处往回走。\n\n一路上什么都没有了——该拿的拿了，该看的看了。\n` +
+        `洞口的光很小，但一直在那儿。\n\n出来的时候，你回头看了一眼。\n它在身后合上了，没有声音。`
+      : `你停在半路上，想了想，转身往上走。\n\n走了 ${out.deepest} 层，收获不算多，但你还在。\n` +
+        `有些地方不该一次走到底。`, 80);
+  body.appendChild(txt);
+
+  const info = el('div','story-next');
+  info.style.animationDelay = '420ms';
+  info.innerHTML =
+    `走到第 <b>${out.deepest}</b> 层　` +
+    `<span class="rk-dim">这处秘境一局只能进一次</span>`;
+  body.appendChild(info);
+
+  const wrap = el('div','story-choices');
+  wrap.style.marginTop = '12px';
+  wrap.appendChild(btn('出 去','btn-main btn-go',()=>{ closeSheet(); renderRun(); }));
+  body.appendChild(wrap);
+
+  sheet('◆ ' + out.def.name, body, []);
+}
+
+/* 秘境图鉴：底栏「秘境」按钮用。
+   顺便回答一个问题：「一共有哪些、我进没进得去」。 */
+function showMijingBook(){
+  const st = G.Engine.state();
+  if (!st) return;
+  const mj = G.Engine.miJingStatus();
+  const body = el('div');
+  if (!mj){ sheet('秘 境', el('div','arc-empty','这一世还没有开始。'), []); return; }
+
+  body.appendChild(el('div','rank-note',
+    `秘境一共两种开法：\n` +
+    `· **残片型**：探索时有几率捡到「秘境图残片」，集齐 ${mj.need} 片可以在主界面推演出一处入口 —— 那处只有你知道。\n` +
+    `· **大众型**：到点了天地自己会裂开一道口子，全天下都知道，但它**限时**。\n\n` +
+    `每个秘境都有境界门槛：太低进不去（里面的东西你扛不住），\n太高也进不去（那道口子认修为）。`));
+
+  body.appendChild(el('div','rank-h','能 进 的'));
+  if (!mj.open.length){
+    body.appendChild(el('div','arc-empty',
+      `现在没有开着的入口。\n\n` +
+      `· 秘境图残片：${mj.shards} / ${mj.need}` +
+      (mj.canDivine ? '（够了，去主界面推演）' : '') + `\n` +
+      `· 下一次天地异动：还有 ${mj.publicLeft} 次行动`));
+  } else {
+    mj.open.forEach(o=>{
+      const row = el('div','rank-row me');
+      row.innerHTML =
+        `<div class="rr-name">${o.name}　<span class="rr-epi">${o.epithet}</span></div>
+         <div class="rr-meta">${o.via==='public'
+            ? `大众型　还剩 <b>${o.left}</b> 次行动就关`
+            : '残片型　只有你知道它在哪'}　共 ${o.floors} 层</div>
+         <div class="rr-meta"><span class="rk-ok">从主界面的行动列表进</span></div>`;
+      body.appendChild(row);
+    });
+  }
+
+  body.appendChild(el('div','rank-h','秘 境 图 鉴'));
+  mj.all.forEach(d=>{
+    const tag = !d.allowed ? '<span class="rk-bad">境界不合，进不去</span>'
+              : d.entered  ? '<span class="rk-ok">这一世进过了</span>'
+              : d.known    ? '<span class="rk-ok">已推演出入口，还没进</span>'
+              : '<span class="rk-dim">入口未现</span>';
+    const row = el('div','rank-row' + (d.allowed?'':' done'));
+    row.innerHTML =
+      `<div class="rr-name">${d.name}　<span class="rr-epi">${d.epithet}</span></div>
+       <div class="rr-meta">${d.kind==='public'?'大众型（到时自动开启）':'残片型（集齐残片推演）'}` +
+       `　共 ${d.floors} 层　境界 ${G.MAJOR_REALMS[d.minMajor-1]}` +
+       (d.maxMajor && d.maxMajor!==d.minMajor ? `~${G.MAJOR_REALMS[d.maxMajor-1]}` : '') + `</div>
+       <div class="rr-meta">${tag}</div>`;
+    body.appendChild(row);
+  });
+
+  sheet('秘 境', body, [ btn('关 上','btn-main',()=>closeSheet()) ]);
 }
 
 /* ============================================================
@@ -10830,9 +12022,16 @@ function afterActionFlow(){
     showEnding(sc); return;
   }
 
-  // 《三月初七》：宗门事务做够了，就翻到下一页
+  // 《三月初七》：宗门贡献攒够了，就翻到下一页
   const story = G.Engine.storyReady();
   if (story){ setTimeout(()=>showSectStory(), 320); return; }
+
+  /* ---- 秘境：大众型的时钟（第 27 轮）----
+     「到了时间秘境自动会开启，到时候会引发广大修士的注意」。
+     所以它排在这里：天地异动的公告比随机事件重要，
+     也比比武请帖重要（它是限时的，过时不候）。 */
+  const mjOpen = G.Engine.tickMijingClock();
+  if (mjOpen){ setTimeout(()=>showMijingNotice(mjOpen), 340); return; }
 
   /* ---- 比武大会（第 22 轮）----
      按境界分赛道，每隔一段行动开一次。
@@ -10974,10 +12173,40 @@ function capstoneFlow(){
 /* ---- 事件 ---- */
 function showEvent(ev){
   const body = el('div');
-  body.innerHTML = `<div class="ev-text">${ev.text.replace(/\n/g,'<br>')}</div>` +
-    (ev.flavor ? `<div class="ev-flavor">${ev.flavor}</div>` : '');
+
+  /* ---- 第 27 轮：事件的演出重做 ----
+     玩家反馈「事件的展示还是过于单一」。旧版所有事件长得一模一样：
+     标题 + 一整段正文 + 三个按钮，正文一次性砸出来。
+     现在改三处（都不改内容，只改呈现）：
+       ① 分类角标 + 色调：点开之前就知道这是什么味道的事
+       ② **逐段浮现**：正文按空行拆段，一段一段淡入
+       ③ 选项在正文落完之后才出现（读完了再选，而不是抢注意力） */
+  const cat = ev.cat || '';
+  const head = el('div');
+  if (cat) head.appendChild(el('div','ev-cat ev-cat-' + cat, cat));
+  /* 正文按空行拆段后逐段淡入；只有一段就整体淡入。
+     ⚠️ 这里全部用 appendChild 拼节点，不用 innerHTML + querySelector ——
+     假 DOM（dev/uidom.js）解析不了选择器，用节点拼两边才都能测。 */
+  const rawText = String(ev.text||'');
+  const paras = rawText.split(/\n\s*\n/).map(x=>x.trim()).filter(Boolean);
+  if (paras.length > 1){
+    paras.forEach((p,i)=>{
+      const d = el('div','ev-text fade-p');
+      d.innerHTML = p.replace(/\n/g,'<br>');
+      d.style.animationDelay = (i*170) + 'ms';
+      head.appendChild(d);
+    });
+  } else {
+    const d = el('div','ev-text fade-p');
+    d.innerHTML = rawText.replace(/\n/g,'<br>');
+    head.appendChild(d);
+  }
+  if (ev.flavor) head.appendChild(el('div','ev-flavor', String(ev.flavor).replace(/\n/g,'<br>')));
+  body.appendChild(head);
 
   const wrap = el('div');
+  wrap.style.animationDelay = (Math.min(paras.length,6)*170 + 220) + 'ms';
+  wrap.classList.add('story-choices');
   body.appendChild(wrap);
 
   const st = G.Engine.state();
@@ -11365,11 +12594,17 @@ function showBag(){
          <div class="bld-desc ${pgCls}" style="font-size:12px">${it.outcome.note}</div>
          <div class="bld-desc" style="color:#5c5349">${it.desc}</div>
        </div>`;
-    const bt = el('button','bld-btn','服 用');
+    const bt = el('button','bld-btn', it.card && it.card.consumable && it.card.use && it.card.use.tianjiao ? '点 燃' : '服 用');
     bt.addEventListener('click', ()=>{
       const r = G.Engine.usePill(it.name);
       if (!r || !r.ok){ toast((r&&r.msg)||'用不了','bad'); return; }
       autoSave();
+      /* 问影香：它不产生数值，只产生「往哪边走」。交给专门的指路面板。 */
+      if (r.tianjiaoCompass){
+        closeSheet();
+        showTianjiaoCompass(r.tj, r.dir);
+        return;
+      }
       if (r.outOfBattle){
         toast(r.msg, 'good');
         renderRun();
@@ -11467,13 +12702,49 @@ function showRank(){
     `同境界撞上他们，基本没有胜算；只有把数值堆到明显超出同阶（大量元界修复 + 好牌）才有把握。\n` +
     `打赢一次就记进档案柜，是终身成就。一局只会遇到同一个人一次。`));
 
+  /* ---- 第 27 轮：天骄榜改成按大境界分页 ----
+     玩家要求：「通过点击不同的『大境界』来展示不同大境界的天骄的排行」。
+     旧版是把四个大境界的人**一路排下去**，一屏八条，
+     看起来像一张清单而不是一张榜；而且「我现在该关心哪两个」全靠自己找。
+     现在：上面一排可点的境界页签（带各自的战绩进度），下面只显示这一页的人。 */
   const byMajor = {};
   J.rows.forEach(r=>{ (byMajor[r.major] = byMajor[r.major] || []).push(r); });
-  Object.keys(byMajor).sort((a,b)=>a-b).forEach(m=>{
-    const realmName = (G.MAJOR_REALMS && G.MAJOR_REALMS[m-1]) || (m+'');
-    const sec = el('div','rank-sec');
-    sec.appendChild(el('div','rank-sub', realmName + '　' + (Number(m)===J.mine ? '（你在这儿）' : '')));
-    byMajor[m].forEach(r=>{
+  const majors = Object.keys(byMajor).map(Number).sort((a,b)=>a-b);
+  const realmNameOf = m => (G.MAJOR_REALMS && G.MAJOR_REALMS[m-1]) || (m+'');
+  const progressOf = m => {
+    const rows = byMajor[m] || [];
+    const won = rows.filter(r=>r.beatenThisRun || r.beatenEver).length;
+    const met = rows.filter(r=>r.metThisRun || r.beatenThisRun).length;
+    return { won:won, met:met, all:rows.length };
+  };
+  /* 默认翻到玩家当前所在的那一页 —— 那是他此刻唯一打得着的 */
+  let page = majors.indexOf(J.mine) >= 0 ? J.mine : majors[0];
+
+  const tabs = el('div','tj-tabs');
+  const pane = el('div','tj-pane');
+  function paintTabs(){
+    tabs.innerHTML = '';
+    majors.forEach(m=>{
+      const p = progressOf(m);
+      const b = el('button','tj-tab' + (m===page?' on':'') + (m===J.mine?' mine':''));
+      b.innerHTML = `${realmNameOf(m)}` +
+        `<em>${p.won}/${p.all}</em>` +
+        (m===J.mine ? '<i>你在这儿</i>' : '');
+      b.addEventListener('click', ()=>{ page = m; paintTabs(); paintPane(); });
+      tabs.appendChild(b);
+    });
+  }
+  function paintPane(){
+    pane.innerHTML = '';
+    const rows = byMajor[page] || [];
+    const p = progressOf(page);
+    const head = el('div','tj-pane-h');
+    head.innerHTML = `${realmNameOf(page)}　` +
+      `<span class="rk-dim">已见 ${p.met}/${p.all}　已胜 ${p.won}/${p.all}</span>` +
+      (page===J.mine ? '　<span class="rk-ok">← 你在这儿，现在就能碰上</span>'
+                     : '　<span class="rk-dim">（不是你现在这一境，碰不到）</span>');
+    pane.appendChild(head);
+    rows.forEach(r=>{
       const tag = r.beatenThisRun ? '<span class="rk-ok">这一世赢过</span>'
                 : r.metThisRun   ? '<span class="rk-bad">交过手（败）</span>'
                 : r.beatenEver   ? '<span class="rk-ok">从前赢过</span>'
@@ -11481,13 +12752,19 @@ function showRank(){
       const row = el('div','rank-row' + (r.cur?' me':'') + (r.beatenThisRun?' done':''));
       row.innerHTML =
         `<div class="rr-name">${r.name}　<span class="rr-epi">${r.epithet}</span></div>
-         <div class="rr-meta">${realmName}${r.sub}层　胜过他的报酬：灵石 ${r.reward.stone}　修为 ~${r.reward.cult}` +
+         <div class="rr-meta">${realmNameOf(r.major)}${r.sub}层　胜过他的报酬：灵石 ${r.reward.stone}　修为 ~${r.reward.cult}` +
          (r.reward.title ? `　名号「${r.reward.title}」` : '') + `</div>
-         <div class="rr-meta">${tag}</div>`;
-      sec.appendChild(row);
+         <div class="rr-meta">${tag}　<span class="rr-where">${
+           r.cur ? (r.metThisRun ? '这一世已经照过面了' : '可能出现在机缘、宗门来客、废墟碑文、溪边伤者之处')
+                 : '要走到这一境才会碰上'
+         }</span></div>`;
+      pane.appendChild(row);
     });
-    body.appendChild(sec);
-  });
+    if (!rows.length) pane.appendChild(el('div','arc-empty','这一境还没有人上榜。'));
+  }
+  paintTabs(); paintPane();
+  body.appendChild(tabs);
+  body.appendChild(pane);
 
   const foot = [];
   if (J.seekable){
@@ -12151,39 +13428,132 @@ function showSect(){
   sheet('宗 门', body, []);
 }
 
-/* ---- 《三月初七》剧情推进 ---- */
+/* ============================================================
+   《三月初七》—— 宗门主线（第 27 轮重做演出）
+   ------------------------------------------------------------
+   玩家反馈：「三月初七远没有达到预期……这是网页文字游戏，玩家一般不会
+   过多关注这个，可能只觉得是个普通小事件。总之在演出效果上没达到预期。」
+
+   旧版的毛病：它长得和普通事件**一模一样** —— 同一个弹层、同一套按钮、
+   同一段一次性铺完的正文。玩家的注意力根本没有理由停在这里。
+
+   这一版做四件事，全都是为了让它在视觉上「不像一个普通事件」：
+     ① 专属封面：章节号 + 页码 + 标题，进门先给一屏
+     ② **逐段浮现**：正文按空行拆段，一段一段淡入（不是一下子全砸出来）
+     ③ 更大的正文排版：行距、字号、首段强调都和普通事件拉开档次
+     ④ 结果卡：选完之后正文换成「你做了什么 / 发生了什么」，
+        并且**明确写出这一页得到了什么线索**（普通事件没有这一步）
+   ============================================================ */
+
+/* 把正文按空行拆成段落，逐段淡入。
+   ⚠️ 不能按 \n 拆 —— 正文里的换行大多是「诗行」，
+   拆开会让同一段被打成好几块，节奏反而碎了。空行才是段。 */
+function storyParagraphs(text){
+  return String(text||'').split(/\n\s*\n/).map(s=>s.trim()).filter(Boolean);
+}
+function renderStoryText(container, text, baseDelay){
+  storyParagraphs(text).forEach((p, i)=>{
+    const d = el('div','story-p');
+    d.innerHTML = p.replace(/\n/g,'<br>');
+    d.style.animationDelay = ((baseDelay||0) + i*170) + 'ms';
+    container.appendChild(d);
+  });
+}
+
 function showSectStory(){
   const st = G.Engine.storyReady();
   if (!st) return;
-  const body = el('div');
-  body.innerHTML = '<div class="ev-text">' + st.text.replace(/\n/g,'<br>') + '</div>' +
-    '<div class="ev-flavor">' + st.name + '</div>';
+  const pr = G.Engine.storyProgress();
+  const total = G.SECT_STORY.stages.length;
+  const pageNo = total - pr.total + pr.done + 1;   // 这一页是第几页
 
-  const wrap = el('div');
-  wrap.style.marginTop = '8px';
+  const body = el('div','story-body');
+
+  /* ① 封面条：章节号 / 页码 / 标题 */
+  const cover = el('div','story-cover');
+  cover.innerHTML =
+    `<div class="story-kicker">宗 门 主 线 · 第 ${pageNo} 页 / 共 ${total} 页</div>` +
+    `<div class="story-title">${st.name}</div>`;
+  body.appendChild(cover);
+
+  /* ② 正文：逐段浮现 */
+  const textBox = el('div','story-text');
+  renderStoryText(textBox, st.text, 120);
+  body.appendChild(textBox);
+
+  /* ③ 选项（等正文落完再出现，避免抢注意力） */
+  const wrap = el('div','story-choices');
+  wrap.style.animationDelay = (storyParagraphs(st.text).length*170 + 260) + 'ms';
   body.appendChild(wrap);
 
-  /* 宗门剧情与普通事件共用同一份动作 API，避免两边悄悄长歪 */
   const api2 = api;
 
   st.choices.forEach((c,i)=>{
-    const b = el('button','ev-choice');
+    const b = el('button','ev-choice story-choice');
     b.innerHTML = '<div class="ev-ctext">' + (i+1) + '. ' + c.label + '</div>' +
       (c.hint ? '<div class="ev-cmeta">' + c.hint + '</div>' : '');
     b.addEventListener('click', ()=>{
+      const beforeClues = (G.Engine.raw.clues||[]).slice();
       const r = c.eff(G.Engine.raw, api2);
       G.Engine.advanceStory();
-      closeSheet();
-      if (r) toast(r, '');
+      autoSave();
+      /* ④ 结果卡：把「发生了什么」单独演一屏，而不是塞进 toast */
+      const gained = (G.Engine.raw.clues||[]).filter(x=>beforeClues.indexOf(x)<0);
+      showStoryResult(st, r, gained);
       renderRun();
-      const d = pendingDeath; pendingDeath = null;
-      if (d){ afterDeath(d); return; }
-      setTimeout(()=>showSectStory(), 900);   // 可能还有下一幕
     });
     wrap.appendChild(b);
   });
 
-  sheet('◆ ' + G.SECT_STORY.title, body, []);
+  sheet('◆ 三 月 初 七', body, []);
+}
+
+/* 结果卡：这一页的收束。
+   普通事件给的是 toast（一闪而过），主线给的是一屏 —— 这就是区别。 */
+function showStoryResult(st, text, gainedClues){
+  const pr = G.Engine.storyProgress();
+  const body = el('div','story-body');
+
+  const cover = el('div','story-cover done');
+  cover.innerHTML =
+    `<div class="story-kicker">第 ${pr.done} 页已完成</div>` +
+    `<div class="story-title">${st.name}</div>`;
+  body.appendChild(cover);
+
+  const box = el('div','story-text result');
+  renderStoryText(box, text || '（你没有说什么。）', 80);
+  body.appendChild(box);
+
+  /* 线索：主线最实在的产出，必须单独列出来 */
+  if (gainedClues && gainedClues.length){
+    const clues = el('div','story-clues');
+    clues.style.animationDelay = '420ms';
+    clues.innerHTML = '<div class="story-clues-h">这一页你记住了</div>' +
+      gainedClues.map(id=>{
+        const c = G.clueById ? G.clueById(id) : null;
+        return `<div class="story-clue">◈ ${c ? c.title : id}</div>`;
+      }).join('');
+    body.appendChild(clues);
+  }
+
+  /* 下一页的预告：给玩家一个「还差多少」的明确目标 */
+  const foot = el('div','story-next');
+  foot.style.animationDelay = '560ms';
+  foot.innerHTML = pr.next
+    ? `下一页：<b>${pr.next.name}</b>　还需累计贡献 <b>${pr.need}</b>（现有 ${pr.have}）`
+    : '《三月初七》到这里就写完了。剩下的在别处。';
+  body.appendChild(foot);
+
+  const wrap2 = el('div','story-choices');
+  wrap2.style.marginTop = '12px';
+  const go = btn(pr.next ? '翻 到 下 一 页' : '合 上 册 子','btn-main btn-go',()=>{
+    closeSheet();
+    setTimeout(()=>showSectStory(), 260);
+  });
+  wrap2.appendChild(go);
+  body.appendChild(wrap2);
+
+  sheet('◆ 三 月 初 七', body, []);
 }
 
 function showLog(){
@@ -12353,6 +13723,7 @@ function init(){
   $('btnDeck').addEventListener('click', showDeck);
   $('btnBag').addEventListener('click', showBag);
   $('btnRank').addEventListener('click', showRank);
+  $('btnMijing').addEventListener('click', showMijingBook);
   $('btnSect').addEventListener('click', showSect);
   $('btnClue').addEventListener('click', showClue);
   $('btnLog').addEventListener('click', showLog);
@@ -12403,7 +13774,10 @@ G.UI = { init, toast, show, renderMeta, renderRun, showEnding };
    正式游戏代码不读这个对象，它只服务 dev/ 下的脚本。 */
 G.UI.__dev = {
   rarityTag, renderChallenge, showRank, showBag, sheet, closeSheet,
-  startTianjiaoFlow, renderRun, showDeck, showAttrs, doNurtureFlow
+  startTianjiaoFlow, renderRun, showDeck, showAttrs, doNurtureFlow,
+  showTianjiaoCompass, showEvent, showSectStory, showStoryResult, renderStoryText,
+  showMijingNotice, showMijingEnter, showMijingFloor, resolveMijingPick, showMijingExit,
+  showMijingBook, doDivineMijing
 };
 
 document.addEventListener('DOMContentLoaded', init);

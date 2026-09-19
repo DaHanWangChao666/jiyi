@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta name="build" content="2026/9/16 22:29:25">
-<!-- build: 2026/9/16 22:29:25 -->
+<meta name="build" content="2026/9/19 15:13:19">
+<!-- build: 2026/9/19 15:13:19 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#0d0b0a">
@@ -530,6 +530,51 @@ button:disabled{opacity:.35;cursor:not-allowed}
 }
 .mj-seg.done{background:var(--gold2);border-color:var(--gold2)}
 .mj-seg.now{background:rgba(201,162,39,.35);border-color:var(--gold2)}
+
+/* ============================================================
+   道途 · 大事记（第 28 轮）
+   ------------------------------------------------------------
+   本作叫《记忆修复局》，主题就是记忆。这一块是结局页上的「这一世」：
+   先说「你是个什么样的人」，再把这一世的编年列出来。
+   所以它比结算页上任何一个数字块都要**重**：更大的字、更松的行距、
+   每条记录带一个彩色的类目标签。
+   ============================================================ */
+.daotu-wrap{
+  margin:18px 0 6px;padding-top:14px;border-top:1px solid var(--line);
+  animation:fadeUp .6s ease both;
+}
+.daotu-title{font-size:10.5px;letter-spacing:4px;color:var(--ink3);margin-bottom:7px}
+.daotu-name{font-size:19px;letter-spacing:2px;line-height:1.5}
+.daotu-why{font-size:11.5px;color:var(--ink3);line-height:1.7;margin-top:5px}
+.daotu-stats{
+  font-size:11px;color:var(--ink3);line-height:1.8;margin-top:10px;
+  padding-top:8px;border-top:1px dashed var(--line);
+}
+.chron{margin-top:12px}
+.chron-i{
+  display:flex;gap:8px;align-items:baseline;
+  font-size:12px;line-height:1.85;color:var(--ink2);
+  padding:3px 0;border-bottom:1px dashed #221d1a;
+}
+.chron-k{
+  flex:none;font-size:10px;letter-spacing:1px;
+  border:1px solid currentColor;border-radius:3px;
+  padding:0 4px;opacity:.85;
+}
+.chron-t{flex:1;min-width:0}
+
+/* ---- 弟子（第 28 轮）---- */
+.disc-line{color:#6f6459;font-style:italic;line-height:1.7}
+.disc-bar{height:4px;background:var(--panel2);border-radius:2px;overflow:hidden;margin:5px 0 3px;max-width:180px}
+.disc-fill{height:100%;background:var(--jade);border-radius:2px}
+.disc-hint{font-size:10px;color:var(--ink3)}
+.disc-tasks{display:flex;gap:5px;flex:none;flex-wrap:wrap;justify-content:flex-end;max-width:140px}
+.btn-mini{
+  padding:5px 7px;border-radius:6px;font-size:11px;
+  border:1px solid var(--line2);color:var(--gold2);background:var(--panel);
+}
+.btn-mini:disabled{color:var(--ink3);border-color:var(--line)}
+.btn-mini:active{background:var(--panel2)}
 
 /* ---------------- 榜（比武大会 / 天骄榜，第 25 轮） ----------------
    之前这两套系统在界面里完全没有入口：请帖是一闪而过的弹窗，
@@ -1996,20 +2041,37 @@ G.BOSSES = {
      它同时满足用户的那条要求：天劫只出现在金丹期起的大境界突破上。 */
   boss_zhuji: {
     id:'boss_zhuji', name:'天劫 · 雷池之影', kind:'final', title:'结 丹',
-    trigger:function(s){ return s.realmIdx>=17 && s.realmIdx<18 && !s.flags.includes('boss_zhuji_done'); },
+    /* ⚠️ 第 28 轮：trigger 多了「没在池边坐下过」这一条。
+       以前只要没打上 boss_zhuji_done 就会反复触发，而坐下也会打上它，
+       于是「坐下」= 一个隐形的「打赢」。 */
+    trigger:function(s){ return s.realmIdx>=17 && s.realmIdx<18
+      && !s.flags.includes('boss_zhuji_done')
+      && !s.flags.includes('boss_zhuji_rest'); },
     intro:'筑基九层，气已经满了。\n满到身体装不下，开始往外渗。\n\n结丹要在一瞬间把那口气收回去。\n收不回去的，就在这一刻散掉。\n\n你站在雷池边上。池子里没有水，全是白的。\n\n一个声音从池底升上来，很平：\n“上一个站在这里的人，也没进去。”\n“你想清楚了吗？”',
     choices:[
       { label:'走进去', hint:'天劫 · 结丹',
         eff:function(s,a){
           a.challenge({ bossId:'boss_zhuji', name:'雷池之影', type:'tribulation',
-            tier:'tribulation', heroWin:true,
+            tier:'tribulation',
+            /* ⚠️ 第 28 轮：这里原本还有一个 heroWin:true。
+               它从来没有被任何代码读过（全项目只有这一处出现），
+               却让人以为「这场天劫是保送赢的」——照它去查平衡就会得出
+               错误结论（实测模拟玩家 296/296 全胜，那是真打出来的）。
+               已删除：不确定用途的开关不如没有。
+
+               ⚠️ 同一轮：lose 原本也打 boss_zhuji_done。
+               那意味着「打输」和「打赢」在机制上完全一样（只差寿元和因果），
+               玩家照样破境成金丹 —— 而失败文案写的是「你还能再来一次」。
+               现在打输不再关门：雷池会再叫你一次，你可以再走进去，
+               也可以认输坐下（坐下才是真的关门）。 */
             outcome:{ win:{ flag:'boss_zhuji_done' },
-                      lose:{ flag:'boss_zhuji_done', lifePct:-0.18, karma:4 } } });
+                      lose:{ lifePct:-0.18, karma:4, cultPct:-0.5 } } });
           return '你把脚放进了池子里。';
         } },
-      { label:'在池边坐下',
-        eff:function(s,a){ a.flag('boss_zhuji_done'); a.life(40); a.cult(120);
-          return '你在池边坐下了。\n坐了很久。久到你确定自己不想进去。\n你站起来，往回走。\n\n身后那个声音说：“也行。”\n\n你没有结丹。气慢慢退了回去。\n寿元 +40，修为 +120'; } }
+      { label:'在池边坐下', hint:'放弃结丹 —— 这一世就停在筑基',
+        eff:function(s,a){ a.flag('boss_zhuji_rest'); a.life(40); a.cult(120);
+          return '你在池边坐下了。\n坐了很久。久到你确定自己不想进去。\n你站起来，往回走。\n\n身后那个声音说：“也行。”\n\n你没有结丹。气慢慢退了回去。\n这一步你这一世不会再走了。\n寿元 +40，修为 +120'; }
+      }
     ]
   },
 
@@ -2043,7 +2105,12 @@ G.BOSS_OUTCOME = {
   boss_xinmo_win:     '它散了。\n散之前它说了一句：“下一次，我还会在这儿。”',
   boss_xinmo_lose:    '你输了。\n它没有杀你——它只是坐进了你的位置。\n你花了很久才重新坐回去。',
   boss_zhuji_win:     '雷池翻了一下，然后静了。\n你从池子里走出来的时候，脚下的石头是软的。\n\n丹田里有一颗东西在慢慢转。\n它很小，但它不打算停。\n\n你听见有人在很远的地方说：\n“又来了一个。”',
-  boss_zhuji_lose:    '你被推了出来。\n池子还是白的，一动不动。\n它没有杀你。它只是不收你。\n\n气散了一半。你还能再来一次。'
+  /* ⚠️ 第 28 轮：这段文案必须把代价写全。
+     以前它写「你还能再来一次」，但打输也会打上 boss_zhuji_done，
+     于是玩家下一步直接破境成金丹 —— 说好的重来一次根本不存在。
+     现在三个数都是真的：寿元 −18%、因果 +4、修为减半，
+     而且雷池会再叫他一次。 */
+  boss_zhuji_lose:    '你被推了出来。\n池子还是白的，一动不动。\n它没有杀你。它只是不收你。\n\n气散了一半，你这才发现自己刚才一直在憋着。\n\n寿元 −18%　因果 +4　修为减半\n雷池还在那儿。它还会再叫你一次。'
 };
 
 /* ---------------- 失败转盘 ----------------
@@ -2433,7 +2500,7 @@ window.G = window.G || {};
 
 /* ---------------- 全局配置（想自己调数值就改这里） ---------------- */
 G.CONFIG = {
-  version: '0.7.0',
+  version: '0.8.0',
   saveKey: 'jiyi_xiufu_ju_v1',
 
   /* ---------------- 境界上限（第 21 轮） ----------------
@@ -2768,6 +2835,9 @@ G.SECT_STORY = {
       ] }
   ]
 };
+/* 弟子资质的封顶（第 28 轮）。见 engine.js 的 growDisciple 说明。 */
+G.DISCIPLE_MAX_Q = 9;
+
 G.DISCIPLE_TASKS = [
   { id:'caiyao', name:'采药', desc:'上山采药。有人回来过，有人没回来。',
     cost:{qi:4}, gain:{stone:12, cult:15}, risk:0.12, riskTxt:'弟子在崖边滑了一下。' },
@@ -2775,6 +2845,23 @@ G.DISCIPLE_TASKS = [
     cost:{qi:2}, gain:{qi:8, favor:1}, risk:0.16, riskTxt:'夜里有东西撞了山门。弟子受了伤。' },
   { id:'lili',   name:'外出历练', desc:'下山见世面。见多了，心就野了。',
     cost:{qi:6}, gain:{stone:26, cult:30}, risk:0.22, riskTxt:'弟子在外与人起了争执。' }
+];
+
+/* 弟子随机抽到的一句台词（第 28 轮）。
+   玩家选的方向是「多一层『人和人』的关系」——
+   而「关系」的起点是**这个人得有句话**。
+   一句就够，不要多：他只是个炼气期的小弟子。 */
+G.DISCIPLE_LINES = [
+  '“师父，我什么时候能像你一样？”',
+  '“我今天把《吐纳诀》背下来了。”',
+  '“山下的米又涨价了。”',
+  '“我不怕疼。”',
+  '“师兄说我这辈子也就这样了。”',
+  '“师父，你以前也是从小弟子做起的吗？”',
+  '“我娘让我别修了，回去种地。”',
+  '“我昨晚梦见自己站在很高的地方。”',
+  '“要是有一天我走不动了，你别等我。”',
+  '“师父，你会一直在这儿吧？”'
 ];
 
 /* ---------------- 招式表（战斗技） ----------------
@@ -6428,6 +6515,108 @@ G.mijingFor = function(major, kind){
 };
 
 
+/* ===== daotu.js ===== */
+/* ============================================================
+   道途 · 大事记（第 28 轮新增）
+   ------------------------------------------------------------
+   玩家选的方向：「多一层『人和人』的关系」+ A（道途·大事记）+ F（弟子加深）。
+
+   为什么需要它：本作叫《记忆修复局》，主题就是**记忆**。
+   但在这之前，一世走到结局时只给一句结局词 ——
+   你这一世做过的所有选择（放了谁、杀了谁、欠了谁、记住了哪一页）
+   全部散在 196 个事件里，结束的时候一点回响都没有。
+
+   这一份东西做两件事：
+     ① **编年**：把这一世真正发生过的事按顺序列出来
+     ② **称号**：按你的行为算出「你这一世是个什么样的人」
+
+   编年的来源有两处：
+     · 显式记下来的（G.Chron 的 note()）—— 那些「值得一提但不体现在数值上」的事
+     · 从现有状态推出来的 —— 线索、名号、天骄、秘境、主线、弟子、业障
+   两处合起来，不需要给 196 个事件逐个加埋点。                */
+
+G.Chron = {
+  /* 编年的分类。不同的类在结算页上颜色不同。 */
+  kinds: {
+    realm:  { label:'境',   color:'#c9a227' },
+    fight:  { label:'战',   color:'#e07a6a' },
+    people: { label:'人',   color:'#5fae8f' },
+    place:  { label:'地',   color:'#5b9fd8' },
+    story:  { label:'页',   color:'#b07fd8' },
+    choice: { label:'择',   color:'#8a8078' }
+  }
+};
+
+/* ============================================================
+   称号表
+   ------------------------------------------------------------
+   一张**有序**的规则表：从下往上匹配，**第一条命中的胜出**。
+   所以顺序就是优先级 —— 越特殊、越难做到的写在越上面。
+
+   每条规则 t(s, run) 返回 true 就命中；name 是称号，why 是一句解释
+   （解释必须是真的，它会显示给玩家看，dev/verify-daotu.js 会核对
+    「称号说的条件」和「玩家实际满足的条件」是否一致）。          */
+G.DAOTU = [
+  { id:'lost_name', name:'把自己的名字弄丢了的人', color:'#b07fd8',
+    t:(s,r)=> r.clues >= 9 && s.karma >= 12 && r.tianjiaoWon > 0,
+    why:'集齐了大半线索，手上又沾了业障，还赢过榜上的人。' },
+
+  { id:'page_keeper', name:'替别人记住的人', color:'#b07fd8',
+    t:(s,r)=> r.storyDone >= 4,
+    why:'《三月初七》四页你都翻完了。宗门里没有第二个人做到这件事。' },
+
+  { id:'tianjiao', name:'把名字留在了榜上的人', color:'#c9a227',
+    t:(s,r)=> r.tianjiaoWon >= 2,
+    why:'榜上的人，你赢过不止一个。' },
+
+  { id:'tianjiao_one', name:'赢过一次榜上人的人', color:'#c9a227',
+    t:(s,r)=> r.tianjiaoWon === 1,
+    why:'同境界本不该赢的那一仗，你赢了。' },
+
+  { id:'champion', name:'站过擂台最高处的人', color:'#c9a227',
+    t:(s,r)=> r.champions >= 1,
+    why:'你夺过魁。台下的人记住了你的名字，哪怕只有一个下午。' },
+
+  { id:'deep', name:'走到底的人', color:'#5b9fd8',
+    t:(s,r)=> r.mijingDeep >= 1,
+    why:'秘境最深的那一层，你走到了。大多数人半路就退出来了。' },
+
+  { id:'teacher', name:'有人替他挡过一刀的人', color:'#5fae8f',
+    t:(s,r)=> r.shielded >= 1,
+    why:'你的弟子替你死了一次。这件事没有写进任何记档。' },
+
+  { id:'master', name:'把人教出来过的师父', color:'#5fae8f',
+    t:(s,r)=> r.disciplesGrown >= 1,
+    why:'你门下有弟子出了师。他的手艺里有你的份。' },
+
+  { id:'kind', name:'没欠过谁的人', color:'#5fae8f',
+    t:(s,r)=> s.karma <= 2 && r.debtsPaid >= 2 && r.peopleSaved >= 2,
+    why:'你救过的人比欠你的多。这一世干干净净。' },
+
+  { id:'sect_pillar', name:'守着山门的人', color:'#c9a227',
+    t:(s,r)=> r.sectContrib >= 120 && s.chapter === 'zongmen',
+    why:'你一辈子没离开宗门。贡献簿上你的名字很长。' },
+
+  { id:'hermit', name:'守着一亩药圃的人', color:'#5fae8f',
+    t:(s,r)=> s.chapter === 'sanxiu' && (r.sanxiuDays >= 20 || r.skillsMaxed >= 2),
+    why:'你下山之后就没再回去。山里的日子过得慢，但都是你的。' },
+
+  { id:'wanderer', name:'走到哪儿算哪儿的人', color:'#8a8078',
+    t:(s,r)=> r.acts >= 150,
+    why:'你活了很久，去过很多地方，但没在哪儿停下。' },
+
+  { id:'early', name:'还没开始就结束的人', color:'#e07a6a',
+    t:(s,r)=> r.realmIdx <= 8,
+    why:'你连炼气期都没走完。' },
+
+  { id:'plain', name:'一个普通的修士', color:'#8a8078',
+    t:()=>true,
+    why:'修了一世，没留下什么，也没欠下什么。' }
+];
+
+G.daotuById = function(id){ return G.DAOTU.find(d=>d.id===id) || null; };
+
+
 /* ===== engine.js ===== */
 /* ============================================================
    《记忆修复局》游戏引擎
@@ -6450,6 +6639,23 @@ if (G.EVENTS_NEW && G.EVENTS){
     if (!G.EVENTS.some(function(x){ return x.id === e.id; })) G.EVENTS.push(e);
   });
 }
+
+/* ============================================================
+   卡牌品阶的「出厂值」快照（第 28 轮补）
+   ------------------------------------------------------------
+   ⚠️ 这里修的是一个**真 bug**：`addCard` 升品时写的是
+        const c = G.CARDS[name];  c.rarity = order[idx+1];
+   而 G.CARDS 是全局唯一的卡池对象 —— 于是「这一局把御剑术炼到良品」
+   会**永久改写卡池**，下一局开局这张卡就是良品。
+   玩十局之后一堆卡都成了道品，抽卡权重、卡面威力、精炼进度全部失真。
+
+   修法：在这里（所有卡都已并入 G.CARDS 之后）拍一张出厂快照，
+   每次 newRun 从快照恢复。这样读 c.rarity 的几十处代码一行都不用改。 */
+G.CARD_BASE_RARITY = (function(){
+  const snap = {};
+  Object.keys(G.CARDS).forEach(function(k){ snap[k] = G.CARDS[k].rarity; });
+  return snap;
+})();
 
 /* ---------------- 随机数（支持种子，用于分享） ---------------- */
 function makeRng(seed){
@@ -6733,6 +6939,9 @@ function newRun(lots, seed){
     titles: [],           // 本局挣到的名号（如「炼气魁首」）
     tianjiaoMet: [],      // 本局已遭遇过的天骄 id
 
+    /* 第 28 轮：道途 · 大事记。见 src/daotu.js */
+    chronicle: [],
+
     /* 第 26 轮：内景（境界养成）
        major = 这个内景是属于哪个大境界的（气海/道基/金丹/元婴…）
        lv    = 已经养到第几层（0 ~ G.DAOJI[max]） */
@@ -6767,6 +6976,7 @@ function newRun(lots, seed){
   if (s.deck.length===0) addCard('吐纳诀', true);
 
   normalizeDaoJi();                 // 内景对齐当前大境界（第 26 轮）
+  resetCardRarity();                // 卡牌品阶回到出厂值（第 28 轮，修跨局泄漏）
   log(`你以「${role.name}」的身份入了山门。${consti.desc}`);
   return s;
 }
@@ -7173,7 +7383,16 @@ function checkDeath(reason){
     s.guardUsed = true;
     s.life = G.CONFIG.deathGuardHeal;
     log('你倒下去了。有什么东西托了你一把。');
-    return { saved:true };
+    return { saved:true, by:'guard' };
+  }
+  /* 第 28 轮：元层的「残念」用掉之后，还有一次机会 ——
+     你门下忠诚够高的弟子会替你挡。
+     ⚠️ 放在 guard 之后：元层买的东西必须先兑现，那是玩家花碎片买的。
+     弟子这条是「人和人的关系」，不该压过付费内容。 */
+  const sh = discipleShield();
+  if (sh){
+    s.life = G.CONFIG.deathGuardHeal;
+    return { saved:true, by:'disciple', disciple:sh.name };
   }
   return endRun(reason === 'slay' ? 'slay' : 'life');
 }
@@ -7207,7 +7426,12 @@ function canAscend(){
   if (G.isRealmCapped && G.isRealmCapped(s.realmIdx)) return false;
   return !!cur && !!next && cur.major === 2 && next.major === 3
       && s.cult >= breakNeed()
-      && !s.flags.includes('boss_zhuji_done');
+      && !s.flags.includes('boss_zhuji_done')
+      /* 第 28 轮：「在池边坐下」= 放弃结丹。
+         以前这个选项也会打上 boss_zhuji_done，于是「坐下」和「打赢」
+         在机制上完全等价 —— 文案上写着「你没有结丹」，
+         玩家下一步却照样破境成金丹。现在坐下真的关门。 */
+      && !s.flags.includes('boss_zhuji_rest');
 }
 
 /* 下一次突破是不是「跨大境界」？（第 25 轮）
@@ -7254,6 +7478,10 @@ function doBreak(){
      用户要求清掉那段早期草稿把筑基当结局的「终极一战」框架，
      所以筑基→金丹 接管了这个 Boss，炼气→筑基 变回一次普通突破。 */
   if (next && next.major === 3 && !s.flags.includes('boss_zhuji_done')){
+    /* 「在池边坐下」之后这条路就是关着的 ——
+       ⚠️ 必须在这里显式挡掉，不能靠 canAscend() 返回 false 就算了：
+       下面就是 canBreak() 那条普通突破通道，它会直接把玩家送进金丹。 */
+    if (s.flags.includes('boss_zhuji_rest')) return null;
     if (!canAscend()) return null;
     return { realm: next.name, needBoss:'boss_zhuji' };
   }
@@ -7287,6 +7515,7 @@ function doBreak(){
   s.life += Math.max(0, diff) + reward;
 
   log(`你突破到了 ${next.name}。寿元上限 ${s.maxLife}。`);
+  if (next.sub === 1) note('realm', `破境，成了${next.name}。`);
 
   /* 天劫判定（见 G.CONFIG.tribulation）：
      ⚠️ 第 25 轮重写。旧版是「境界序数 >= 20 就降劫」，于是
@@ -7395,7 +7624,139 @@ function maxAttrPossible(){
   return _maxAttrCache;
 }
 
+/* ============================================================
+   道途 · 大事记（第 28 轮）
+   ------------------------------------------------------------
+   见 src/daotu.js 的设计说明。
+
+   `note(kind, text)` 是唯一的写入点 —— 只在「值得一提但不体现在数值上」
+   的事上调用。能从现有状态推出来的东西（线索/名号/天骄/秘境/主线）
+   一律**不**记，结算时现算 —— 那样才不用给 196 个事件逐个加埋点。
+   ============================================================ */
+function note(kind, text){
+  if (!s) return null;
+  if (!s.chronicle) s.chronicle = [];
+  /* 同一句话不重复记（有些钩子会被反复触发） */
+  if (s.chronicle.some(c=>c.text===text)) return null;
+  const rec = { at: s.actions||0, kind: kind||'choice', text: text,
+                realm: (G.REALMS[s.realmIdx]||{}).name || '?' };
+  s.chronicle.push(rec);
+  if (s.chronicle.length > 60) s.chronicle.shift();
+  return rec;
+}
+
+/* 这一世的统计（称号判定用）。全部从现有状态推出来，不额外存。 */
+function runStats(){
+  const sx = (s && s.sanxiu) || {};
+  const mj = (s && s.mijing) || {};
+  const skillsMaxed = Object.keys(sx.skills||{}).filter(function(id){
+    const def = (G.SANXIU_SKILLS||[]).find(x=>x.id===id);
+    return def && (sx.skills[id]||0) >= def.max;
+  }).length;
+  return {
+    realmIdx: (s && s.realmIdx) || 0,
+    acts: (s && s.actions) || 0,
+    clues: ((s && s.clues) || []).length,
+    sectContrib: sectContribTotal(),
+    tianjiaoWon: (s && s.tianjiaoMet || []).filter(id=>(s.flags||[]).indexOf('tj_beaten_'+id)>=0).length,
+    champions: ((s && s.titles) || []).length,
+    mijingDeep: ((s && s.chronicle) || []).filter(c=>c.kind==='place' && /最深处/.test(c.text)).length,
+    shielded: (s && s._discipleShield) || 0,
+    disciplesGrown: (s && s._disciplesGrown) || 0,
+    disciplesLost: (s && s._disciplesLost) || 0,
+    peopleSaved: (s && s._peopleSaved) || 0,
+    debtsPaid: (s && s._debtsPaid) || 0,
+    storyDone: Math.min((s && s.storyStage) || 0, (G.SECT_STORY.stages||[]).length),
+    sanxiuDays: sx.days || 0,
+    skillsMaxed: skillsMaxed,
+    bosses: ((s && s.flags) || []).filter(f=>/_done$/.test(f) && /^boss/.test(f)).length
+  };
+}
+
+/* 算出这一世的称号 */
+function daotu(){
+  const st = runStats();
+  const hit = (G.DAOTU||[]).find(d=>{
+    try { return !!d.t(s, st); } catch(e){ return false; }
+  }) || { id:'plain', name:'一个普通的修士', color:'#8a8078', why:'' };
+  return { id:hit.id, name:hit.name, color:hit.color, why:hit.why, stats:st };
+}
+
+/* 结算页要用的整块「这一世」。
+   编年 = 显式记下的 + 从状态推出来的（按行动数排序）。 */
+function daotuSummary(){
+  if (!s) return null;
+  const st = runStats();
+  const lines = [];
+
+  /* ---- 从状态推出来的（不带行动数，排在显式记录之间） ---- */
+  (s.chronicle || []).forEach(c=>lines.push({ at:c.at, kind:c.kind, text:c.text }));
+
+  if (st.storyDone > 0){
+    lines.push({ at:0, kind:'story',
+      text:`《三月初七》翻到了第 ${st.storyDone} 页。` +
+           (st.storyDone >= 4 ? '最后一页你也翻了。' : '剩下的几页还夹在册子里。') });
+  }
+  if (st.tianjiaoWon > 0){
+    const names = (s.tianjiaoMet||[]).filter(id=>(s.flags||[]).indexOf('tj_beaten_'+id)>=0)
+      .map(id=>{ const t=(G.TIANJIAO||[]).find(x=>x.id===id); return t?t.name:id; });
+    lines.push({ at:0, kind:'fight', text:`榜上的${names.join('、')}——你赢过。` });
+  } else if ((s.tianjiaoMet||[]).length){
+    lines.push({ at:0, kind:'fight', text:'榜上的人你遇见过，但一次也没赢。' });
+  }
+  if (st.champions > 0) lines.push({ at:0, kind:'fight', text:`名号：${(s.titles||[]).join('　')}` });
+  if ((s.mijing && s.mijing.done || []).length){
+    const names = s.mijing.done.map(id=>{ const d=(G.MIJING||[]).find(x=>x.id===id); return d?d.name:id; });
+    lines.push({ at:0, kind:'place', text:`你进过秘境：${names.join('、')}。` });
+  }
+  if ((s.disciples||[]).length){
+    const d0 = s.disciples;
+    lines.push({ at:0, kind:'people',
+      text:`门下 ${d0.length} 人：${d0.map(x=>x.name).join('、')}。` +
+           (st.disciplesLost ? `其中 ${st.disciplesLost} 个没能陪你走到最后。` : '') });
+  }
+  if (typeof sectContribTotal === 'function' && sectContribTotal() > 0){
+    lines.push({ at:0, kind:'people', text:`一生为宗门做了 ${sectContribTotal()} 点贡献。` });
+  }
+  const t = daotu();
+  return { dao:t, lines:lines.sort((a,b)=>a.at-b.at), stats:st };
+}
+
 /* ---------------- 抽卡 ---------------- */
+
+/* 把卡池里的品阶恢复成出厂值。
+   ⚠️ 不恢复的话，「升品」会跨局累积（见 G.CARD_BASE_RARITY 的说明）。 */
+function resetCardRarity(){
+  if (!G.CARD_BASE_RARITY) return;
+  Object.keys(G.CARD_BASE_RARITY).forEach(function(k){
+    if (G.CARDS[k]) G.CARDS[k].rarity = G.CARD_BASE_RARITY[k];
+  });
+}
+
+/* 一张卡是不是已经「练到头了」（第 28 轮）。
+   ------------------------------------------------------------
+   玩家要求：「卡牌重复获得时升到最高等级后就停止获取该卡牌」。
+
+   什么叫到头：精炼满 G.REFINE.max **且** 品阶已是 rarityOrder 的最后一档。
+   两者都满了之后，再拿到同一张只会 `converted`（转成一点点修为）——
+   那对玩家就是「这抽废了」。与其让他反复抽到废牌，不如把这张卡
+   从池子里拿掉。
+   ⚠️ 只有品阶满、精炼没满**不算**到头 —— 那种情况再拿一张还能 +15% 威力。 */
+function cardMaxed(name){
+  if (!s || !s.deck || s.deck.indexOf(name) < 0) return false;
+  const c = G.CARDS[name];
+  if (!c) return true;
+  const order = (G.REFINE && G.REFINE.rarityOrder) || ['凡','良','玄','道'];
+  const topRarity = order[order.length-1];
+  if (c.rarity !== topRarity) return false;
+  return ((s.refine && s.refine[name]) || 0) >= ((G.REFINE && G.REFINE.max) || 3);
+}
+/* 这一局已经练到头的卡（给界面显示「已满」用） */
+function maxedCards(){
+  if (!s || !s.deck) return [];
+  return s.deck.filter(cardMaxed);
+}
+
 function addCard(name, silent){
   if (!G.CARDS[name]) return false;
   if (!s.refine) s.refine = {};
@@ -7462,6 +7823,10 @@ function randCardName(opts){
     if (o.type && c.type!==o.type) return false;
     /* 第 18 轮：高境界才能抽到高境界的卡 */
     if (c.minMajor && c.minMajor > myMajor) return false;
+    /* 第 28 轮：已经练到头的卡不再出现（玩家要求）。
+       副作用是好的：随着牌组成长，池子会慢慢收窄，
+       后期的三选一反而更有针对性，而不是一堆废牌。 */
+    if (cardMaxed(k)) return false;
     return true;
   });
   if (!pool.length) return null;
@@ -7953,6 +8318,7 @@ function advanceMajor(){
   s.life += Math.max(0, s.maxLife - oldMax) + Math.round(next.maxLife * 0.08);
 
   log('你跨过了一个大境界：' + next.name + '。寿元上限 ' + s.maxLife + '。');
+  note('realm', `跨进${next.name}。（寿元上限 ${s.maxLife}）`);
 
   const md = G.MAJOR_DEFS[next.major-1];
   return { from: oldMajor, to: next.major, realm: next.name,
@@ -7985,6 +8351,12 @@ function applyOutcome(o){
   if (typeof o !== 'object') return;
   const pct = (v) => Math.round((s.maxLife || 100) * v);
   if (o.cult != null)  gainCult(evGain(o.cult, o.tier));
+  /* 按当前修为的**比例**扣（第 28 轮）。
+     天劫打输时「气散了一半」需要这个 —— 固定点数在不同境界没有意义。 */
+  if (o.cultPct != null){
+    const lost = Math.round((s.cult || 0) * Math.abs(o.cultPct));
+    s.cult = Math.max(0, (s.cult || 0) - lost);
+  }
   if (o.stone != null) gainStone(o.stone);
   if (o.karma != null) gainKarma(o.karma);
   if (o.favor != null) gainFavor(o.favor);
@@ -8678,6 +9050,7 @@ function resolveChallenge(){
 
     if (win && boss && boss.kind === 'final'){
       // 结丹天劫成功 → 开闸进入金丹（不再是结局——金丹只是第三站）
+      note('realm', '渡过结丹之劫。丹田里多了一颗会转的东西。');
       tickTempPills();                    // 这一场也算「用掉一场限时丹」
       const asc = advanceMajor();
       out.majorUp = asc;
@@ -8700,7 +9073,11 @@ function resolveChallenge(){
   tickTempPills();
 
   /* 天骄：不论输赢都算「遭遇过」，打赢另记一笔终身成就（第 22 轮） */
-  if (ch.tianjiaoId) markTianjiaoMet(ch.tianjiaoId);
+  if (ch.tianjiaoId){
+    const tj = (G.TIANJIAO||[]).find(x=>x.id===ch.tianjiaoId);
+    if (tj) note('fight', win ? `赢了榜上的${tj.name}。` : `输给了榜上的${tj.name}。他没有杀你。`);
+    markTianjiaoMet(ch.tianjiaoId);
+  }
 
   // 失败 → 进入转盘（由界面接手），而不是直接死
   if (!win){
@@ -8948,13 +9325,21 @@ function endRun(reason){
   meta.runs += 1;
   meta.totalActions += s.actions;
   meta.worldActions = (meta.worldActions || 0) + s.actions;
-  if (reason==='ascend') meta.wins += 1;
+  /* ⚠️ 第 28 轮修复：这两个计数器原本都挂在 reason==='ascend' 上。
+     第 25 轮把「炼气九层 → 筑基」从「终极一战结局」改成普通突破之后，
+     endRun('ascend') 就再也没有任何地方调用了 ——
+     于是档案柜上的「突破筑基 N 次」和宗门卡片上的「通关 N 次」
+     永远是 0（界面在撒谎，而且是玩家一眼就能看到的数字）。
+     修法：不再看「以什么结局收场」，改看「这一世真的走到了哪里」。
+       · wins    = 走出炼气、踏进筑基以上（筑基一层 = realmIdx 9）
+       · cleared = 走完这一篇（此世圆满） */
+  if (s.realmIdx >= 9) meta.wins += 1;
   if (!meta.endings.includes(e.id)) meta.endings.push(e.id);
 
   const w = meta.worlds.zongmen;
   if (s.realmIdx > (w.bestRealm||0)) w.bestRealm = s.realmIdx;
   if (frag > (w.best||0)) w.best = frag;
-  if (reason==='ascend') w.cleared = (w.cleared||0)+1;
+  if (reason === 'capstone') w.cleared = (w.cleared||0)+1;
 
   // 线索入档
   s.clues.forEach(id=>{ if (!meta.lore.includes(id)) meta.lore.push(id); });
@@ -9024,6 +9409,7 @@ function checkSectCollapse(){
      ③ 目标进度（有方向，不是原地打转）
    而且休闲活动净收益为正——休闲就该是休闲。                    */
 function enterSanxiu(reason){
+  note('choice', '下了山，从此是个散修。');
   if (s.chapter === 'sanxiu') return null;
   s.chapter = 'sanxiu';
   s.sanxiu.started = true;
@@ -9589,6 +9975,7 @@ function enterMijing(id){
   s.worldActions = (s.worldActions||0)+1;
   m.run = { id:id, floor:0, deepest:0, cost:cost };
   log(`你进了「${open.def.name}」。`);
+  note('place', `进了${open.def.name}（${open.def.epithet}）。`);
   saveRun();
   return { ok:true, def:open.def, via:open.via, cost:cost, floor:0 };
 }
@@ -9635,6 +10022,7 @@ function leaveMijing(){
   const deepest = m.run.deepest;
   const finished = def ? (m.run.floor >= def.plan.length) : false;
   if (m.done.indexOf(m.run.id) < 0) m.done.push(m.run.id);
+  if (finished) note('place', `从${def ? def.name : '秘境'}最深处活着出来了。`);
   m.run = null;
   log(`你从「${def ? def.name : '秘境'}」里出来了（走到第 ${deepest} 层）。`);
   saveRun();
@@ -9780,6 +10168,7 @@ function advanceTourney(win){
       t.alive = false; t.champion = true;
       const b = G.TOURNEY_BRACKETS.find(x=>x.id===t.id);
       if (b){
+        note('fight', `夺了${b.name}的魁。台下的人喊了你的名字。`);
         gainStone(b.champion.stone);
         gainContrib(b.champion.contrib);
         gainFavor(b.champion.favor);
@@ -10109,6 +10498,17 @@ function storyProgress(){
 }
 
 /* ---------------- 弟子 ---------------- */
+/* ---------------- 弟子 ----------------
+   第 28 轮加深。玩家选的方向是「多一层『人和人』的关系」，
+   而弟子原本只是一个「花气运换产出」的按钮：
+   没有成长、没有对白、不会出事、也不会替你死。
+
+   现在它有四件事：
+     ① **会成长**：每次派任务攒 cult，攒够 40 出师一次（资质 +1）
+     ② **会出事**：任务风险不只是扣你的寿元 —— 弟子可能受伤、可能回不来
+     ③ **会替你挡一刀**：濒死时，忠诚 ≥70 的弟子会替你死一次
+     ④ **会说话**：每个弟子按抽到的性格有一句自己的台词
+   ============================================================ */
 function recruitDisciple(){
   const jl = s.buildings.jiangjing;
   const q = 1 + jl + Math.floor(s.rng()*3) + (((meta.up&&meta.up.discipleQ)||0));
@@ -10121,18 +10521,73 @@ function recruitDisciple(){
     { n:'倔',   e:'偶尔拒绝任务' },
     { n:'命薄', e:'受伤概率更高' }
   ];
+  const used = {};
+  (s.disciples||[]).forEach(x=>{ used[x.name]=true; });
+  const free = names.filter(n=>!used[n]);
+  const pool = free.length ? free : names;
   const d = {
     id: 'd'+Math.floor(s.rng()*1e9),
-    name: names[Math.floor(s.rng()*names.length)],
+    name: pool[Math.floor(s.rng()*pool.length)],
     quality: q,
     trait: traits[Math.floor(s.rng()*traits.length)],
     loyalty: clamp(50 + jl*8 + Math.floor(s.rng()*20), 0, 100),
-    cult: 0
+    cult: 0,
+    joined: s.actions||0,
+    grown: 0,
+    /* 第 28 轮：每个弟子抽一句自己的话，一局不变 */
+    line: (function(){
+      const L = G.DISCIPLE_LINES || [''];
+      return L[Math.floor(s.rng()*L.length)];
+    })()
   };
   s.disciples.push(d);
   s.discipleCount = s.disciples.length;
   gainSectQi(4 + q);
+  note('people', `${d.name}入了门（${d.trait.n}，资质 ${q}）。`);
   return d;
+}
+
+/* 成长：派任务时攒，攒够就出师一次。
+   ------------------------------------------------------------
+   ⚠️ 第一版写死了「攒够 40 出师、每次 +1 资质」，而任务收益又按
+   `1 + 资质×0.2` 放大 —— 两个正反馈叠在一起会失控：
+   实测派 60 次采药，资质从 3 涨到 **48**，任务收益变成 ×10.6。
+   现在两道闸：
+     · 资质封顶 G.DISCIPLE_MAX_Q（9）—— 一个弟子能走多远是有上限的
+     · 出师门槛随出师次数抬高（40 → 70 → 100 …）—— 越到后面越难
+   两刀下去，一个弟子的成长曲线是「前期快、后期平」，而不是指数。 */
+function growDisciple(d, amount){
+  if (!d) return null;
+  const CAP = G.DISCIPLE_MAX_Q || 9;
+  d.cult = (d.cult||0) + (amount||0);
+  const need = 40 + (d.grown||0) * 30;
+  if (d.cult >= need && d.quality < CAP){
+    d.cult -= need;
+    d.quality = Math.min(CAP, d.quality + 1);
+    d.loyalty = clamp(d.loyalty + 10, 0, 100);
+    d.grown = (d.grown||0) + 1;
+    s._disciplesGrown = (s._disciplesGrown||0) + 1;
+    log(`${d.name}出师了（资质 ${d.quality}）。`);
+    note('people', `${d.name}出师了。他的手艺里有你的份。`);
+    return { grown:true, name:d.name, quality:d.quality };
+  }
+  return null;
+}
+
+/* 弟子替你挡一刀（濒死时调用）。
+   只找忠诚 ≥70 的；挡过就没了。
+   这是「关系」这条线上最重的一笔，所以写得很短 —— 短才记得住。 */
+function discipleShield(){
+  if (!s || !s.disciples || !s.disciples.length) return null;
+  const c = s.disciples.filter(d=>d.loyalty >= 70).sort((a,b)=>b.loyalty-a.loyalty)[0];
+  if (!c) return null;
+  s.disciples.splice(s.disciples.indexOf(c), 1);
+  s.discipleCount = s.disciples.length;
+  s._discipleShield = (s._discipleShield||0) + 1;
+  s._disciplesLost = (s._disciplesLost||0) + 1;
+  note('people', `${c.name}替你挡了一下。他没站起来。`);
+  log(`${c.name}替你挡了一下。`);
+  return c;
 }
 
 function sendDisciple(discId, taskId){
@@ -10158,10 +10613,31 @@ function sendDisciple(discId, taskId){
     d.loyalty -= 12;
     const h = Math.round(10 + s.rng()*20);
     s.life -= h;
+    /* 第 28 轮：出事的不只是你 —— 弟子也可能回不来。
+       用一次**独立的**掷骰（而不是复用同一个）分开「你受伤」与「弟子出事」，
+       这样两件事的概率都是可解释的，测试也好钉。
+
+       概率：先过任务自己的风险门槛，再乘 0.15。
+        采药 12%×15% = 1.8%　护山 16%×15% = 2.4%　历练 22%×15% = 3.3%
+      命薄 ×1.5 之后最高约 5%。
+      ⚠️ 第一版拍的是 0.25，实测「派 6 次就折了一个」——太密了。
+      弟子的死要有分量，就得稀有；一局丢一两个是故事，丢五个是流水账。 */
+    if (s.rng() < 0.15){
+      s.disciples.splice(s.disciples.indexOf(d), 1);
+      s.discipleCount = s.disciples.length;
+      s._disciplesLost = (s._disciplesLost||0) + 1;
+      out.lost = true;
+      note('people', `${d.name}出去${t.name}，没回来。`);
+      out.msgs.push(`出了事：${t.riskTxt} 寿元 −${h}　**${d.name}没回来。**`);
+      const dead1 = checkDeath('slay');
+      if (dead1) out.end = dead1;
+      return out;
+    }
     out.msgs.push(`出了事：${t.riskTxt} 寿元 −${h}`);
   } else {
     d.loyalty = clamp(d.loyalty + 4, 0, 100);
-    d.cult += 8 + d.quality*2;
+    const g = growDisciple(d, 8 + d.quality*2);
+    if (g) out.msgs.push(`${g.name}出师了（资质 ${g.quality}）`);
   }
   const dead = checkDeath('slay');
   if (dead) out.end = dead;
@@ -10441,6 +10917,9 @@ function state(){
     discipleCount: s.discipleCount,
     buildings: s.buildings,
     collapsed: s.sectCollapsed,
+    /* 第 28 轮：道途 · 大事记。见 src/daotu.js */
+    chronicle: [],
+
     /* 第 26 轮：内景（境界养成） */
     daoJi: daoJiStatus()
   };
@@ -10690,6 +11169,10 @@ G.Engine = {
   miJingFloor, miJingPick, leaveMijing, gainMijingShard, tickMijingClock,
   // 宗门主线（第 27 轮改成累计贡献）
   sectContribTotal,
+  // 道途 · 大事记（第 28 轮）
+  daotu, daotuSummary, runStats, note, checkDeath,
+  cardMaxed, maxedCards, resetCardRarity,
+  growDisciple, discipleShield,
   techCostOf, techCostBlock,           // 招式的材料成本（灵石 / 阳寿）
   get challenge(){ return challenge; },
   startTribulation, startKillerTribulation,
@@ -13410,19 +13893,51 @@ function showSect(){
   } else {
     raw.disciples.forEach(d=>{
       const item = el('div','bld-item');
+      const grown = d.grown ? `　出师 ${d.grown} 次` : '';
+      /* ⚠️ 门槛必须和 engine 的 growDisciple 用同一个公式（40 + 出师次数×30），
+         否则界面显示「距出师 12」而实际还要 42 —— 那就是在骗玩家。 */
+      const needQ = 40 + (d.grown||0)*30;
+      const prog = Math.min(100, Math.round(((d.cult||0)/needQ)*100));
       item.innerHTML =
         '<div class="bld-info"><div class="bld-name">' + d.name +
-          '<span class="lv">资质 ' + d.quality + '　忠诚 ' + Math.round(d.loyalty) + '</span></div>' +
-          '<div class="bld-desc">' + d.trait.n + '　' + d.trait.e + '</div></div>';
+          '<span class="lv">资质 ' + d.quality + '　忠诚 ' + Math.round(d.loyalty) + grown + '</span></div>' +
+          '<div class="bld-desc">' + d.trait.n + '　' + d.trait.e + '</div>' +
+          /* 第 28 轮：让弟子有句话。玩家选的方向是「人和人的关系」，
+             而关系的起点是这个人得开口。 */
+          (d.line ? '<div class="bld-desc disc-line">' + d.line + '</div>' : '') +
+          '<div class="bld-desc"><div class="disc-bar"><div class="disc-fill" style="width:' + prog + '%"></div></div>' +
+          '<span class="disc-hint">距出师 ' + Math.max(0, needQ-(d.cult||0)) + '</span></div></div>';
+      body.appendChild(item);
+      /* 派任务：这是弟子唯一能「上场」的地方 */
+      const tasks = el('div','disc-tasks');
+      (G.DISCIPLE_TASKS||[]).forEach(t=>{
+        const tb = btn(t.name, 'btn-mini', ()=>{
+          const r2 = G.Engine.sendDisciple(d.id, t.id);
+          if (!r2){ toast('派不出去','bad'); return; }
+          if (r2.noqi){ toast('宗门气运不够','bad'); return; }
+          if (r2.refused){ toast(r2.name + ' 没理你。','bad'); return; }
+          toast((r2.msgs||[]).join('　'), r2.lost ? 'bad' : (r2.hurt ? '' : 'good'));
+          autoSave();
+          if (r2.end){ closeSheet(); afterDeath(r2.end); return; }
+          showSect(); renderRun();
+        }, raw.sectQi < t.cost.qi);
+        tb.title = t.desc + `（气运 −${t.cost.qi}，风险 ${Math.round(t.risk*100)}%）`;
+        tasks.appendChild(tb);
+      });
+      item.appendChild(tasks);
       body.appendChild(item);
     });
     const b2 = btn('再 收 一 徒（气运 −8）','btn-main',()=>{
       const d = G.Engine.recruitDisciple();
-      toast(d.name + ' 入了门','good');
+      toast(d.name + ' 入了门（资质 ' + d.quality + '·' + d.trait.n + '）','good');
       autoSave();
       showSect(); renderRun();
     }, raw.sectQi < 8);
     body.appendChild(b2);
+    body.appendChild(el('div','arc-i',
+      '<span style="color:#6f6459">派弟子出去做事：给灵石与修为，弟子会长（攒够就出师）。\n' +
+      '有风险 —— 出事的时候，受伤的可能不只是你，也可能是**他回不来**。\n' +
+      '忠诚 ≥70 的弟子，会在你倒下的时候替你挡一次。</span>'));
   }
 
   sheet('宗 门', body, []);
@@ -13641,6 +14156,46 @@ function showEnding(r){
     $('endSub').appendChild(document.createElement('br'));
     $('endGain').appendChild(c);
   }
+
+  /* ---- 道途 · 大事记（第 28 轮） ----
+     本作叫《记忆修复局》，主题就是记忆。但在这之前，一世走到结局时
+     只给一句结局词 —— 你这一世做过的所有选择全部散掉了。
+     这一段就是把它们收回来：先说「你是个什么样的人」，再把编年列出来。 */
+  const sum = G.Engine.daotuSummary ? G.Engine.daotuSummary() : null;
+  if (sum){
+    const wrap = el('div','daotu-wrap');
+    wrap.innerHTML =
+      `<div class="daotu-title">这 一 世</div>
+       <div class="daotu-name" style="color:${sum.dao.color}">${sum.dao.name}</div>
+       <div class="daotu-why">${sum.dao.why || ''}</div>`;
+    body.appendChild(wrap);
+
+    if (sum.lines.length){
+      const chron = el('div','chron');
+      sum.lines.forEach(l=>{
+        const k = (G.Chron.kinds || {})[l.kind] || { label:'·', color:'#8a8078' };
+        const row = el('div','chron-i');
+        row.innerHTML =
+          `<span class="chron-k" style="color:${k.color}">${k.label}</span>` +
+          `<span class="chron-t">${String(l.text).replace(/\*\*/g,'')}</span>`;
+        chron.appendChild(row);
+      });
+      body.appendChild(chron);
+    }
+
+    /* 统计：给「称号」一个可以核对的底 */
+    const s2 = sum.stats;
+    const bits = [];
+    if (s2.clues) bits.push(`线索 ${s2.clues}`);
+    if (s2.tianjiaoWon) bits.push(`胜过天骄 ${s2.tianjiaoWon}`);
+    if (s2.champions) bits.push(`夺魁 ${s2.champions}`);
+    if (s2.storyDone) bits.push(`三月初七 ${s2.storyDone}/4`);
+    if (s2.disciplesLost) bits.push(`失去弟子 ${s2.disciplesLost}`);
+    if (s2.shielded) bits.push(`被弟子挡过 ${s2.shielded}`);
+    if (s2.sectContrib) bits.push(`贡献 ${s2.sectContrib}`);
+    if (bits.length) body.appendChild(el('div','daotu-stats', bits.join('　')));
+  }
+
   show('screen-end');
   renderMeta();
 }
@@ -13777,7 +14332,7 @@ G.UI.__dev = {
   startTianjiaoFlow, renderRun, showDeck, showAttrs, doNurtureFlow,
   showTianjiaoCompass, showEvent, showSectStory, showStoryResult, renderStoryText,
   showMijingNotice, showMijingEnter, showMijingFloor, resolveMijingPick, showMijingExit,
-  showMijingBook, doDivineMijing
+  showMijingBook, doDivineMijing, renderArchive
 };
 
 document.addEventListener('DOMContentLoaded', init);

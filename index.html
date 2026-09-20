@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta name="build" content="2026/9/20 19:50:07">
-<!-- build: 2026/9/20 19:50:07 -->
+<meta name="build" content="2026/9/20 19:53:08">
+<!-- build: 2026/9/20 19:53:08 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#0d0b0a">
@@ -6767,6 +6767,414 @@ G.EVENTS = (G.EVENTS || []).concat([
         return '你找了块尖石头，在旁边刻了三个字：\n\n“我再看看。”\n\n刻完你后退两步，觉得这两行字放在一起，\n有点像对话。\n\n修为 +'+a.gain(25,'mid')+'　业障 +1'; } },
     { label:'坐下来想一会儿', eff:(s,a)=>{ a.cult(35,'mid'); a.lifePct(0.02);
         return '你坐在那行字对面，想了一会儿。\n\n“到此为止”——到底是谁的到此为止？\n\n想不通。但你坐得很舒服。\n\n修为 +'+a.gain(35,'mid')+'　寿元 +'+a.lifePct(0.02); } }
+  ]
+}
+
+]);
+
+
+/* ===== events10.js ===== */
+/* ============================================================
+   《记忆修复局》事件数据 · 第十批（第 29 轮 · 结构与条件）
+   ------------------------------------------------------------
+   这一批专治第 29 轮审计里剩下的两个洞：
+
+   ①「表现形式有限」——实测 216 个事件里 **207 个是三选一**（96%）。
+      三选一本身没错，但每个事件都是「稳妥 / 激进 / 走开」的三件套时，
+      玩家在第 30 个事件上就已经不看选项了。
+      这一批刻意做两极化结构：
+        · **两选一**：非此即彼的重抉择，没有第三条退路
+        · **四选一**：场面大、信息多的时刻（四个人、四样东西、四条路）
+
+   ②「选项里有条件的只有 4 / 641（1%）」——几乎等于没有。
+      这一批给选项大量加 when，而且**优先加属性条件**：
+        · 体魄够 → 你能把它扛起来
+        · 神识够 → 你看得见别人看不见的那一层
+        · 身法够 → 你追得上 / 躲得开
+        · 悟性够 → 你能从这段话里读出功法
+        · 根骨够 → 你熬得住
+      属性不够的人看到的选项更少，但**每个都是他能选的**——
+      不是「灰着的选项」，而是那条路根本不在他眼前。
+
+   写法约定（和 events9.js 一致）：
+     evAttr('x') / evPeer('x')     ← 门槛用相对判断，不写死数字
+     evBonus('x') / evMainAttr()   ← 认 build
+     a.cult(n,'low'|'mid'|'high')  ← 收益按大境界缩放
+     a.attr({shenfa:5})            ← 机缘直接给属性
+     a.lifePct(0.03)               ← 寿元一律用百分比
+   返回文案里的每个数字都必须和实际加的一致（dev/verify-eventrewards.js 逐条对账）。
+   ============================================================ */
+
+G.EVENTS = (G.EVENTS || []).concat([
+
+/* ============================================================
+   一、两选一：没有第三条退路
+   ============================================================ */
+
+{
+  id:'ev10_two_roads', tier:0, title:'岔路', cat:'世界',
+  text:'路口没有碑。\n\n左边那条往上，石头被踩得发亮——走的人多。\n右边那条往下，草长得半人高——很久没人走了。\n\n你站在那儿，天快黑了。\n只够走一条。',
+  flavor:'两条路都通，但你只能知道一条的尽头是什么。',
+  choices:[
+    { label:'往上，走人多那条', hint:'稳当，但人人都知道那儿有什么',
+      eff:(s,a)=>{ const g=a.cult(30,'mid'); const st=25;
+        a.stone(st); a.favor(1);
+        return '路上遇到三拨人，都跟你点头。\n\n山顶有一座小庙，庙里有个老道在扫地。\n他看了你一眼，说：“又来一个。”\n\n你在庙里歇了一夜，第二天原路下山。\n\n修为 +'+g+'　灵石 +'+st+'　人情 +1'; } },
+    { label:'往下，走没人走那条', hint:'没人走，可能是因为走不通',
+      eff:(s,a)=>{
+        if(a.chance(0.6)){ const g=a.cult(75,'high'); const at=a.attr({shenfa:4});
+          return '草比你想象的深。走到一半，你发现脚下是石阶——\n只是很多年没人踩，草把它盖住了。\n\n石阶通向一处塌了一半的院子。\n院子里有一口井，井沿上刻着字，被水磨平了大半。\n\n你在院子里坐了一下午，学会了一种走法。\n\n修为 +'+g+'　'+at; }
+        const l=a.lifePct(-0.09);
+        return '草比你想象的深。走到天黑，你才发现前面是断崖。\n\n往回走的时候你迷了路，绕到后半夜才出来。\n\n寿元 −'+l; } }
+  ]
+},
+
+{
+  id:'ev10_beggar_ask', tier:0, title:'他伸着手', cat:'人事',
+  text:'他坐在墙根下，伸着一只手。\n\n手很干净——干净得不像一个乞丐的手。\n\n他不说话，就那么伸着。',
+  flavor:'你身上有灵石。他也知道你身上有。',
+  choices:[
+    { label:'给他', hint:'你可能在给一个不需要的人',
+      eff:(s,a)=>{ const pay=Math.min(s.stone, 40);
+        a.stone(-pay); a.karma(-2); a.lifePct(0.03);
+        return '你把灵石放在他手里。\n\n他收拢手指，握了一下，然后抬起头看你。\n\n“记住今天。”他说。\n\n然后他站起来，走了。走得很快，一点也不像个乞丐。\n\n灵石 −'+pay+'　业障 −2　寿元 +'+a.lifePct(0.03); } },
+    { label:'不给，绕过去', hint:'',
+      eff:(s,a)=>{ a.karma(1); const g=a.cult(20,'low');
+        return '你从他面前走过去了。\n\n走出十几步，你回头看了一眼——\n他还坐在那儿，手还伸着。\n\n姿势一点没变。\n\n业障 +1　修为 +'+g; } },
+    /* ⚠️ 这一条只有神识够的人才看得见。
+       两选一变成三选一，**变的不是数值，是你能想到的办法**。 */
+    { label:'先看看他的手', hint:'',
+      when:()=>evAttr('shenshi') >= evPeer('shenshi')*1.15,
+      eff:(s,a)=>{ a.clue('clue_erased'); const g=a.cult(50,'high');
+        return '你蹲下来，看他的手。\n\n手很干净，指甲修得整齐——但虎口和食指第二节有茧。\n那是常年握笔的地方，不是讨饭的地方。\n\n你抬起头。他也在看你。\n\n“看出来了？”他说，“那我就不装了。”\n\n他站起来，把手缩回袖子里，走了。\n\n线索 +1　修为 +'+g; } }
+  ]
+},
+
+{
+  id:'ev10_keep_or_burn', tier:0, title:'烧掉它', cat:'线索',
+  when:s=>s.clues && s.clues.length >= 3,
+  text:'你手上这些东西，拼起来已经能看出一个轮廓了。\n\n灯就在旁边。\n\n烧掉，你就是个普通的修士，什么都不知道。\n留着，你就得一直往下查。',
+  flavor:'你已经有好几个晚上没睡好了。',
+  choices:[
+    { label:'烧掉', hint:'从此清静，但你会少知道一些事',
+      eff:(s,a)=>{ const lost=Math.min(3, (s.clues||[]).length);
+        s.clues = (s.clues||[]).slice(0, Math.max(0,(s.clues||[]).length-lost));
+        a.karma(-3); a.lifePct(0.08); const g=a.cult(40,'mid');
+        return '你把纸凑到灯上。\n\n火苗从角上起来，一点一点往中间吃。\n\n烧完之后你把灰扫了，出去转了一圈。\n\n那天晚上你睡得很沉。\n\n业障 −3　寿元 +'+a.lifePct(0.08)+'　修为 +'+g+'\n（你忘掉了 '+lost+' 处不对。）'; } },
+    { label:'收起来，接着查', hint:'',
+      eff:(s,a)=>{ a.karma(2); const g=a.cult(70,'high'); a.clue('clue_page');
+        return '你把纸叠好，塞回怀里。\n\n“查就查吧。”你对自己说。\n\n说完这句话，你心里那点犹豫反而没了。\n\n业障 +2　修为 +'+g+'\n（你记住了第 '+(s.clues?s.clues.length:0)+' 处不对。）'; } },
+    /* 悟性够的人能看出「烧掉的其实不是原件」——这条路的收益完全不同。 */
+    { label:'再看一眼那几张纸', hint:'',
+      when:()=>evAttr('wuxing') >= evPeer('wuxing')*1.15,
+      eff:(s,a)=>{ a.clue('clue_page'); const g=a.cult(60,'high');
+        return '你把纸举到灯前。\n\n纸的背面有压痕——是写字的时候透过去的。\n正面写的是你抄的，背面透出来的是**原来的那一版**。\n\n两份不一样。\n\n你把纸收好了。这一份不能烧。\n\n线索 +1　修为 +'+g; } }
+  ]
+},
+
+{
+  id:'ev10_broken_sword', tier:0, title:'断剑', cat:'修行',
+  text:'兵器铺的角落里插着一把断剑。\n\n断口很新，像是刚断的。但铺主说它插在那儿二十年了。\n\n“喜欢就拿走。”他说，“反正也没人要。”',
+  choices:[
+    { label:'拿走它', hint:'它占地方，也不好看',
+      /* ⚠️ 原来这里写的是 a.addCard('剑意') —— 没有这张卡（第 29 轮被
+         dev/_check10.js 的卡名核对抓到）。改成真实存在的【剑意初成】。 */
+      eff:(s,a)=>{ a.addCard('剑意初成');
+        return '你把断剑拔出来。\n\n很轻。轻得不像铁。\n\n你挥了一下，空气里有“嗡”的一声。\n\n铺主抬起头看了你一眼，又低下去。\n\n得【剑意初成】'; } },
+    { label:'不拿，问它怎么断的', hint:'',
+      eff:(s,a)=>{ a.clue('clue_erased'); const g=a.cult(35,'mid');
+        return '“被另一把剑砍断的。”铺主说。\n\n“哪一把？”\n\n“不知道。那天我睡着了。”\n\n他想了想，又补了一句：\n“醒来的时候，铺子里就它一个还在。”\n\n线索 +1　修为 +'+g; } }
+  ]
+},
+
+{
+  id:'ev10_owe_life', tier:0, title:'他救过你', cat:'人事',
+  when:s=>s.actions >= 30,
+  text:'半路上撞见一个人。你认出来了——很多年前，他拉过你一把。\n\n他也认出你了。\n\n他瘦了很多，衣服是破的。\n\n他张了张嘴，没说出话来。',
+  flavor:'他当年救你的时候，什么都没要。',
+  choices:[
+    { label:'把身上的灵石都给他', hint:'这一次换你还',
+      eff:(s,a)=>{ const pay=s.stone;
+        a.stone(-pay); a.karma(-3); a.favor(3); a.lifePct(0.05);
+        return '你把灵石全掏出来，塞给他。\n\n他推了两下，没推开，就收下了。\n\n“当年……”他说。\n\n“当年的事别提了。”你说。\n\n他点点头，转身走了。走得很慢，但背挺直了。\n\n灵石 −'+pay+'　业障 −3　人情 +3　寿元 +'+a.lifePct(0.05); } },
+    { label:'装作不认识', hint:'',
+      eff:(s,a)=>{ a.karma(3); const g=a.cult(45,'mid');
+        return '你低下头，从他旁边走过去了。\n\n走了很远，你才发现自己一直攥着拳头。\n\n那天晚上你打坐，怎么都静不下来。\n但是修为还是涨了——你也不知道为什么。\n\n业障 +3　修为 +'+g; } },
+    /* 灵石够多的人有第三条路：不必二选一。
+       ⚠️ 条件必须写 `st=>st.stone`，把状态**接过来**。
+       第一次写成了 `()=>s.stone` —— 那个 s 在这个作用域里根本不存在，
+       求值时直接 ReferenceError。而 showEvent 是这么调的：
+           ev.choices.filter(c=>!c.when || c.when(st.raw))
+      所以它不只是「条件不生效」，而是**整个事件面板渲染不出来**（玩家直接卡住）。
+       被 dev/verify-eventstruct.js 第 2 节抓到。 */
+    { label:'把灵石分两半，一半给他', hint:'',
+      when:st=>st.stone >= 80,
+      eff:(s,a)=>{ const pay=Math.round(s.stone*0.5);
+        a.stone(-pay); a.karma(-2); a.favor(3); a.lifePct(0.03);
+        return '你把灵石倒出来，分成两堆。\n\n一堆推给他，一堆收回怀里。\n\n“这样我也能活，你也能活。”\n\n他看着那堆灵石，很久没动。\n\n“当年我给你的，没这么多。”他说。\n\n“当年我也没有这么多。”\n\n灵石 −'+pay+'　业障 −2　人情 +3　寿元 +'+a.lifePct(0.03); } }
+  ]
+},
+
+{
+  id:'ev10_last_light', tier:3, title:'灯要灭了', cat:'修行',
+  text:'你丹田里那颗东西，最近光弱了。\n\n不是坏了——是它在往里收。\n\n收完了会怎么样，书上没说。',
+  choices:[
+    { label:'推它一把，让它收完', hint:'赌',
+      eff:(s,a)=>{
+        if(a.chance(0.55)){ const g=a.cult(140,'high'); const at=a.attr({lingli:6});
+          return '你把全身的气都压了过去。\n\n那颗东西猛地一缩，然后——比之前亮了三倍。\n\n你睁开眼，屋里所有的影子都不见了。\n\n修为 +'+g+'　'+at; }
+        const l=a.lifePct(-0.16);
+        return '你把全身的气都压了过去。\n\n它没有缩，它裂了一道缝。\n\n你花了很长时间才把那道缝补上。\n\n寿元 −'+l; } },
+    { label:'稳住它，慢慢来', hint:'稳，但慢',
+      eff:(s,a)=>{ const g=a.cult(45,'mid'); a.lifePct(0.04);
+        return '你什么都没做，只是守着它。\n\n守了七天。\n\n第八天早上，光自己回来了，比原来还稳一点。\n\n修为 +'+g+'　寿元 +'+a.lifePct(0.04); } },
+    /* 悟性够的人能想明白「它为什么会弱」——不用赌。 */
+    { label:'先想清楚它为什么会弱', hint:'',
+      when:()=>evAttr('wuxing') >= evPeer('wuxing')*1.15,
+      eff:(s,a)=>{ const g=a.cult(110,'high'); const at=a.attr({wuxing:6});
+        return '你坐下来，把最近做过的事一件件过了一遍。\n\n过到第七件，你停住了。\n\n上个月你为了赶路，把一口气硬压了回去。\n压的时候它就暗了一下，你当时没在意。\n\n你重新把那口气引出来，让它自己走完。\n\n它走完之后，那颗东西亮了。\n\n修为 +'+g+'　'+at; } }
+  ]
+},
+
+{
+  id:'ev10_take_name', tier:3, title:'有人要你的名字', cat:'线索',
+  text:'一个穿黑衣的人在门口等你。\n\n“借你的名字用一用。”他说，“就一天。”\n\n“用完还你。”',
+  flavor:'他说得很客气，像是借一把伞。',
+  choices:[
+    { label:'借给他', hint:'你不知道会发生什么',
+      eff:(s,a)=>{ a.clue('clue_name'); a.karma(3); const g=a.cult(110,'high');
+        return '你把名字告诉了他。\n\n他点了点头，转身走了。\n\n第二天早上，你在镜子里看见自己，愣了一下——\n你知道那是你，但你想不起自己叫什么。\n\n一直到中午，那个名字才慢慢回来。\n回来的时候，多了一点别的东西。\n\n线索 +1　业障 +3　修为 +'+g; } },
+    { label:'“不借。”', hint:'',
+      eff:(s,a)=>{ a.karma(-1); a.lifePct(0.05);
+        return '“不借。”\n\n他看了你一会儿，笑了。\n\n“也好。”他说，“上一个借出去的，还没拿回来。”\n\n他走了。\n\n业障 −1　寿元 +'+a.lifePct(0.05); } },
+    /* 神识够高：你能看见他手上拿着什么——第三条路是「反过来问他一个问题」。 */
+    { label:'问他：你叫什么', hint:'',
+      when:()=>evAttr('shenshi') >= evPeer('shenshi')*1.25,
+      eff:(s,a)=>{
+        if(a.chance(0.6)){ a.clue('clue_name'); const g=a.cult(120,'high');
+          return '“你叫什么？”\n\n他愣住了。\n\n这一愣很短，但你看见了——他先想了，才回答。\n\n“我……”他说了一个名字。\n\n然后他的表情变了。他也发现自己在想。\n\n“你问这个做什么。”他的声音低下去。\n\n“随便问问。”\n\n他走了，走得比来的时候快。\n\n线索 +1　修为 +'+g; }
+        a.karma(2); const l=a.lifePct(-0.08);
+        return '“你叫什么？”\n\n他笑了，笑得很难看。\n\n“你以为你在问谁？”\n\n他伸出手，在你额头上点了一下。\n\n那一瞬间你什么都忘了，包括自己刚才问了什么。\n\n回过神来的时候，街上只有你一个人。\n\n业障 +2　寿元 −'+l; } }
+  ]
+},
+
+{
+  id:'ev10_two_pills', tier:2, title:'只剩一颗', cat:'修行',
+  text:'丹瓶里只剩一颗了。\n\n你面前坐着一个人，他的伤比你重。\n\n他闭着眼，呼吸很浅。',
+  choices:[
+    { label:'给他', hint:'你自己也带着伤',
+      eff:(s,a)=>{ a.karma(-3); a.favor(4); a.lifePct(-0.05); const g=a.cult(40,'mid');
+        return '你把丹塞进他嘴里，托着他的下巴让他咽下去。\n\n过了一会儿，他的呼吸深了。\n\n他睁开眼，看了看你，又闭上了。\n什么都没说。\n\n业障 −3　人情 +4　寿元 −'+a.lifePct(-0.05)+'　修为 +'+g; } },
+    { label:'自己吃了', hint:'',
+      eff:(s,a)=>{ a.karma(1); a.lifePct(0.10); const g=a.cult(60,'high');
+        return '你把丹吃了。\n\n药力化开的时候，你听见旁边那个人的呼吸又浅了一点。\n\n你没有回头看他。\n\n业障 +1　寿元 +'+a.lifePct(0.10)+'　修为 +'+g; } },
+    /* 体魄够的人可以背他下山——第三条路：两个人都不用死。 */
+    { label:'把丹收起来，背他下山', hint:'',
+      when:()=>evAttr('tipo') >= evPeer('tipo')*1.12,
+      eff:(s,a)=>{ a.karma(-3); a.favor(5); a.lifePct(-0.10); const g=a.cult(70,'high');
+        return '你把丹塞回瓶子，蹲下去，把他架到背上。\n\n他很重。下山的路有八里。\n\n走到一半你的腿开始抖，但你没停。\n\n到镇上把他放下的时候，他睁开眼说了一句话，\n声音很小：“你留着那颗丹，是为什么？”\n\n“不知道。”你说，“就是不想用。”\n\n业障 −3　人情 +5　寿元 −'+a.lifePct(-0.10)+'　修为 +'+g; } }
+  ]
+},
+
+{
+  id:'ev10_swear', tier:4, title:'要你发个誓', cat:'世界',
+  text:'那东西没有形状，但你知道它在。\n\n它说：发了这个誓，你这一世就不能再回头。\n\n“答应，还是不答应。”',
+  flavor:'它没有逼你。它只是在等。',
+  choices:[
+    { label:'发誓', hint:'换来力量，换走退路',
+      eff:(s,a)=>{ a.flag('oath_taken'); a.attr({tipo:8,lingli:8}); a.karma(2);
+        a.lifePct(0.06);
+        return '你举起手，把那段话说了。\n\n说到最后一句的时候，你听见什么东西合上了。\n\n你说不清是什么合上了，但你知道从今往后有些门不在了。\n\n全属性大涨　寿元 +'+a.lifePct(0.06)+'　业障 +2\n（你立了一个誓。这一世它一直有效。）'; } },
+    { label:'不答应', hint:'',
+      eff:(s,a)=>{ a.karma(-2); a.clue('clue_world'); const g=a.cult(90,'high');
+        return '“不答应。”\n\n它沉默了很久。\n\n“好。”它说，“那我等下一次。”\n\n它走了。你站在原地，发现自己出了一身汗。\n\n业障 −2　修为 +'+g+'　线索 +1'; } },
+    /* 业障够重的人，可以反过来跟它谈条件。
+       ⚠️ 同上：一定要把状态接过来（st=>st.karma），不能引用不存在的 s。 */
+    { label:'“我拿别的东西跟你换。”', hint:'',
+      when:st=>st.karma >= 8,
+      eff:(s,a)=>{ a.karma(-6); const g=a.cult(150,'high'); a.attr({lingli:10});
+        return '“我拿别的东西跟你换。”\n\n“你有什么？”\n\n“我身上那些账。”\n\n它停了很久。\n\n“成交。”\n\n你感觉有什么东西从肩上卸下去了，卸得很干净——\n干净到你差点站不稳。\n\n业障 −6　修为 +'+g+'　灵力 +10'; } }
+  ]
+},
+
+/* ============================================================
+   二、四选一：场面大、信息多的时刻
+   ============================================================ */
+
+{
+  id:'ev10_four_people', tier:0, title:'四个人', cat:'人事',
+  text:'茶棚里坐着四个人。\n\n一个背剑的年轻人，一个算账的老先生，\n一个抱着孩子的女人，一个谁也不看的和尚。\n\n你只有一壶茶的时间。',
+  flavor:'你只能坐到一桌去。',
+  choices:[
+    { label:'坐到背剑的人那桌', hint:'聊本事',
+      when:()=>evAttr('tipo') >= evPeer('tipo')*1.05,
+      eff:(s,a)=>{ const g=a.cult(40,'mid'); const at=a.attr({tipo:3});
+        return '他看了你一眼，把剑往旁边挪了挪，让出半个位置。\n\n“练过？”\n\n“练过。”\n\n他把剑横在桌上，你伸手按了按剑鞘。\n你们聊了半个时辰，一句正经话都没有。\n\n临走他教了你一个起手的姿势。\n\n修为 +'+g+'　'+at; } },
+    { label:'坐到账房先生那桌', hint:'聊门路',
+      eff:(s,a)=>{ const st=60; a.stone(st); a.clue('clue_date');
+        return '“坐。”他把算盘往边上一推。\n\n你问他这附近的行情，他问你从哪儿来。\n\n聊到最后，他自己说漏了一件事：\n“三月初七那天，账上少了一笔。”\n\n“哪一年？”\n\n他不说了，低头打算盘。\n\n灵石 +'+st+'　线索 +1'; } },
+    { label:'坐到抱孩子的女人那桌', hint:'聊家常',
+      eff:(s,a)=>{ a.karma(-2); a.lifePct(0.05); a.favor(2);
+        return '孩子一直在哭。她哄了很久，也没哄住。\n\n你从袖子里摸出半块干粮，掰了一小块递过去。\n\n孩子不哭了。\n\n她连说了三声谢谢。你摆了摆手。\n\n业障 −2　寿元 +'+a.lifePct(0.05)+'　人情 +2'; } },
+    { label:'坐到和尚那桌', hint:'他谁也不看',
+      when:()=>evAttr('shenshi') >= evPeer('shenshi')*1.12,
+      eff:(s,a)=>{ a.clue('clue_xinmo'); const g=a.cult(55,'high');
+        return '你坐下来的时候，他开口了：\n\n“你看得见我。”\n\n不是问句。\n\n“别人看不见？”\n\n“别人看见的是空位。”他终于抬头，“你不一样。”\n\n他伸手在桌上画了一个字，然后站起来走了。\n那个字在桌上留了很久。\n\n线索 +1　修为 +'+g; } }
+  ]
+},
+
+{
+  id:'ev10_four_doors', tier:3, title:'四条走廊', cat:'世界',
+  text:'地宫的这一层，前面分成四条走廊。\n\n一条有水声。一条有香味。一条很亮。一条什么都没有。\n\n你手上的火把只够走一条。',
+  choices:[
+    { label:'有水声那条', hint:'',
+      eff:(s,a)=>{
+        if(a.chance(0.55)){ const g=a.cult(100,'high'); a.stone(80);
+          return '走到尽头是一处地下泉。\n\n泉底沉着东西，你伸手捞了几件上来。\n\n水很凉，但喝下去之后，你的气顺了很多。\n\n修为 +'+g+'　灵石 +80'; }
+        const l=a.lifePct(-0.12);
+        return '走到尽头是一处地下泉。\n\n你俯身去喝，才发现那不是水——是别的东西。\n\n你退出来的时候，火把已经灭了。\n\n寿元 −'+l; } },
+    { label:'有香味那条', hint:'',
+      eff:(s,a)=>{ a.addCard('洗髓丹'); a.addCard('凝元丹'); const g=a.cult(45,'mid');
+        return '走到尽头是一间丹房。\n\n架子上的丹大半都坏了，但最里面那两瓶还封着。\n\n你把它们收进袖子。\n\n修为 +'+g+'　得【洗髓丹】【凝元丹】'; } },
+    { label:'很亮那条', hint:'太亮了',
+      eff:(s,a)=>{
+        if(evAttr('shenshi') >= evPeer('shenshi')*1.2){ a.clue('clue_page'); const g=a.cult(130,'high');
+          return '亮不是因为里面点了灯——是墙本身在发光。\n\n你眯着眼走进去，看见墙上刻满了字。\n\n别人进来只会觉得刺眼，但你看清了：\n那是一份名单。\n\n线索 +1　修为 +'+g; }
+        const l=a.lifePct(-0.08); const g=a.cult(30,'mid');
+        return '亮得睁不开眼。\n\n你捂着眼睛往里摸了几步，撞在墙上。\n\n退出来的时候，眼前一片白，过了很久才恢复。\n\n寿元 −'+l+'　修为 +'+g; } },
+    { label:'什么都没有那条', hint:'',
+      when:()=>evAttr('gengu') >= evPeer('gengu')*1.1,
+      eff:(s,a)=>{ const g=a.cult(160,'high'); const l=a.lifePct(-0.10);
+        return '什么都没有。\n\n你走了很久很久，久到火把烧完了，久到你开始数自己的脚步。\n\n数到四千多的时候，前面出现了一点光。\n\n你走出去，发现自己在地宫的另一头——\n中间那四个时辰，你什么都不记得。\n\n修为 +'+g+'　寿元 −'+l; } }
+  ]
+},
+
+{
+  id:'ev10_four_gifts', tier:2, title:'四样东西', cat:'修行',
+  text:'祖师堂的供桌上摆着四样东西，每样前面都有一行小字。\n\n规矩是：只拿一样。',
+  flavor:'小字写的是代价，不是好处。',
+  choices:[
+    { label:'一把旧剑——「拿了它，你就得一直往前走」',
+      eff:(s,a)=>{ a.addCard('剑气纵横'); a.karma(1);
+        return '你把剑拿起来。\n\n剑比看上去重。你握了握，觉得手掌被硌了一下。\n\n那行小字的意思，你要过很久才会懂。\n\n得【剑气纵横】　业障 +1'; } },
+    { label:'一只木匣——「里面的东西会替你挡一次」',
+      eff:(s,a)=>{ a.flag('woodbox'); a.lifePct(0.06);
+        return '匣子很轻。你打开看了一眼，里面是一小块木头，刻着一个人的侧脸。\n\n你把匣子收好。\n\n寿元 +'+a.lifePct(0.06)+'（它会替你挡一次。什么时候用掉，由它说了算。）'; } },
+    { label:'一本手抄——「抄它的人已经死了」',
+      eff:(s,a)=>{ a.clue('clue_book'); const g=a.cult(85,'high');
+        return '纸很脆，翻的时候要小心。\n\n抄到最后一页，笔迹乱得不成样子，最后几个字是斜着划出去的。\n\n你把那一页对着光看，看见背面还有一行：\n“别抄完。”\n\n线索 +1　修为 +'+g; } },
+    { label:'什么都不拿——「空着手出去的人，祖师记得」',
+      eff:(s,a)=>{ a.karma(-3); a.favor(4); a.lifePct(0.10); const g=a.cult(50,'mid');
+        return '你把四样东西都放回原处，退出去，把门带上。\n\n出门的时候，你听见里面“咔”的一声轻响。\n\n回头看，供桌上多了一炷点着的香。\n\n业障 −3　人情 +4　寿元 +'+a.lifePct(0.10)+'　修为 +'+g; } }
+  ]
+},
+
+{
+  id:'ev10_four_questions', tier:3, title:'它问你四个问题', cat:'世界',
+  text:'那东西在你面前铺开，像一张纸。\n\n“我问四句。你答几句，就换几句东西。”\n\n“想好了再答。”',
+  choices:[
+    { label:'“你从哪来？”', hint:'答这个要花力气',
+      eff:(s,a)=>{ const g=a.cult(120,'high'); a.clue('clue_name');
+        return '你张了张嘴。\n\n你发现自己答不上来——不是忘了，是那个答案太大了，\n大到要从嘴里说出来就得先拆成很多块。\n\n你拆了。\n\n拆的时候有什么东西从你身上流走了，但另一些东西留下了。\n\n修为 +'+g+'　线索 +1'; } },
+    { label:'“你要什么？”', hint:'',
+      eff:(s,a)=>{ a.karma(2); const st=150; a.stone(st);
+        return '“我要你身上多余的那些。”\n\n“什么算多余？”\n\n“你自己知道。”\n\n你把灵石放在了那张纸上。纸把它们吃了，吐出一小块更亮的。\n\n业障 +2　灵石 +'+st; } },
+    { label:'“三月初七是什么？”', hint:'',
+      eff:(s,a)=>{ a.clue('clue_date'); a.clue('clue_erased'); const l=a.lifePct(-0.07);
+        return '它安静了很久。\n\n久到你以为它不打算回答。\n\n然后它说了一个日子，和一个名字。\n\n听完之后你流了鼻血。\n\n线索 +2　寿元 −'+l; } },
+    { label:'一句都不答，转身走', hint:'',
+      when:()=>evAttr('gengu') >= evPeer('gengu')*1.15,
+      eff:(s,a)=>{ a.karma(-2); a.lifePct(0.08); const g=a.cult(70,'high');
+        return '你转身就走，一句话都没说。\n\n它在背后喊了你三声。\n\n第一声你脚步顿了一下，第二声你没有停，第三声已经很远了。\n\n走出去之后你才发现，自己的后背全湿了。\n\n但你是走出来的。\n\n业障 −2　寿元 +'+a.lifePct(0.08)+'　修为 +'+g; } }
+  ]
+},
+
+{
+  id:'ev10_four_seasons', tier:0, title:'山上一年', cat:'修行',
+  text:'你在山上待了整整一年。\n\n春、夏、秋、冬，每一季你都做了一件事。\n\n现在要下山了，回头想，只记得住一件。',
+  choices:[
+    { label:'春天那件事——你救了个人', eff:(s,a)=>{ a.karma(-2); a.favor(3); a.lifePct(0.04);
+        return '开春的时候，有个人在上山的路上摔断了腿。\n\n你把他背了下来。他很重，路很滑，你摔了两跤。\n\n后来他每年都来送东西，你一次都没收。\n\n业障 −2　人情 +3　寿元 +'+a.lifePct(0.04); } },
+    { label:'夏天那件事——你练成了一样东西', eff:(s,a)=>{ const g=a.cult(70,'high'); const at=a.attr({wuxing:4});
+        return '整个夏天你都在练同一个动作。\n\n练到八月，某天傍晚，你忽然做对了。\n\n做对的那一下，你一点都不激动——你只是知道，\n以后再也不会做错了。\n\n修为 +'+g+'　'+at; } },
+    { label:'秋天那件事——你什么都没做', eff:(s,a)=>{ a.lifePct(0.10); a.karma(-1); const g=a.cult(25,'low');
+        return '秋天你什么都没做。\n\n每天坐在门口看叶子掉。掉了整整一季。\n\n开春的时候你才明白，那不是浪费。\n\n寿元 +'+a.lifePct(0.10)+'　业障 −1　修为 +'+g; } },
+    { label:'冬天那件事——你差点死了', eff:(s,a)=>{ const g=a.cult(150,'high'); const l=a.lifePct(-0.12); const at=a.attr({tipo:5});
+        return '冬天你困在雪里三天。\n\n第三天夜里，你已经不觉得冷了——你知道那意味着什么。\n\n但你爬出来了。\n\n爬出来之后，你的身体和以前不一样了。\n\n修为 +'+g+'　寿元 −'+l+'　'+at; } }
+  ]
+},
+
+{
+  id:'ev10_four_offers', tier:4, title:'四个人来找你', cat:'人事',
+  text:'一天之内，四个人来找你。\n\n一个要拜师，一个要挑战，一个要借灵石，一个只想坐一会儿。\n\n天黑了。你只来得及见一个。',
+  choices:[
+    { label:'见那个要拜师的', hint:'',
+      eff:(s,a)=>{ a.favor(4); a.karma(-2); a.lifePct(-0.05); const g=a.cult(80,'high');
+        return '他跪下来磕了三个头，磕得很响。\n\n你把他扶起来，问他为什么。\n\n“因为您看起来像知道自己要去哪儿的人。”\n\n你愣了一下。你不知道自己要去哪儿。\n但你还是收下了他。\n\n人情 +4　业障 −2　寿元 −'+a.lifePct(-0.05)+'　修为 +'+g; } },
+    { label:'见那个要挑战的', hint:'',
+      eff:(s,a)=>{
+        if(a.chance(0.65)){ a.favor(2); const g=a.cult(130,'high'); const at=a.attr({tipo:6});
+          return '他出剑很快，但他只有快。\n\n你让了三招，第四招把他的剑打掉了。\n\n他站在原地，看着地上的剑，很久没有弯腰。\n\n“再来。”他说。\n\n你笑了：“明天。”\n\n人情 +2　修为 +'+g+'　'+at; }
+        const l=a.lifePct(-0.18); a.favor(1);
+        return '他出剑很快，而且不止有快。\n\n你输了。输得很难看。\n\n但他收了剑，朝你拱了拱手才走。\n\n人情 +1　寿元 −'+l; } },
+    { label:'见那个要借灵石的', hint:'',
+      eff:(s,a)=>{ const pay=Math.min(s.stone, 100);
+        a.stone(-pay); a.debt({ id:'ev10_loan', name:'那笔借出去的灵石', after:25, kind:'good',
+          text:'那个人回来了。他把灵石放在你门口，还多放了一小袋。' });
+        return '他开口的时候很难为情，说了半天才说清楚要多少。\n\n你把灵石给了他。\n\n他走的时候一直在说什么时候还。\n\n“不急。”你说。\n\n灵石 −'+pay+'\n（借出去的东西，会自己回来。）'; } },
+    { label:'谁也不见，自己坐着', hint:'',
+      when:()=>evAttr('shenshi') >= evPeer('shenshi')*1.1,
+      eff:(s,a)=>{ const g=a.cult(110,'high'); a.lifePct(0.06);
+        return '你把门关上了。\n\n四个人在门外站了一会儿，陆续走了。\n\n你坐在屋里，什么都没做。\n\n但你能听见他们每个人的脚步声是怎么远去的——\n一个急，一个稳，一个犹豫，一个很轻。\n\n这一晚你坐得格外好。\n\n修为 +'+g+'　寿元 +'+a.lifePct(0.06); } }
+  ]
+},
+
+{
+  id:'ev10_four_debts', tier:4, title:'四笔账', cat:'世界',
+  text:'那本册子摊在你面前。\n\n上面记着四笔账，每一笔后面都写着你的名字。\n\n“挑一笔销掉。”',
+  flavor:'只能销一笔。',
+  choices:[
+    { label:'销掉「欠一个人的命」', eff:(s,a)=>{ a.karma(-4); a.favor(4);
+        return '你把那一行划掉了。\n\n划掉的一瞬间，你想起了一个人的脸——但只有一瞬间，\n然后就什么都没有了。\n\n你有点想哭，但不知道为谁。\n\n业障 −4　人情 +4'; } },
+    { label:'销掉「欠自己的约」', eff:(s,a)=>{ a.lifePct(0.12); const g=a.cult(90,'high');
+        return '你把那一行划掉了。\n\n你说过要去做一件事，一直没去。现在那条线断了。\n\n你松了口气。\n\n寿元 +'+a.lifePct(0.12)+'　修为 +'+g; } },
+    { label:'销掉「欠这地方的债」', eff:(s,a)=>{ a.favor(2); a.sectQi(8); a.karma(-2);
+        return '你把那一行划掉了。\n\n远处的山门响了一声——不是钟，也不是鼓，\n是很多人的脚步声同时停了一下。\n\n人情 +2　宗门气运 +8　业障 −2'; } },
+    { label:'哪一笔都不销，把册子合上', hint:'',
+      when:()=>evMainAttr() !== null,
+      eff:(s,a)=>{ const at=a.attr({[evMainAttr()]:10}); a.karma(2);
+        return '你把册子合上了。\n\n“都记着吧。”你说。\n\n册子在你手下烫了一下，然后凉了。\n\n你觉得自己身上某一样东西变重了。\n\n'+at+'　业障 +2'; } }
+  ]
+},
+
+{
+  id:'ev10_four_paths', tier:4, title:'你的道是哪一条', cat:'修行',
+  text:'元神初成的那一夜，你面前出现了四条路。\n\n不是真的路——是你这辈子可能变成的四种人。\n\n你只能往一个方向长。',
+  choices:[
+    { label:'更狠的那条', eff:(s,a)=>{ a.attr({tipo:10,lingli:10}); a.karma(4); a.lifePct(-0.05);
+        return '你选了更狠的那条。\n\n第二天早上你照镜子，觉得镜子里的人比昨天硬。\n\n你没有不喜欢他。\n\n体魄 +10　灵力 +10　业障 +4　寿元 −'+a.lifePct(-0.05); } },
+    { label:'更静的那条', eff:(s,a)=>{ a.attr({wuxing:12,shenshi:8}); a.karma(-3); a.lifePct(0.06);
+        return '你选了更静的那条。\n\n从那以后，你说话变少了。\n\n不是不想说，是很多话到了嘴边，你觉得没必要了。\n\n悟性 +12　神识 +8　业障 −3　寿元 +'+a.lifePct(0.06); } },
+    { label:'更快的那条', eff:(s,a)=>{ a.attr({shenfa:14}); const g=a.cult(100,'high');
+        return '你选了更快的那条。\n\n你走路开始不带声音。有一次你自己都被吓了一跳。\n\n身法 +14　修为 +'+g; } },
+    { label:'更耐的那条', eff:(s,a)=>{ a.attr({gengu:14}); a.lifePct(0.14);
+        return '你选了更耐的那条。\n\n没什么特别的感觉。你只是觉得，\n以后那些熬不过去的事，大概能熬过去了。\n\n根骨 +14　寿元 +'+a.lifePct(0.14); } }
+  ]
+},
+
+{
+  id:'ev10_four_lost', tier:2, title:'丢了四样东西', cat:'世界',
+  text:'醒来的时候，你发现身上少了四样东西。\n\n你只找得回一样。',
+  choices:[
+    { label:'找灵石', eff:(s,a)=>{ const st=Math.max(40, Math.round(s.stone*0.4));
+        a.stone(st);
+        return '你在三里外的草丛里找到了钱袋。\n\n钱少了一些，但大部分还在。\n\n灵石 +'+st; } },
+    { label:'找那本书', eff:(s,a)=>{ a.clue('clue_book'); const g=a.cult(60,'high');
+        return '书在树杈上夹着，页角全湿了。\n\n你把它一页页揭开，晾在石头上。\n\n晾到最后一页，你发现有一行字是你以前没看见的。\n\n线索 +1　修为 +'+g; } },
+    { label:'找那把剑', eff:(s,a)=>{ a.addCard('一剑破万法'); const g=a.cult(35,'mid');
+        return '剑插在河底的沙里，只露出一截。\n\n你潜下去拔它，拔了三次才拔出来。\n\n修为 +'+g+'　得【一剑破万法】'; } },
+    { label:'不找了，直接走', eff:(s,a)=>{ a.karma(-1); a.lifePct(0.07); const g=a.cult(45,'mid');
+        return '你站了一会儿，然后转身走了。\n\n丢的东西就是丢了。\n\n奇怪的是，你走得比来的时候轻。\n\n业障 −1　寿元 +'+a.lifePct(0.07)+'　修为 +'+g; } }
   ]
 }
 
@@ -13716,7 +14124,21 @@ function showEvent(ev){
   const st = G.Engine.state();
 
   const foot = [];
-  const choices = ev.choices.filter(c=>!c.when || c.when(st.raw));
+  /* ⚠️ 第 29 轮：条件要求值必须包一层 try。
+     原来这里直接 `c.when(st.raw)` —— 只要有一个选项的条件写错
+     （第 29 轮真踩到过：条件里引用了一个不存在的变量），
+     filter 就会把异常抛上来，**整个事件面板渲染不出来**，
+     玩家看到的是点开事件一片空白。
+     现在的策略：条件抛错就当这条不出现（fail-closed），
+     并在记事里留一条，免得它静悄悄地消失。
+     dev/verify-eventstruct.js 会遍历所有条件 × 所有境界，
+     在测试阶段就把这种错抓出来，不让它走到这一步。 */
+  const condOk = c => {
+    if (!c.when) return true;
+    try { return !!c.when(st.raw); }
+    catch(e){ console.warn('事件条件求值失败：', ev.id, c.label, e && e.message); return false; }
+  };
+  const choices = ev.choices.filter(condOk);
   choices.forEach((c,i)=>{
     const b = el('button','ev-choice');
     b.innerHTML = `<div class="ev-ctext">${i+1}. ${c.label}</div>` +

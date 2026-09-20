@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta name="build" content="2026/9/19 15:13:19">
-<!-- build: 2026/9/19 15:13:19 -->
+<meta name="build" content="2026/9/20 19:50:07">
+<!-- build: 2026/9/20 19:50:07 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#0d0b0a">
@@ -805,6 +805,21 @@ button:disabled{opacity:.35;cursor:not-allowed}
 .reward-line b{color:var(--gold2);font-size:15px}
 .reward-line.gold b{color:#ffe08a}
 
+/* ================= 劫余（第 29 轮） =================
+   渡劫 / 天谴留下的本局永久加成。刻意和战利品那块长得不一样：
+   它是一段留白很多的短句，读起来像「从土里抠出来的东西」。 */
+.boon-box{
+  margin-top:12px;padding:15px 16px;border-radius:9px;
+  background:linear-gradient(135deg,#141018,#1d1524);
+  border:1px solid #4b3a63;
+  animation:fadeUp .5s ease both;
+}
+.boon-h{
+  font-size:12px;letter-spacing:.22em;color:#c8a6e8;
+  margin-bottom:9px;font-weight:600;
+}
+.boon-t{font-size:14px;line-height:2;color:#e6ddf2;white-space:normal}
+
 /* ================= 比武大会 / 天骄榜（第 22 轮） ================= */
 .tourney-info{
   margin-top:14px;padding:12px 14px;border-radius:9px;
@@ -869,6 +884,50 @@ button:disabled{opacity:.35;cursor:not-allowed}
 .ss-title{font-size:15px;color:#d99ab8;letter-spacing:.34em;margin-bottom:7px}
 .ss-line{font-size:12.5px;color:var(--ink2);line-height:1.8}
 .ss-hint{font-size:11.5px;color:var(--ink3);margin-top:6px;font-style:italic}
+/* 第 29 轮：明写「这条路不走也行」——用户要求主线不能强迫玩家 */
+.ss-opt{font-size:11px;color:#5d554d;margin-top:5px}
+
+/* ================= 主线进度 · 案卷（第 29 轮） =================
+   玩家反馈「主线过于模糊」。以前《三月初七》只活在「宗门」面板里，
+   主界面上完全看不出有这条线。这一行只做「看得见」，不做催促：
+   没有红点、没有角标、没有弹窗，不想走这条线的人可以完全无视它。 */
+.story-hud{
+  margin-top:7px;padding:6px 10px;border-radius:6px;
+  background:rgba(120,80,110,.13);border-left:2px solid #6d4a63;
+  font-size:12px;color:#c8b3c2;cursor:pointer;
+  display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;
+  transition:background .2s;
+}
+.story-hud:hover{background:rgba(120,80,110,.22)}
+.story-hud .sh-k{color:#d99ab8;letter-spacing:.16em;font-size:11px;flex:0 0 auto}
+.story-hud .sh-v{flex:1 1 auto}
+.story-hud .sh-v b{color:#e8cfe0}
+.story-hud .sh-n{font-size:11px;color:#8d7c88;flex:0 0 auto}
+.story-hud.ready{border-left-color:#c9a227;background:rgba(201,162,39,.10)}
+.story-hud.ready .sh-n{color:#c9a227}
+.story-hud.done{border-left-color:#4a6b52;background:rgba(74,107,82,.12)}
+.story-hud.done .sh-n{display:none}
+
+/* 案卷面板 */
+.case-main{
+  margin-bottom:14px;padding:13px 15px;border-radius:8px;
+  background:linear-gradient(135deg,#1a1519,#221a21);border:1px solid #4a3a45;
+}
+.case-h{font-size:11px;letter-spacing:.22em;color:#8d7c88;margin-bottom:6px}
+.case-t{font-size:17px;letter-spacing:.3em;color:#d99ab8;margin-bottom:9px}
+.case-l{font-size:13px;line-height:2;color:var(--ink2)}
+.case-l b{color:#e8cfe0}
+.case-dim{color:#8d7c88}
+.case-ok{color:#c9a227}
+.case-opt{
+  font-size:11.5px;color:#6f6459;line-height:1.9;font-style:italic;
+  margin:-6px 0 16px;padding-left:2px;
+}
+.case-clue{
+  padding:9px 0;border-bottom:1px solid rgba(255,255,255,.05);
+}
+.case-clue .cc-t{font-size:12.5px;color:#c9a227;letter-spacing:.08em;margin-bottom:4px}
+.case-clue .cc-x{font-size:12.5px;color:var(--ink2);line-height:1.9}
 
 .sect-task{
   display:block;width:100%;text-align:left;
@@ -1050,6 +1109,11 @@ button{touch-action:manipulation;}
         <div class="pill-boost" id="pillBoost" style="display:none"></div>
         <!-- 内景（第 26 轮）：境界养成的层数与全属性加成。紧挨着修为条 -->
         <div class="daoji-text" id="daoJiText"></div>
+        <!-- 主线进度（第 29 轮）：玩家反馈「主线过于模糊」——
+             以前《三月初七》只活在「宗门」面板里，不进那个面板就不知道
+             有这条线。现在把它摆到主界面上，只报进度、不催、不弹窗。
+             点一下才能展开看详情，不想走这条线的人可以完全无视它。 -->
+        <div class="story-hud" id="storyHud" style="display:none"></div>
       </div>
     </header>
 
@@ -1707,14 +1771,44 @@ G.CARDS = {
 };
 
 /* ---------------- 天劫 ----------------
-   金丹期前不降劫（见 CONFIG.tribulation）。打输只是重伤，不会重开。 */
+   金丹期前不降劫（见 CONFIG.tribulation）。打输只是重伤，不会重开。
+
+   ⚠️ 第 29 轮：每一劫多了一个 **boon（劫余）**。
+   玩家反馈：「奖励也十分单一，玩家很容易在经历过程中感到明显的无聊和厌烦」。
+   以前不管渡的是哪一劫，奖励永远是一模一样的
+   「修为 +X　寿元 +6%　渡过一劫，心境更稳」——
+   三行字打完三次就再也不想看了。现在三劫各留各的东西：
+     雷劫 → 气血（雷在骨头里）
+     风劫 → 身法（风穿了过去，没带走你）
+     火劫 → 伤害（那点火换了个地方烧）
+   劫余是**本局永久**的，所以「多渡一劫」本身变成了一件值得期待的事。 */
 G.TRIBULATIONS = {
   雷劫:{ name:'雷劫', rounds:30, basePower:42, mul:1.0, dmg:15,
-    txt:'云压得极低。第一道雷落下来的时候，你的耳朵先听见了，眼睛才看见。' },
+    txt:'云压得极低。第一道雷落下来的时候，你的耳朵先听见了，眼睛才看见。',
+    boon:{ id:'leisui', name:'雷髓', hpPct:0.12,
+      text:'雷在你骨头里留了一点东西。不疼，但它一直在。\n气血上限 +12%（本局永久）' } },
   风劫:{ name:'风劫', rounds:30, basePower:36, mul:0.85, dmg:11,
-    txt:'没有声音。风把声音也刮走了。你只看见自己的衣袖在碎。' },
+    txt:'没有声音。风把声音也刮走了。你只看见自己的衣袖在碎。',
+    boon:{ id:'fenggu', name:'风骨', attr:{ shenfa:7 },
+      text:'风从你身上穿过去，没有带走你。\n你比刚才轻了一点。\n身法 +7（本局永久）' } },
   火劫:{ name:'火劫', rounds:30, basePower:48, mul:1.1, dmg:17,
-    txt:'火从身体里面烧起来。你先闻到的是自己的味道。' }
+    txt:'火从身体里面烧起来。你先闻到的是自己的味道。',
+    boon:{ id:'huozhong', name:'火种', atkPct:0.12,
+      text:'那点火没有灭。它换了个地方烧。\n伤害 +12%（本局永久）' } }
+};
+
+/* 天谴的劫余：走魔道的人挨完这一顿，天上会掉下点东西。
+   这是「魔道 = 高风险高回报」里那个「回报」——
+   没有它，业障就只是纯粹的惩罚，魔功卡一张都不值得拿。
+   ⚠️ 代价仍然远大于收益：一场 terror 级、转盘身死扇区 +90 的战斗。 */
+G.KILLER_BOON = {
+  id:'jiegui', name:'劫灰',
+  /* ⚠️ 文案里的两个数必须和下面两个字段一致。
+     dev/verify-boons.js 第 5 节会真的打一场天谴再去看数值有没有动 ——
+     第一次写这个的时候我只写了 text 忘了写字段，当场被它抓到。 */
+  atkPct:0.15, hpPct:0.08,
+  text:'雷劈过的地方会留下东西。你把它从土里抠出来的时候，\n' +
+       '它还是烫的。\n\n伤害 +15%　气血上限 +8%（本局永久）'
 };
 
 /* ---------------- 战斗调参（第 21 轮重做） ----------------
@@ -2500,7 +2594,7 @@ window.G = window.G || {};
 
 /* ---------------- 全局配置（想自己调数值就改这里） ---------------- */
 G.CONFIG = {
-  version: '0.8.0',
+  version: '0.9.0',
   saveKey: 'jiyi_xiufu_ju_v1',
 
   /* ---------------- 境界上限（第 21 轮） ----------------
@@ -2521,8 +2615,11 @@ G.CONFIG = {
   sectQiDrain: 1,        // 每次行动自然流失
   sectCollapseAt: 0,
 
-  // 突破
-  breakthroughKarmaRisk: 0.15,   // 业障高时突破引发天劫的概率基数
+  /* ⚠️ 第 29 轮：删掉了 breakthroughKarmaRisk: 0.15。
+     它写着「业障高时突破引发天劫的概率基数」，但**全项目没有任何地方读它**——
+     第 25 轮把天劫改成确定性的门槛（「跨大境界 且 金丹期起 → 必定降劫」）之后，
+     这个「概率基数」就永久失效了。留着一个改不动的旋钮比没有更糟：
+     想调天劫概率的人会去改它，然后发现怎么改都没反应。 */
 
   /* ---------------- 天劫门槛（重要平衡设定） ----------------
      天劫是「大境界的门槛」，不是「每一次突破的日常」。
@@ -2553,7 +2650,28 @@ G.CONFIG = {
                              // ⚠️ 定得这么高是有意的：宗门气运加持会给 +8 全属性，
                              //    门槛太低的话「宗门兴旺」反而会招来更狠的天劫——反直觉
     extremeMul: 1.5,         // 「逆天」时天劫强度 ×1.5
-    killerKarma: 20          // 业障满 → 天谴（必死难度）
+    killerKarma: 20,         // 业障满 → 天谴（必死难度）
+
+    /* ---------------- 天谴的节奏（第 29 轮新增，重要） ----------------
+       ⚠️ 第 29 轮之前这里什么都没有，而 ui.js 里写的是：
+            if (karmaOverflow() && Math.random()<0.5) startKillerTribulationFlow();
+       没有冷却、没有洗业。实测（dev/dbg-karma.js）：
+         · 15 张带 karmaPer 的卡，只要身上有任意一张 → 行动 +1 业障
+         · 业障在第 16~20 步就到 20
+         · 此后**每一步**都是 50% 的 terror 级必死战，一局撞上 43~69 次
+       玩家原话：「到中期基本每走一步就触发一次天劫」。那不是难度，那是死循环。
+
+       现在天谴是一个**循环的代价**，不是一次判决：
+         积累业障 → 天谴来收 → 收走一半业障 → 55 步内不再来 → 重新积累
+       于是走魔道的人会定期挨一次雷，而不是每一步都挨。
+       ⚠️ 真正的节流阀是 karmaCooldown，不是洗业比例：
+       魔道行动 +1 业障/步，冷却期间业障一定会重新顶到 30，
+       所以「多久来一次」≈ 「冷却多长」。改这个数就是改节奏。
+       实测（dev/dbg-karma.js）：冷却 30 → 一局 5~7 次；55 → 一局 2~4 次。
+       目标：纯魔道 build 一局 2~4 次（每次都是要命的），干净 build 0 次。 */
+    karmaCooldown: 55,       // 一次天谴之后，多少步之内不会再降
+    karmaBurn: 0.5,          // 天谴收走当前业障的这个比例（洗完必须重新作恶）
+    karmaAtonement: 4        // 「静养」一次压下去的业障（静养有每境界次数上限）
   },
 
   // 恢复类行动：每个境界的次数上限（突破后重置）
@@ -6191,6 +6309,470 @@ G.EVENTS_NEW = (G.EVENTS_NEW || []).concat([
 ]);
 
 
+/* ===== events9.js ===== */
+/* ============================================================
+   《记忆修复局》事件数据 · 第九批（第 29 轮）
+   ------------------------------------------------------------
+   玩家这一轮对事件提了三条意见，逐条对应：
+
+   ①「事件太少了」
+     实测：196 个事件里 tier 3（金丹）只有 9 个、tier 4（元婴）只有 7 个 ——
+     也就是说中期两大境界一共只有 16 个事件可以抽，
+     而一局大半时间都花在那里。这一批专门补 tier 3 / tier 4。
+
+   ②「表现形式有限」
+     实测：189/196 都是「三选一」，只有 3 个带 flavor 斜体小字。
+     这一批刻意做了结构变化：两选一（非此即彼的重抉择）、
+     四选一（信息多的场面）、以及**跟着属性变的正文**。
+
+   ③「属性对应到事件上完全没有体现」
+     实测：196 个事件里 when 读到六维属性的有 **0 个**。
+     这一批是第一次真的用上属性，写法见下面每个事件的注释。
+
+   ---------------- 写属性事件时的三个工具 ----------------
+   全部由 engine.js 挂到全局（事件文件在另一个作用域里，必须显式发布）：
+
+     evAttr('shenshi')         这一项属性现在是多少（绝对值，随境界涨）
+     evPeer('shenshi')         同一境界「普通人」大概是多少 ← **门槛要用这个**
+     evBonus('shenshi')        你在这一项上砸了多少机缘（功法/法宝/事件）
+     evMainAttr()              你砸得最多的那一项（你的招牌），没砸过是 null
+
+   ⚠️ 门槛千万不要写死数字。实测同一项属性：
+        炼气九层 神识 ≈ 21　筑基 ≈ 48　金丹 ≈ 84　元婴 ≈ 139
+      写死 40 的话，炼气期永远不触发、元婴期人人触发，两边都是废的。
+      正确写法： evAttr('shenshi') >= evPeer('shenshi') * 1.15
+
+   ---------------- 收益档位（必须用，不然数字在中期变成噪音）----------------
+     a.cult(n, 'low'|'mid'|'high')   修为按当前大境界缩放（低0.5 / 中1.0 / 高2.2）
+     a.lifePct(0.03)                 寿元一律按上限的百分比
+     a.life(n)                       固定寿元，只在很小的时候用
+   收货时还要把数字写进返回文案里 —— dev/verify-eventrewards.js 会逐条对账。
+   ============================================================ */
+
+G.EVENTS = (G.EVENTS || []).concat([
+
+/* ==================== 一、属性门槛事件（神识 / 悟性） ====================
+   这一组是「你这个 build 才看得见的事」。
+   没练那一项的人根本抽不到，抽到的人会读到一句专门写给他的正文。 */
+
+{
+  id:'ev9_broken_array', tier:0, title:'半座阵', cat:'世界',
+  /* 神识够高才「看得见」这座阵。这是本作里第一组真的读属性的事件。 */
+  when:s=>evAttr('shenshi') >= evPeer('shenshi')*1.15 && s.realmIdx>=10,
+  text:()=>{
+    const strong = evAttr('shenshi') >= evPeer('shenshi')*1.45;
+    return '山腰上有一片石头，摆得不像天然的。\n' +
+      (strong
+        ? '你还没走近就看出来了：这不是乱石，是半座阵。\n另外半座在对面那道梁上，中间隔着一整条谷。\n\n你站在原地，把两半在脑子里合上了。\n它缺一个角。'
+        : '你绕着走了两圈，才勉强看出一点意思——这些石头像是有人摆的。\n摆到一半，停了。');
+  },
+  flavor:'神识这个东西平时没什么用。用到的时候，别人还在看石头。',
+  choices:[
+    { label:'把缺的那个角补上', hint:'你不知道补上会发生什么',
+      eff:(s,a)=>{
+        if(a.chance(0.55)){ a.cult(60,'high'); a.clue('clue_page');
+          return '你搬了一块石头，放在那个空缺上。\n\n谷里起了一阵风，从对面那道梁上吹过来，\n又吹回去。\n\n石头上多了一行字，你认得其中两个字。\n修为 +'+a.gain(60,'high')+'　线索 +1'; }
+        a.lifePct(-0.06); a.karma(2);
+        return '你搬了一块石头，放在那个空缺上。\n\n什么都没有发生。\n你站在那里等了很久，才发现自己在流血——\n从耳朵里。\n\n寿元 −'+a.lifePct(-0.06)+'　业障 +2'; } },
+    { label:'记下来，回去查', hint:'稳妥',
+      eff:(s,a)=>{ a.clue('clue_page'); a.cult(25,'mid');
+        return '你蹲下来，把那几十块石头的位置一个个记在心里。\n记到第十七块的时候，你已经知道剩下的是什么形状了。\n\n线索 +1　修为 +'+a.gain(25,'mid'); } },
+    { label:'不碰它', hint:'有些东西摆在那儿是有原因的',
+      eff:(s,a)=>{ a.lifePct(0.03); a.cult(12,'low');
+        return '你从旁边绕过去了。\n\n走到谷底的时候你回头看了一眼——\n石头还是石头。\n\n寿元 +'+a.lifePct(0.03)+'　修为 +'+a.gain(12,'low'); } }
+  ]
+},
+
+{
+  id:'ev9_two_voices', tier:0, title:'两个声音', cat:'修行',
+  when:s=>evAttr('shenshi') >= evPeer('shenshi')*1.30,
+  /* 正文本身就是属性的镜子：神识越高，听见的东西越多 */
+  text:()=>{
+    const r = evAttr('shenshi') / Math.max(1, evPeer('shenshi'));
+    if (r >= 1.8) return '你听见两个声音在吵架。\n\n一个说：“别告诉他。”\n另一个说：“他已经听见了。”\n\n第一个说：“那就更别告诉他。”';
+    if (r >= 1.45) return '你听见有人在说话。\n听不清说的是什么，但你能听出来是两个人，\n而且他们在争一件事。';
+    return '夜里你醒了一次。\n像是有人在窗外说话，又像是风吹过竹子的声音。\n你听了很久，没听出来是哪一种。';
+  },
+  flavor:'耳朵太好使，不全是好事。',
+  choices:[
+    { label:'应一声：“我听见了。”',
+      eff:(s,a)=>{ a.clue('clue_dream'); a.cult(45,'high'); a.karma(1);
+        return '“我听见了。”你说。\n\n外面立刻安静了。\n安静得让你怀疑刚才是不是真的有声音。\n\n第二天早上，你枕头边上放着一张纸。\n上面画着一个你不认识的地方。\n\n线索 +1　修为 +'+a.gain(45,'high')+'　业障 +1'; } },
+    { label:'假装没醒', eff:(s,a)=>{ a.lifePct(0.04);
+        return '你翻了个身，把被子拉上来一点。\n\n外面的声音继续了一会儿，然后停了。\n\n你睡得很好。\n寿元 +'+a.lifePct(0.04); } },
+    { label:'把耳朵堵上', hint:'神识高的人可以主动关掉',
+      when:()=>evAttr('shenshi') >= evPeer('shenshi')*1.6,
+      eff:(s,a)=>{ a.lifePct(0.07); a.cult(10,'low');
+        return '你练过这个。把注意力收到一点上，外面的东西就进不来了。\n\n那一夜你睡得像一块石头。\n\n（这不是谁都会的——你的神识撑得住。）\n寿元 +'+a.lifePct(0.07); } }
+  ]
+},
+
+{
+  id:'ev9_ink_reading', tier:0, title:'字帖', cat:'修行',
+  when:s=>evAttr('wuxing') >= evPeer('wuxing')*1.20,
+  text:()=>'旧书摊的最底下压着一叠字帖。\n摊主说是一个疯子写的，没人要，' +
+    (evAttr('wuxing') >= evPeer('wuxing')*1.5
+      ? '但你翻开第一页就知道不对——\n那不是字，那是运气的路子。\n每一笔的起落，都是一口气的进出。'
+      : '你翻了翻，字确实写得很怪。'),
+  flavor:'悟性高的人看书，看的不是字。',
+  choices:[
+    { label:'照着写一遍', hint:'用修为换一门运气法门',
+      eff:(s,a)=>{ const g=a.cult(70,'high');
+        return '你找了根树枝，在地上照着一笔一笔描。\n\n描到第三十七个字的时候，你的呼吸自己变了。\n\n你停下来，发现自己已经坐了一整夜，\n但一点都不累。\n\n修为 +'+g; } },
+    { label:'买下来，收着', eff:(s,a)=>{ a.stone(-30); a.addCard('引气入体');
+        return '“三十块。”摊主说，“你确定？”\n\n你付了钱。\n\n回去的路上你一直在想他那句“你确定”。\n灵石 −30　得【引气入体】'; } },
+    { label:'问摊主是谁写的', eff:(s,a)=>{ a.clue('clue_book'); a.favor(1);
+        return '“不知道。”他说，“送来的人也没说。”\n\n“他人呢？”\n\n“送来第二天就没了。”摊主把书往你这边推了推，\n“所以你要不要？”\n\n线索 +1'; } }
+  ]
+},
+
+/* ==================== 二、属性门槛事件（体魄 / 身法 / 根骨） ==================== */
+
+{
+  id:'ev9_carry_stone', tier:0, title:'抬石', cat:'人事',
+  when:s=>evAttr('tipo') >= evPeer('tipo')*1.20 && s.realmIdx>=9,
+  text:()=>{
+    const strong = evAttr('tipo') >= evPeer('tipo')*1.5;
+    return '山门在修一处新的石阶。\n管事的一边擦汗一边喊人，' +
+      (strong
+        ? '抬眼看见你，愣了一下。\n\n“你……算了，你来。”\n\n那块石头有半间屋子那么大。别人四个人抬不动。'
+        : '你排在队伍最后面。\n前面六个人抬一块石头，走三步歇一歇。');
+  },
+  choices:[
+    { label:'一个人把它扛上去', hint:'全山门都会记住这件事',
+      eff:(s,a)=>{
+        if(a.chance(0.5)){ a.favor(5); a.cult(40,'mid'); a.lifePct(-0.05);
+          return '你蹲下去，把肩膀顶在石头下面。\n\n站起来的时候，你听见自己背上响了一声。\n\n但石头起来了。\n\n你一步一步往上走，全山门的人都停下来看。\n管事的一句话都没说，只是把路让开了。\n\n人情 +5　修为 +'+a.gain(40,'mid')+'　寿元 −'+a.lifePct(-0.05); }
+        a.lifePct(-0.14); a.favor(3);
+        return '你蹲下去，把肩膀顶在石头下面。\n\n起了一半，没起来。\n石头又落回去，砸在你脚边。\n\n管事跑过来扶你。\n“行了行了，你别逞能。”\n\n人情 +3　寿元 −'+a.lifePct(-0.14); } },
+    { label:'叫上两个人一起', hint:'稳妥',
+      eff:(s,a)=>{ a.favor(2); a.lifePct(-0.02);
+        return '你叫了两个外门弟子。三个人一起，抬得不算快，但很稳。\n\n管事在旁边看着，点了点头。\n\n人情 +2　寿元 −'+a.lifePct(-0.02); } },
+    { label:'装作没看见，走开', eff:(s,a)=>{ a.favor(-2); a.cult(30,'mid');
+        return '你从旁边走过去了。\n\n管事在你背后“啧”了一声，没喊你。\n\n你回到自己那块石台上，坐下。\n\n今天这一坐，比平时顺。\n\n人情 −2　修为 +'+a.gain(30,'mid'); } }
+  ]
+},
+
+{
+  id:'ev9_roof_chase', tier:0, title:'屋脊上的人', cat:'世界',
+  when:s=>evAttr('shenfa') >= evPeer('shenfa')*1.2,
+  text:()=>'你在屋顶上看见一个影子。\n\n他也看见你了。\n\n' +
+    (evAttr('shenfa') >= evPeer('shenfa')*1.5
+      ? '他没有立刻跑——他先看了你一眼，估了估你有多快。\n然后他才开始跑。'
+      : '他转身就跑，跑得很快。'),
+  flavor:'身法这种事，平时看不出来，追人的时候一眼就看出来了。',
+  choices:[
+    { label:'追', hint:'看谁先没气',
+      eff:(s,a)=>{
+        if(a.chance(0.55)){ a.clue('clue_erased'); a.cult(35,'mid'); a.stone(60);
+          return '你追了三条街。\n\n第四条街的尽头是一堵墙，他翻过去的时候慢了一瞬——\n你抓住了他的衣角。\n\n衣角撕下来了，人跑了。\n手里只剩一块布，上面绣着半朵云。\n\n线索 +1　修为 +'+a.gain(35,'mid')+'　灵石 +60'; }
+        a.lifePct(-0.07);
+        return '你追了两条街。\n\n第二条街的转角，你已经看不见他了。\n\n你扶着墙喘气，才发现自己刚才一直没换过气。\n寿元 −'+a.lifePct(-0.07); } },
+    { label:'不追，看他往哪个方向去', hint:'有时候看比追有用',
+      eff:(s,a)=>{ a.clue('clue_erased'); a.cult(20,'mid');
+        return '你站在屋脊上没有动。\n\n他一直跑到街的尽头，拐进了东边那条巷子。\n\n东边是宗门的方向。\n\n线索 +1　修为 +'+a.gain(20,'mid'); } },
+    { label:'跟他打个招呼', hint:'？',
+      eff:(s,a)=>{ a.karma(-1); a.cult(15,'low'); a.lifePct(0.02);
+        return '“喂。”你说。\n\n他停在屋脊那头，回头看你。\n\n你们隔着一条街对看了一会儿。\n\n然后他抱了抱拳，走了。\n\n你也不知道刚才那是什么意思。\n\n业障 −1　修为 +'+a.gain(15,'low')+'　寿元 +'+a.lifePct(0.02); } }
+  ]
+},
+
+{
+  id:'ev9_long_winter', tier:0, title:'这一冬', cat:'修行',
+  when:s=>evAttr('gengu') >= evPeer('gengu')*1.2,
+  text:()=>'今年的冬天来得早。\n\n柴不够，粮也不够。\n\n' +
+    (evAttr('gengu') >= evPeer('gengu')*1.5
+      ? '但你不怕冷。你从小就不怕。\n别人缩在屋里的时候，你一个人在后山坐着。'
+      : '你把手缩在袖子里，数着日子过。'),
+  choices:[
+    { label:'整个冬天都在后山', hint:'苦修：拿修为，拿寿元',
+      eff:(s,a)=>{ a.cult(80,'high'); a.lifePct(-0.08);
+        return '雪下了四十三天。\n\n你坐在那块石头上，每天只下来一次。\n\n开春的时候，你的眉毛上结着冰，\n但你自己知道，你比去年这个时候稳了。\n\n修为 +'+a.gain(80,'high')+'　寿元 −'+a.lifePct(-0.08); } },
+    { label:'把柴分给山下的人家', eff:(s,a)=>{ a.favor(3); a.karma(-2); a.lifePct(-0.04);
+        return '你把囤的柴分了一半出去。\n\n有个老太太抓着你的手不放，说了很久的话，\n你一句也没听懂，但一直点头。\n\n那个冬天你家烧的是湿柴，烟很大。\n\n人情 +3　业障 −2　寿元 −'+a.lifePct(-0.04); } }
+  ]
+},
+
+/* ==================== 三、弱点事件 ====================
+   属性低也会被事件认出来。不是惩罚，是「你的短板有人看得见」。 */
+
+{
+  id:'ev9_short_sight', tier:0, title:'看不清', cat:'世界',
+  /* 反面门槛：这一项**相对弱**才会遇到。这是「属性影响事件」的另一半。
+     ⚠️ 「弱」怎么判断，试错了两次：
+       ① evAttr < evPeer*0.85 —— 不可能成立。evPeer 就是「不砸机缘的你」，
+          不砸时两者相等，比值恒为 1，谁都不低于自己。
+       ② evAttrRank < 0.55 —— 也不成立。evAttrRank 除的是跨到渡劫的
+          理论上限（≈490），而金丹期实际只有 60~180，于是**所有人**
+          都落在 0.12~0.36，门槛定在哪儿都拦不住谁。
+       现在的定义是唯一说得通的那个：**机缘总量不小、却几乎没砸在这一项上**
+       → 这一项相对你的其它项是短的。它同时也自动排除了新人
+       （还没砸过机缘的人不叫「弱」，叫「刚开始」）。 */
+  when:s=>evBonusTotal() >= 30 && evBonusShare('shenshi') < 0.10,
+  text:()=>'那东西离你不到三丈。\n\n' +
+    '你看不清它是什么。\n\n' +
+    '你只能确定它比你大。\n\n' +
+    '（你身上那些机缘，几乎没有一样是给眼睛的。）',
+  flavor:'神识不够的时候，你连自己怕的是什么都不知道。',
+  choices:[
+    { label:'转身就走', eff:(s,a)=>{ a.lifePct(-0.03);
+        return '你没有回头。\n\n走出去很远之后，你才敢停下来。\n\n身后什么声音都没有。\n\n寿元 −'+a.lifePct(-0.03); } },
+    { label:'眯着眼看清楚', hint:'可能看到不该看的',
+      eff:(s,a)=>{
+        if(a.chance(0.5)){ a.clue('clue_xinmo'); a.cult(40,'mid');
+          return '你把眼睛眯起来，一点一点往前凑。\n\n看清了。\n\n是一个人。他背对着你，在写字。\n他写的那面墙，你昨天才刷过。\n\n线索 +1　修为 +'+a.gain(40,'mid'); }
+        a.lifePct(-0.10); a.karma(1);
+        return '你凑近了。\n\n它转过头来。\n\n你看见的东西，你后来一直不肯说。\n\n寿元 −'+a.lifePct(-0.10)+'　业障 +1'; } },
+    { label:'喊一声', eff:(s,a)=>{ a.karma(-1); a.favor(1);
+        return '“谁在那儿？”\n\n没有回答。\n\n但那个东西退开了。你听得见脚步声，\n一深一浅，走得很慢。\n\n业障 −1　人情 +1'; } }
+  ]
+},
+
+{
+  id:'ev9_weak_qi', tier:0, title:'气不够', cat:'修行',
+  /* 同上的弱点门槛：机缘砸了不少，但没砸在灵力上。 */
+  when:s=>evBonusTotal() >= 30 && evBonusShare('lingli') < 0.10 && s.realmIdx>=9,
+  text:()=>'你按着书上说的，把气往上引。\n\n引到胸口就散了。\n\n试了第九次，还是到胸口就散。\n\n' +
+    '（你身上那些机缘，没有一样是给气的。）',
+  choices:[
+    { label:'换一本笨办法的书', eff:(s,a)=>{ a.stone(-25); a.cult(35,'mid');
+        return '你翻出一本最笨的入门书，上面写着“气不足者，以血补之”。\n\n你照着做了。\n\n慢，但真的到了。\n\n灵石 −25　修为 +'+a.gain(35,'mid'); } },
+    { label:'去问别人怎么练的', eff:(s,a)=>{ a.favor(2); a.cult(25,'mid');
+        return '你找了个人问。\n\n他看了你半天，说：“你灵气少，别硬引。\n你就每天多坐一个时辰，坐够三年。”\n\n你算了一下：三年，你未必有。\n\n但他说的可能是对的。\n\n人情 +2　修为 +'+a.gain(25,'mid'); } },
+    { label:'算了，练别的', hint:'短板不一定要补',
+      eff:(s,a)=>{ a.lifePct(0.03); a.cult(15,'low');
+        return '你把书合上了。\n\n灵气少就少吧。\n\n你去后山走了走，看了看云。\n\n寿元 +'+a.lifePct(0.03)+'　修为 +'+a.gain(15,'low'); } }
+  ]
+},
+
+/* ==================== 四、tier 3（金丹）====================
+   补中期最大的那个洞：金丹期原本只有 9 个专属事件。 */
+
+{
+  id:'ev9_gold_taste', tier:3, title:'金丹的味道', cat:'修行',
+  text:'丹田里那颗东西，最近开始有味道了。\n\n不是嘴里的味道，是脑子里的。\n你一想它，就尝到一点铁锈味。',
+  flavor:'书上没写过这个。',
+  choices:[
+    { label:'查书', hint:'花灵石',
+      eff:(s,a)=>{ a.stone(-40); a.cult(70,'high');
+        return '你翻了三本丹经，在第四本的夹页里找到一行小字：\n\n“转时若有味，是气在找路。不必慌。”\n\n你把书合上，觉得那四十块花得值。\n\n灵石 −40　修为 +'+a.gain(70,'high'); } },
+    { label:'不管它', eff:(s,a)=>{ a.lifePct(0.03); a.cult(30,'mid');
+        return '你没管。\n\n过了一阵子，铁锈味自己没了。\n\n寿元 +'+a.lifePct(0.03)+'　修为 +'+a.gain(30,'mid'); } },
+    { label:'试着让它转慢一点', hint:'危险',
+      eff:(s,a)=>{
+        if(a.chance(0.6)){ a.cult(110,'high'); const at=a.attr({shenshi:4});
+          return '你把呼吸放得很慢很慢。\n\n它跟着慢了。\n慢下来之后，你看清楚它是怎么转的了。\n\n这一眼，比练三个月都值。\n\n修为 +'+a.gain(110,'high')+'　'+at; }
+        a.lifePct(-0.15);
+        return '你把它压慢了，它反弹了。\n\n有一瞬间你什么都听不见。\n回过神来的时候，你趴在地上，\n手指头在地上抠出了五道印子。\n\n寿元 −'+a.lifePct(-0.15); } }
+  ]
+},
+
+{
+  id:'ev9_junior_ask', tier:3, title:'有个孩子来问你', cat:'人事',
+  text:'他在门口站了半天才敢进来。\n\n“师兄，”他说，“怎么才能知道自己练得对不对？”\n\n你想了想。\n你当年也问过这句话。',
+  flavor:'你忘了是谁回答你的了。',
+  choices:[
+    { label:'认真给他讲一遍', hint:'用你自己的时间换他少走弯路',
+      eff:(s,a)=>{ a.favor(4); a.lifePct(-0.05); a.cult(45,'mid');
+        return '你讲了两个时辰，从怎么坐下来讲起。\n\n他听得特别认真，中间一次都没打断你。\n\n讲完你自己也清楚了不少——\n有些话，是讲出来才想明白的。\n\n人情 +4　寿元 −'+a.lifePct(-0.05)+'　修为 +'+a.gain(45,'mid'); } },
+    { label:'“练得对不对，你自己知道。”', eff:(s,a)=>{ a.cult(30,'mid');
+        return '他愣了一下，然后点点头，走了。\n\n你看着他出去的背影，忽然想起当年那个人\n也是这么跟你说的。\n\n修为 +'+a.gain(30,'mid'); } },
+    { label:'把自己的笔记给他', eff:(s,a)=>{ a.favor(5); a.cult(20,'mid'); a.karma(-1);
+        return '“拿着。看不懂再来问。”\n\n他捧着那本册子，像捧着什么很重的东西。\n\n人情 +5　修为 +'+a.gain(20,'mid')+'　业障 −1'; } }
+  ]
+},
+
+{
+  id:'ev9_gold_crucible', tier:3, title:'有人拿丹来换你的金丹', cat:'世界',
+  text:'来的人是外宗的，穿着很讲究。\n\n“一颗九转还魂丹，换你丹田里那颗。”\n\n他把玉盒打开了。丹香一下就满了整间屋子。',
+  flavor:'他说得很轻松，像是问你要不要换一件衣服。',
+  choices:[
+    { label:'换', hint:'金丹没了会怎样？',
+      eff:(s,a)=>{
+        if(a.chance(0.5)){ a.addCard('九转还魂丹'); a.cult(-120);
+          return '你把金丹给了他。\n\n他捏在手里看了很久，然后笑了：\n“炼得不错。可惜。”\n\n他走后，你坐了一整夜，丹田里空空的。\n但你手里有一颗九转还魂丹。\n\n得【九转还魂丹】　修为 −120'; }
+        a.addCard('九转还魂丹'); a.cult(-200); a.lifePct(-0.08);
+        return '你把金丹给了他。\n\n他把丹盒塞给你，转身就走，走得很快。\n\n你打开玉盒——丹是真的。\n\n但丹田里那个空洞，比你想的要空。\n\n得【九转还魂丹】　修为 −200　寿元 −'+a.lifePct(-0.08); } },
+    { label:'不换', eff:(s,a)=>{ a.favor(-2); a.cult(50,'mid');
+        return '“不换。”\n\n他一点也不意外，把盒子合上了。\n\n“我还会来的。”他说。\n\n人情 −2　修为 +'+a.gain(50,'mid'); } },
+    { label:'问他：你要它做什么', eff:(s,a)=>{ a.clue('clue_master');
+        return '他把盒子合上，看了你一会儿。\n\n“不是我要。”\n\n“那是谁要？”\n\n他笑了一下，什么都没说，走了。\n\n线索 +1'; } }
+  ]
+},
+
+{
+  id:'ev9_three_doors', tier:3, title:'三扇门', cat:'修行',
+  text:'你在一处废弃的道观里醒来，不记得自己是怎么进来的。\n\n面前有三扇门。',
+  flavor:'左边那扇门底下有风。中间那扇门上有手印。右边那扇门什么痕迹都没有。',
+  choices:[
+    { label:'左边的门', hint:'有风 = 通外面',
+      eff:(s,a)=>{ a.lifePct(0.05); a.cult(20,'low');
+        return '门后面是一条下山的路。\n\n你走出去，回头看了一眼——\n道观没有了。\n\n寿元 +'+a.lifePct(0.05)+'　修为 +'+a.gain(20,'low'); } },
+    { label:'中间的门', hint:'手印很多 = 很多人选过',
+      eff:(s,a)=>{ a.cult(90,'high'); a.lifePct(-0.06);
+        return '门后面是一间很小的屋子，地上坐满了人。\n\n没有一个人抬头。\n\n你找了个空位坐下，也跟着坐了一天。\n\n走的时候，你比来的时候强了一点。\n\n修为 +'+a.gain(90,'high')+'　寿元 −'+a.lifePct(-0.06); } },
+    { label:'右边的门', hint:'没人选过',
+      eff:(s,a)=>{ a.clue('clue_erased'); a.lifePct(-0.04);
+        return '门后面还是这间屋子。\n\n三扇门，还是三扇。\n\n你回头，刚才进来那扇不见了。\n\n线索 +1　寿元 −'+a.lifePct(-0.04); } },
+    { label:'哪扇都不开，就在这儿等', hint:'？',
+      eff:(s,a)=>{ a.cult(140,'high'); a.lifePct(-0.12);
+        return '你坐下了。\n\n不知道过了多久。\n\n你再睁开眼的时候，三扇门都没有了，\n只剩一堵墙，墙上有一行字：\n\n“等的人比走的人快。”\n\n修为 +'+a.gain(140,'high')+'　寿元 −'+a.lifePct(-0.12); } }
+  ]
+},
+
+{
+  id:'ev9_sect_debt', tier:3, title:'账房先生', cat:'人事',
+  when:s=>s.chapter!=='sanxiu',
+  text:'他捧着一本厚厚的册子，站在你门口。\n\n“这几年宗门在你身上花的，我都记着。”\n\n他把册子翻开给你看。上面是你的名字，\n后面跟着很长一串数字。',
+  choices:[
+    { label:'把灵石都还了', hint:'要很多灵石',
+      eff:(s,a)=>{ const pay=Math.min(s.stone, 120);
+        a.stone(-pay); a.favor(6); a.karma(-2);
+        return '你把灵石倒出来，数给他。\n\n他一块一块地数，数得很慢。\n\n数完了，他在册子上画了一道，\n把那一页撕下来，递给你。\n\n“清了。”\n\n灵石 −'+pay+'　人情 +6　业障 −2'; } },
+    { label:'“我先欠着。”', eff:(s,a)=>{ a.favor(-1); a.cult(40,'mid');
+        return '“行。”他把册子合上，“账不会跑。”\n\n他走了。\n\n你站在门口，忽然觉得这句话有点别的意思。\n\n人情 −1　修为 +'+a.gain(40,'mid'); } },
+    { label:'问他这册子记了多少年', eff:(s,a)=>{ a.clue('clue_date'); a.favor(1);
+        return '“从我师父那辈就开始记了。”\n\n“我师父呢？”\n\n“您师父……也在册子上。”\n\n他把册子往回翻了几页，指给你看。\n\n那一页上的名字，是三月初七那天写上去的。\n\n线索 +1　人情 +1'; } }
+  ]
+},
+
+/* ==================== 五、tier 4（元婴）==================== */
+
+{
+  id:'ev9_infant_self', tier:4, title:'里面那个人', cat:'修行',
+  text:'元婴成形之后，你偶尔能“看见”它。\n\n多数时候它闭着眼。\n\n今天它睁开了。\n\n它看着你，你看着它。\n你们谁都没有先说话。',
+  flavor:'书上管这个叫“内视”。书上没说它会长得跟你一模一样。',
+  choices:[
+    { label:'问它一句话', hint:'问什么由你决定',
+      eff:(s,a)=>{ a.cult(130,'high'); a.clue('clue_name');
+        return '“你是谁？”你问。\n\n它笑了一下。\n\n那个笑法你太熟了——你照镜子的时候就是这个笑法。\n\n它说了一个名字。\n那不是你的名字。\n\n修为 +'+a.gain(130,'high')+'　线索 +1'; } },
+    { label:'闭上眼，不看', eff:(s,a)=>{ a.lifePct(0.05); a.cult(40,'mid');
+        return '你把眼睛闭上了。\n\n再睁开的时候，它也是闭着眼的。\n\n你们达成了一种默契。\n\n寿元 +'+a.lifePct(0.05)+'　修为 +'+a.gain(40,'mid'); } },
+    { label:'教它你会的功法', eff:(s,a)=>{ const g=a.cult(90,'high'); const at=a.attr({wuxing:5});
+        return '你开始给它讲你会的每一门功法。\n\n讲得越细，你自己越清楚。\n\n讲到第三门的时候，你发现它一直在跟着你做。\n\n你们同时抬手，同时落下。\n\n修为 +'+g+'　'+at; } }
+  ]
+},
+
+{
+  id:'ev9_old_road', tier:4, title:'你走过的那条路', cat:'世界',
+  text:'下山办事，你走了一条很久没走的路。\n\n路边的树都还在。\n有几棵比你记得的粗了一圈。\n\n走到一半，你停下来了。\n\n前面那户人家，门口坐着一个老太太。',
+  flavor:'你忽然想起来，你第一次走这条路的时候，她还不是老太太。',
+  choices:[
+    { label:'过去打个招呼', eff:(s,a)=>{ a.karma(-2); a.lifePct(0.06); a.clue('clue_date');
+        return '“婆婆。”你喊了一声。\n\n她抬起头，看了你很久。\n\n“你是……那年那个小孩？”\n\n你愣了一下。你想说不是。\n但你点了点头。\n\n她笑了，让你进去喝碗水。\n\n业障 −2　寿元 +'+a.lifePct(0.06)+'　线索 +1'; } },
+    { label:'站着看一会儿，然后走', eff:(s,a)=>{ a.cult(60,'high');
+        return '你站在树后面看了很久。\n\n她一直坐在那儿，看着路。\n\n不知道在等谁。\n\n你转身走了。\n\n那天晚上打坐，你坐得特别久。\n\n修为 +'+a.gain(60,'high'); } },
+    { label:'绕路走', eff:(s,a)=>{ a.lifePct(-0.02); a.cult(20,'low');
+        return '你从旁边的小路绕过去了。\n\n绕了很远。\n\n到地方的时候，天已经黑了。\n\n寿元 −'+a.lifePct(-0.02)+'　修为 +'+a.gain(20,'low'); } }
+  ]
+},
+
+{
+  id:'ev9_ask_why', tier:4, title:'“你修这个做什么？”', cat:'人事',
+  text:'问你的是个刚入门的。他问得很认真，\n认真到你知道他不是在客套。\n\n你张开嘴，发现自己答不上来。',
+  flavor:'你上一次想这个问题，是很多年以前。',
+  choices:[
+    { label:'老老实实说：不知道', eff:(s,a)=>{ a.cult(100,'high'); a.karma(-1);
+        return '“不知道。”你说。\n\n他等着你说下去。\n\n“一开始是为了活着。后来……就一直在修。”\n\n他点点头，好像这个答案比什么答案都好。\n\n修为 +'+a.gain(100,'high')+'　业障 −1'; } },
+    { label:'说一个听起来对的答案', eff:(s,a)=>{ a.favor(2); a.cult(50,'mid');
+        return '“为了长生。”你说。\n\n他眼睛亮了，说了声谢谢师兄，跑了。\n\n你站在原地，觉得刚才那句话像别人的。\n\n人情 +2　修为 +'+a.gain(50,'mid'); } },
+    { label:'反问他', eff:(s,a)=>{ a.clue('clue_disciple'); a.cult(70,'high');
+        return '“你先说你为什么。”\n\n他愣住了，想了很久。\n\n“我想让我娘过得好一点。”\n\n你看着他，忽然想不起来自己当年是为了什么。\n\n线索 +1　修为 +'+a.gain(70,'high'); } }
+  ]
+},
+
+{
+  id:'ev9_last_page', tier:4, title:'最后一页', cat:'线索',
+  text:'你终于把那本书读到了最后。\n\n最后一页只有一行字，而且是被划掉的。\n\n划得很用力，纸都破了。\n\n你把书举到光底下。',
+  flavor:'划掉的字，有时候比留下的字更清楚。',
+  choices:[
+    { label:'把纸举到灯下，硬看', eff:(s,a)=>{ a.clue('clue_page'); a.lifePct(-0.05); a.cult(80,'high');
+        return '你举了很久，眼睛都酸了。\n\n有一瞬间，光穿过破口，那几个字浮上来了：\n\n“第七次。”\n\n你放下书，手心全是汗。\n\n线索 +1　修为 +'+a.gain(80,'high')+'　寿元 −'+a.lifePct(-0.05); } },
+    { label:'把划掉的地方抄下来', eff:(s,a)=>{ a.clue('clue_erased'); a.cult(30,'mid');
+        return '你把纸对着灯，一笔一笔描那些划痕的走向。\n\n描完你看着自己的纸上——\n全是横，一共七道。\n\n线索 +1　修为 +'+a.gain(30,'mid'); } },
+    { label:'把书合上，放回去', eff:(s,a)=>{ a.lifePct(0.05); a.karma(-1);
+        return '你把书合上，放回了架子原来的位置。\n\n有些东西读到这里就够了。\n\n那天晚上你睡得很好。\n\n寿元 +'+a.lifePct(0.05)+'　业障 −1'; } }
+  ]
+},
+
+/* ==================== 六、属性反应 · 通用奇遇 ====================
+   正文与选项都跟着属性走：同一件事，不同的人身上的写法不一样。 */
+
+{
+  id:'ev9_mirror_lake', tier:0, title:'湖', cat:'世界',
+  text:()=>{
+    const shen = evAttr('shenshi') >= evPeer('shenshi')*1.3;
+    const wu   = evAttr('wuxing')  >= evPeer('wuxing')*1.3;
+    if (shen && wu) return '湖面很平。\n\n你看见的不是自己的脸——是很多层脸，一层压着一层。\n\n最底下那一层，在动。';
+    if (shen) return '湖面很平。\n\n你看了一会儿，发现水里那个“你”眨眼比你慢半拍。';
+    if (wu)  return '湖面很平。\n\n你盯着看，忽然想通了一件事：\n不是水在动，是看水的人在动。';
+    return '湖面很平。\n\n你洗了把脸，水很凉。';
+  },
+  choices:[
+    { label:'伸手进去', eff:(s,a)=>{
+        const shen = evAttr('shenshi') >= evPeer('shenshi')*1.3;
+        if (shen && a.chance(0.6)){ a.clue('clue_dream'); a.cult(60,'high');
+          return '你把手伸进去了。\n\n水是温的。\n\n你摸到了一个东西，握住，拿出来——\n是一枚旧铜钱，上面的字被磨平了。\n\n线索 +1　修为 +'+a.gain(60,'high'); }
+        a.lifePct(-0.05);
+        return '你把手伸进去了。\n\n水很凉，凉得不正常。\n\n你赶紧抽出来，指尖已经白了。\n寿元 −'+a.lifePct(-0.05); } },
+    { label:'看着它，什么也不做', eff:(s,a)=>{ a.cult(30,'mid'); a.lifePct(0.02);
+        return '你坐在湖边坐了一下午。\n\n什么都没做。\n\n走的时候，你觉得脑子里空出来一块，\n那块地方以前装着一件你想不通的事。\n\n修为 +'+a.gain(30,'mid')+'　寿元 +'+a.lifePct(0.02); } },
+    { label:'往里扔块石头', eff:(s,a)=>{
+        const wu = evAttr('wuxing') >= evPeer('wuxing')*1.3;
+        if (wu){ const g=a.cult(70,'high');
+          return '你捡了块石头，扔进去。\n\n“咚”的一声，然后是一圈一圈的纹。\n\n你数着那圈纹，数到第七圈的时候，\n忽然明白了一门功法的关窍。\n\n修为 +'+g; }
+        /* ⚠️ 这里原来漏了真的加修为：文案写着「修为 +15」，实际给了 0。
+           dev/verify-eventrewards.js 当场抓到（它就是为这类事存在的）。 */
+        const g2=a.cult(15,'low');
+        return '你捡了块石头，扔进去。\n\n“咚。”\n\n然后就没有然后了。\n\n修为 +'+g2; } }
+  ]
+},
+
+{
+  id:'ev9_fire_ask', tier:0, title:'借个火', cat:'人事',
+  text:()=>'路上遇到一个背着大包的人。\n\n“借个火。”他说。\n\n' +
+    (evAttr('lingli') >= evPeer('lingli')*1.3
+      ? '你抬起手，指尖上有一小簇火苗。\n\n他看了看，说：“灵气挺足啊。”'
+      : '你摸出火折子，递给他。\n\n他吹了半天才点着。'),
+  choices:[
+    { label:'问他包里是什么',
+      eff:(s,a)=>{ a.clue('clue_book'); a.stone(40);
+        return '“书。”他说，“很重。”\n\n“卖的？”\n\n“送的。”他把包卸下来，抽出一本塞给你，\n“拿着。反正我也背不动了。”\n\n线索 +1　灵石 +40'; } },
+    { label:'帮他把包背一段', eff:(s,a)=>{
+        const strong = evAttr('tipo') >= evPeer('tipo')*1.25;
+        if (strong){ a.favor(3); a.cult(40,'mid');
+          return '你把包接过来，背了十里。\n\n到了岔路口，他接回去的时候掂了掂，\n“你力气不小。”\n\n人情 +3　修为 +'+a.gain(40,'mid'); }
+        a.lifePct(-0.06); a.favor(2);
+        return '你把包接过来。\n\n包比你想的重得多。走了半里，你的肩膀就麻了。\n\n他看出来了，把包要了回去。\n“行了，谢了。”\n\n人情 +2　寿元 −'+a.lifePct(-0.06); } },
+    { label:'“不顺路。”', eff:(s,a)=>{ a.lifePct(0.02);
+        return '你走了。\n\n走出一段，回头看了一眼，\n他还站在原地，在弄那个火折子。\n\n寿元 +'+a.lifePct(0.02); } }
+  ]
+},
+
+{
+  id:'ev9_who_wrote', tier:0, title:'谁写的', cat:'线索',
+  text:()=>{
+    const wu = evAttr('wuxing') >= evPeer('wuxing')*1.25;
+    return '山壁上刻着一行字：\n\n“到此为止。”\n\n' +
+      (wu ? '你看了看笔画。\n\n凿痕是从右往左的——写字的人当时在往后退。' : '刻得很深，像是用了很大力气。');
+  },
+  choices:[
+    { label:'顺着凿痕的方向找过去', eff:(s,a)=>{
+        const wu = evAttr('wuxing') >= evPeer('wuxing')*1.25;
+        if (wu){ a.clue('clue_erased'); a.cult(50,'mid');
+          return '你顺着凿痕的方向往回走。\n\n走了大概二十步，在一块石头后面找到了一个洞。\n\n洞里什么都没有，只有地上的灰——\n有人在这里坐了很久。\n\n线索 +1　修为 +'+a.gain(50,'mid'); }
+        a.lifePct(-0.04);
+        return '你顺着山壁走了一段，什么也没找到。\n\n只把手划破了。\n\n寿元 −'+a.lifePct(-0.04); } },
+    { label:'在旁边也刻一句', eff:(s,a)=>{ a.karma(1); a.cult(25,'mid');
+        return '你找了块尖石头，在旁边刻了三个字：\n\n“我再看看。”\n\n刻完你后退两步，觉得这两行字放在一起，\n有点像对话。\n\n修为 +'+a.gain(25,'mid')+'　业障 +1'; } },
+    { label:'坐下来想一会儿', eff:(s,a)=>{ a.cult(35,'mid'); a.lifePct(0.02);
+        return '你坐在那行字对面，想了一会儿。\n\n“到此为止”——到底是谁的到此为止？\n\n想不通。但你坐得很舒服。\n\n修为 +'+a.gain(35,'mid')+'　寿元 +'+a.lifePct(0.02); } }
+  ]
+}
+
+]);
+
+
 /* ===== mijing.js ===== */
 /* ============================================================
    秘境（第 27 轮新增）
@@ -6681,6 +7263,9 @@ function defaultMeta(){
     frag: 0,
     runs: 0,
     wins: 0,
+    /* 第 29 轮：里程碑计数。档案柜的统计段读它。
+       老存档没有这个字段 → loadMeta 与 renderArchive 都做了回落。 */
+    mile: { zhuji:0, jiedan:0, capstone:0 },
     up: {},                 // { upgradeId: level }
     lore: [],               // 已解锁 lore id / 索引
     worlds: { zongmen:{ unlocked:true, cleared:0, best:0, bestRealm:0 } },
@@ -6698,10 +7283,20 @@ function loadMeta(){
   try{
     const raw = localStorage.getItem(SAVE_KEY);
     if (!raw) return defaultMeta();
-    const m = Object.assign(defaultMeta(), JSON.parse(raw));
+    const saved = JSON.parse(raw);
+    const m = Object.assign(defaultMeta(), saved);
     m.up = m.up || {};
     m.lore = m.lore || [];
     m.endings = m.endings || [];
+    /* 第 29 轮：老存档没有 mile 字段 —— 不能让它崩，也不能显示 undefined。
+       老档的 wins 其实就是「走出炼气」的次数，所以直接迁移过去，
+       玩家不会觉得自己的战绩凭空归零。
+       ⚠️ 判断必须看 **saved**（磁盘上到底有没有这个字段），
+       不能看 m —— Object.assign 已经用 defaultMeta() 把 mile 填好了，
+       `if (!m.mile)` 永远为假，迁移根本不会执行（第一次就是这么写错的，
+       被 dev/verify-endings.js 第 7 节当场抓到）。 */
+    if (!saved.mile) m.mile = { zhuji: saved.wins || 0, jiedan: 0, capstone: 0 };
+    else m.mile = Object.assign({ zhuji:0, jiedan:0, capstone:0 }, saved.mile);
     if (!m.worlds) m.worlds = defaultMeta().worlds;
     if (!m.worlds.zongmen) m.worlds.zongmen = { unlocked:true, cleared:0, best:0, bestRealm:0 };
     /* ---------------- 存档迁移（第 25 轮） ----------------
@@ -6953,12 +7548,20 @@ function newRun(lots, seed){
     pillPerm: { hpPct:0, atkPct:0, qiPct:0, wardPct:0 },
     pillTemp: { fights:0, atkPct:0, dmgCut:0, evade:0 },
 
+    /* 第 29 轮：劫余（渡劫 / 天谴留下的本局永久加成）。
+       和 pillPerm 分开存是有意的 —— 丹药是吃出来的，劫余是挨出来的，
+       属性面板上要能分别说清楚它们各自给了多少。 */
+    boons: { hpPct:0, atkPct:0, qiPct:0, wardPct:0, list:[] },
+
     // 统计
     actions: 0,
     pillCounter: 0,
     guardUsed: false,
     restUsed: 0,
     nourishUsed: 0,
+    /* 第 29 轮：天谴冷却。到这一步数之前，天谴不会再来。
+       见 data.js 里 CONFIG.tribulation.karmaCooldown 的注释。 */
+    karmaCool: 0,
     ended: false
   };
 
@@ -7253,7 +7856,13 @@ function doAction(kind){
     gainSectQi(-3);
     gainCult(Math.round(G.cultBase(s.realmIdx)*0.25));
     s.restUsed = (s.restUsed||0) + 1;
-    msgs.push(`寿元 +${Math.max(0, s.life - before)}　宗门气运 −3`);
+    /* 第 29 轮：静养也压业障。
+       走魔道的人因此有一条**有限**的活路（每境界 restPerRealm 次），
+       于是「静养」变成了一个真取舍：回寿元，还是把账压下去。 */
+    const atone = Math.min(s.karma, G.CONFIG.tribulation.karmaAtonement);
+    if (atone > 0) gainKarma(-atone);
+    msgs.push(`寿元 +${Math.max(0, s.life - before)}　宗门气运 −3`
+      + (atone > 0 ? `　业障 −${atone}（现有 ${s.karma}）` : ''));
   }
   else if (kind==='nourish'){
     /* 永久提升寿元上限，但净收益很薄，且每境界次数有限。
@@ -7592,6 +8201,7 @@ function shouldTribulate(fromRealm, toRealm){
 }
 
 /* 属性「理论上限」：抽签可能拿到的最高初始属性 + 全部境界成长 */let _maxAttrCache = null;
+let _maxAttrPerCache = null;
 function maxAttrPossible(){
   if (_maxAttrCache !== null) return _maxAttrCache;
   // 每支签里各项属性的最大值之和
@@ -7621,7 +8231,17 @@ function maxAttrPossible(){
   const djFull = daoJiPerAttrMax();
   if (djFull > 0) G.ATTRS.forEach(a=>{ best[a.id] += djFull; });
   _maxAttrCache = G.ATTRS.reduce((n,a)=>n + best[a.id], 0);
+  _maxAttrPerCache = best;
   return _maxAttrCache;
+}
+
+/* 单个属性的理论上限（第 29 轮）。
+   ⚠️ maxAttrPossible() 返回的是**六维总和**，不是每个属性的上限。
+   第 29 轮写事件助手时第一版把它当成单项上限用了（evAttrRank 全错），
+   所以这里把同一个 best 表也缓存下来，单项上限单独取。 */
+function maxAttrFor(id){
+  if (_maxAttrPerCache === null) maxAttrPossible();
+  return (_maxAttrPerCache && _maxAttrPerCache[id]) || 0;
 }
 
 /* ============================================================
@@ -7974,6 +8594,101 @@ function evLifePct(pct){
   return Math.max(1, Math.round((s.maxLife || 100) * pct));
 }
 
+/* ---------------- 事件读六维属性（第 29 轮新增） ----------------
+   玩家反馈：「当前的属性对应到时间上没有得到很好的体现，
+   事件可能因为玩家属性的变化而变化这个效果也完全没有做出来」。
+   实测确认了这句话：196 个事件里，`when` 读到六维属性的有 **0 个**。
+
+   原因不是不想写，是**写不了** —— 事件的 when/eff 拿到的是裸状态对象 s，
+   而属性是算出来的（抽签 + 境界成长 + 功法 + 内景 + 卡牌），
+   没有一个函数可以从 s 直接算出来给事件用。
+
+   现在补上这一层。事件里这样写：
+
+       when: () => evAttr('shenshi') >= 40          // 神识够高才看得见
+       text: () => evAttr('tipo') >= 50
+               ? '你伸手把门推开了。门轴没有响。'      // 体魄高的写法
+               : '你推了一下，门没有动。'
+       choices:[{ label:'…', when:()=>evAttr('shenfa')>=36, … }]
+
+   ⚠️ 这些函数**只读当前这一局**（和 attrs() 同源）。
+   事件的 when/text 永远是在「正在玩的那一局」上求值的，
+   所以不需要（也不该）传参进来。 */
+function evAttr(id){
+  const A = attrs();
+  return A[id] || 0;
+}
+function evAttrSum(){
+  const A = attrs();
+  return G.ATTRS.reduce((n,a)=>n + (A[a.id]||0), 0);
+}
+/* 相对同境界的水平：0~1。用来写「你在这一境界里算不算突出」*/
+function evAttrRank(id){
+  const max = maxAttrFor(id);
+  if (!max) return 0;
+  return Math.max(0, Math.min(1, evAttr(id) / max));
+}
+
+/* ---------------- 「你的底子是多少」（第 29 轮） ----------------
+   ⚠️ 事件门槛**不能写死数字**。
+   实测（dev/dbg-attrrange.js）同一项属性：
+       炼气九层 神识 ≈ 21　筑基 ≈ 48　金丹 ≈ 84　元婴 ≈ 139
+   所以 `when:()=>evAttr('shenshi')>=40` 在天平两端分别是
+   「炼气期永远不触发」和「元婴期人人触发」——两边都是废的。
+
+   第一版这里写的是「同一境界普通人的水平 = 抽签平均值 + 境界成长」。
+   那个定义**不成立**，被 dev/verify-eventattr.js 第 3 节当场抓到：
+   没在任何一项上砸过机缘的玩家，神识也有 59，
+   而算出来的「普通人」是 48 —— 于是「神识远超同辈」对**所有人**都成立，
+   门槛形同虚设（分不出任何东西）。
+
+   现在换成精确的定义：
+
+       evPeer(id) = 如果你从来没在这一项上砸过机缘，你现在有多少
+                  = evAttr(id) − evBonus(id)
+
+   于是 `evAttr(id) >= evPeer(id)*1.15` 的意思非常干净：
+   **「你在这项上的投入，让你比不投入的自己高出了 15%」**。
+   它同时满足三件事：与境界无关、与抽签无关、投入为 0 时必定不成立。 */
+function evPeer(id){
+  return Math.max(1, evAttr(id) - evBonus(id));
+}
+
+/* 机缘（功法 / 法宝 / 事件）砸在某项属性上的量 —— 也就是「你的 build 选了什么」。
+   attrs() 里这部分是**加法**，所以它是玩家主动选择留下的最干净信号。 */
+function evBonus(id){
+  return ((s && s.attrBonus) || {})[id] || 0;
+}
+function evBonusTotal(){
+  const b = (s && s.attrBonus) || {};
+  return G.ATTRS.reduce((n,a)=>n + (b[a.id]||0), 0);
+}
+/* 你在哪一项上砸得最多（build 的招牌）。没砸过任何机缘就返回 null。 */
+function evMainAttr(){
+  const b = (s && s.attrBonus) || {};
+  let best = null, bv = 0;
+  G.ATTRS.forEach(a=>{ const v = b[a.id]||0; if (v > bv){ bv = v; best = a.id; } });
+  return best;
+}
+/* 这一项占你全部机缘投入的比例（0~1）。
+   用来写**弱点**事件：机缘总量不小、却几乎没砸在这一项上
+   → 这一项相对你的其它项是短的。
+   ⚠️ 「弱」不能用 evAttrRank 判断。evAttrRank 除的是
+   maxAttrFor()（跨到渡劫的理论上限 ≈490），而金丹期实际只有 60~180，
+   于是所有人的 rank 都在 0.12~0.36 之间，门槛定在哪儿都是废的
+   （实测：不砸机缘 0.12、砸满 0.35 —— 两边都低于 0.55）。
+   第 29 轮第一版就是这么写错的，被 dev/verify-eventattr.js 抓到。 */
+function evBonusShare(id){
+  const t = evBonusTotal();
+  if (t <= 0) return 0;
+  return evBonus(id) / t;
+}
+/* 把函数型文案求值成字符串（事件支持 text/flavor/title 是函数）*/
+function evTextOf(v){
+  if (typeof v !== 'function') return v == null ? '' : String(v);
+  try { const r = v(s); return r == null ? '' : String(r); } catch(e){ return ''; }
+}
+
 /* ---------------- 长期因果（第 18 轮） ----------------
    有些选择会在若干次行动后才回来找你。                          */
 function addDebt(cfg){
@@ -8018,6 +8733,22 @@ function makeActions(hook){
       return v;
     },
     lifePct(pct){ return evLifePct(pct); },
+
+    /* 机缘直接给六维属性（第 29 轮新增）。
+       ⚠️ 以前动作 API 里**没有**给属性的方法 ——
+       事件想奖励属性只能绕道 a.addCard()，靠卡牌自带的 eff.attr。
+       于是「这次奇遇让你身法涨了」这种写法根本表达不出来，
+       第 29 轮写属性反应事件时踩到了（a.attrGain is not a function）。
+       现在直接给，和卡牌走的是同一个 store（s.attrBonus），
+       所以 attrs() / evBonus() / evMainAttr() 都能看见它。 */
+    attr(obj){
+      if (!obj || typeof obj !== 'object') return '';
+      addAttrBonus(obj);
+      return Object.keys(obj).map(k=>{
+        const cn = (G.ATTRS.find(x=>x.id===k)||{}).name || k;
+        return cn + ' +' + obj[k];
+      }).join('　');
+    },
 
     life(n){
       if (n > 0){ s.life = Math.min(s.maxLife, s.life + n); return; }
@@ -8268,12 +8999,16 @@ function combatStats(){
      所以「+6% 伤害」在任何境界都是 +6%。 */
   const perm = s.pillPerm || {};
   const temp = (s.pillTemp && s.pillTemp.fights > 0) ? s.pillTemp : {};
-  const dmgBonus = (perm.atkPct || 0) + (temp.atkPct || 0);
+  /* 第 29 轮：劫余也进伤害/气血/真气/护体，和永久丹同一层乘算
+     （都在算完境界、卡牌、元层之后，所以「+12%」在任何境界都是 +12%）。 */
+  const boon = s.boons || {};
+  const dmgBonus = (perm.atkPct || 0) + (boon.atkPct || 0) + (temp.atkPct || 0);
 
   const hpMulSet = 1 + (ag.hpMul || 0);   // 卡牌与套装「不坏之身」的气血加成
   const maxHp = Math.round((46 + A.tipo*7 + A.gengu*3) * realmMul * hpMulSet
-                           * pct('hpBase', 0.03) * (1 + (perm.hpPct || 0)));
-  const maxQi = Math.round((24 + A.gengu*4 + A.lingli*1.5) * pct('qiBase', 0.04) * (1 + (perm.qiPct || 0)));
+                           * pct('hpBase', 0.03) * (1 + (perm.hpPct || 0) + (boon.hpPct || 0)));
+  const maxQi = Math.round((24 + A.gengu*4 + A.lingli*1.5) * pct('qiBase', 0.04)
+                           * (1 + (perm.qiPct || 0) + (boon.qiPct || 0)));
   const qiRegen = Math.max(3, Math.round(5 + A.gengu*1.1)) + (up.qiRegen||0);
   // 普通攻击：由属性总和驱动 × 卡牌战力，不限次数的可靠输出
   const basicAtk = Math.max(3, Math.round((4 + attrSum*0.20) * realmMul * powerMul * pct('atkBase', 0.03) * (1 + dmgBonus)));
@@ -8285,7 +9020,8 @@ function combatStats(){
      因为敌人攻击是随境界指数涨的，平减会在后期变成零。 */
   const wardGuard = Math.min(0.35, (ag.ward || 0) * 0.0009);
   /* 基础护体（招式护体的基数）。套装「符阵相生」每轮额外给一层。 */
-  const ward = Math.round(realmMul * 3 * pct('wardBase', 0.06) * (1 + (perm.wardPct || 0))) + (ag.wardPerRound || 0);
+  const ward = Math.round(realmMul * 3 * pct('wardBase', 0.06)
+                          * (1 + (perm.wardPct || 0) + (boon.wardPct || 0))) + (ag.wardPerRound || 0);
   /* 受到的伤害乘数：套装「不坏之身」的 −20%、限时丹的减伤都走这里 */
   const dmgTakenMul = clamp(((ag.dmgTakenSet || 0) ? 1 + ag.dmgTakenSet : 1) * (1 - (temp.dmgCut || 0)), 0.4, 1.5);
 
@@ -8429,6 +9165,9 @@ function startChallenge(cfg){
     type: cfg.type || 'fight',
     killer: !!cfg.killer,
     bossId: cfg.bossId || null,
+    /* 第 29 轮：天劫的名字（雷劫/风劫/火劫）要留在 challenge 上，
+       战果结算要用它去查「这一劫留了什么劫余」。 */
+    tbName: cfg.tbName || null,
     tier: tierKey,
 
     round: 1,
@@ -8561,15 +9300,48 @@ function grantCombatRewards(){
     }
   }
 
-  // 打赢天劫：额外的修为与寿元
+  // 打赢天劫：额外的修为与寿元 + **劫余**（第 29 轮）
   if (ch.type === 'tribulation'){
     gainCult(Math.round(G.cultBase(s.realmIdx)*0.8));
     gainLife(Math.round(s.maxLife*0.06));
-    out.extra = (out.extra?out.extra+'　':'') + '渡过一劫，心境更稳';
+    /* 天谴用 KILLER_BOON，普通天劫用它自己那一劫的 boon。
+       ⚠️ 用 cfg.tbName 取名字：challenge 上原本没存 tbName，
+       第 29 轮顺手补上了（ch.tbName），免得以后再猜。 */
+    const tb = G.TRIBULATIONS[ch.tbName] || null;
+    const b = ch.killer ? G.KILLER_BOON
+            : (tb && tb.boon) ? tb.boon : null;
+    if (b){
+      const got = addBoon(b);
+      out.boon = { name:b.name, text:b.text, gained:got };
+      out.extra = (out.extra?out.extra+'　':'') + `劫余 · ${b.name}`;
+    } else {
+      out.extra = (out.extra?out.extra+'　':'') + '渡过一劫，心境更稳';
+    }
   }
-
   log(`你胜了 ${ch.foeName}。灵石 +${stone}，修为 +${cult}。`);
   return out;
+}
+
+/* ---------------- 劫余（第 29 轮） ----------------
+   渡劫 / 天谴留下的本局永久加成。返回一句给玩家看的话，
+   说明「到底加了什么、加了多少」—— 数值承诺必须看得见。 */
+function addBoon(b){
+  if (!b) return '';
+  if (!s.boons) s.boons = { hpPct:0, atkPct:0, qiPct:0, wardPct:0, list:[] };
+  const bits = [];
+  if (b.hpPct){ s.boons.hpPct += b.hpPct; bits.push(`气血上限 +${Math.round(b.hpPct*100)}%`); }
+  if (b.atkPct){ s.boons.atkPct += b.atkPct; bits.push(`伤害 +${Math.round(b.atkPct*100)}%`); }
+  if (b.qiPct){ s.boons.qiPct += b.qiPct; bits.push(`真气上限 +${Math.round(b.qiPct*100)}%`); }
+  if (b.wardPct){ s.boons.wardPct += b.wardPct; bits.push(`护体 +${Math.round(b.wardPct*100)}%`); }
+  if (b.attr){
+    addAttrBonus(b.attr);
+    Object.keys(b.attr).forEach(k=>{
+      const cn = (G.ATTRS.find(x=>x.id===k)||{}).name || k;
+      bits.push(`${cn} +${b.attr[k]}`);
+    });
+  }
+  if (b.name) s.boons.list.push({ name:b.name, what:bits.join('　') });
+  return bits.join('　');
 }
 
 /* 计算一次攻击的伤害 */
@@ -9084,6 +9856,15 @@ function resolveChallenge(){
     out.wheel = true;
     if (ch.killer) out.killerWheel = true;   // 天谴：转盘上「身死」扇区大幅增加
   }
+  /* 天谴洗业（第 29 轮）：输了也照洗 —— 挨过这一顿，账就销掉一部分。
+     这正是让「业障」不再变成死循环的那一步：
+     收走一半之后，人必须重新作恶才会再招来下一次。 */
+  if (ch.killer){
+    const burned = burnKarma();
+    out.extra = (out.extra ? out.extra + '　' : '') + `业障 −${burned}（现有 ${s.karma}）`;
+    note('fight', win ? `挨过了一次天谴。业障销掉 ${burned}。`
+                      : `天谴把你按在地上。业障销掉 ${burned}，但你还得爬起来。`);
+  }
   return out;
 }
 
@@ -9126,7 +9907,15 @@ function spinWheel(killerBoost){
 }
 
 /* 应用转盘结果 */
-function applyWheelResult(id){
+/* ⚠️ 第 29 轮：多了一个 opts.killer。
+   以前不管是被谁打死的，转盘上「身死」一律走 endRun('slay')，
+   于是 ENDINGS 里的 'karma'（天 谴）**永远拿不到** ——
+   档案柜因此常年显示「还有 N 个结局，你没有见过」，
+   玩家会一直找一个根本不存在的结局（这就是用户说的「文本细节 bug」）。
+   现在被天谴打死就是天谴结局，那个结局也终于有了主人。 */
+function applyWheelResult(id, opts){
+  const killer = !!(opts && opts.killer);
+  const deathReason = killer ? 'karma' : 'slay';
   const out = { effect:'', end:null };
   const up = meta.up || {};
 
@@ -9166,11 +9955,11 @@ function applyWheelResult(id){
         log('你倒下去了。有什么东西托了你一把。');
         return out;
       }
-      out.effect = '你没能再站起来。';
-      out.end = endRun('slay');
+      out.effect = killer ? '天上那东西没有再给你一次机会。' : '你没能再站起来。';
+      out.end = endRun(deathReason);
       return out;
   }
-  const d = checkDeath('slay');
+  const d = checkDeath(deathReason);
   if (d && !d.saved) out.end = d;
   return out;
 }
@@ -9213,11 +10002,17 @@ function clueProgress(){
 }
 
 /* ---------------- 结局 ---------------- */
+/* ⚠️ 第 29 轮：删掉了 'ascend'（筑 基）。
+   第 25 轮把「炼气九层 → 筑基」从结局改成普通突破之后，endRun('ascend')
+   就再没有任何调用点了 —— 但这一项还留在表里，于是：
+     · 档案柜的「还有 N 个结局，你没有见过」永久 +1，玩家永远凑不齐
+     · END_SUB.ascend / FRAG.ascend 变成两份没人读的文案
+   一个拿不到的结局比没有这个结局更糟：它在骗玩家去刷。
+   现在表里每一项都必须是**真的能走到**的（dev/verify-endings.js 守着）。 */
 const ENDINGS = {
   life:      { title:'寿 元 耗 尽', id:'life' },
   slay:      { title:'身 死 道 消', id:'slay' },
   karma:     { title:'天 谴',       id:'karma' },
-  ascend:    { title:'筑 基',       id:'ascend' },
   sit:       { title:'坐 化',       id:'sit' },
   sect:      { title:'宗 门 散 了', id:'sect' },
   sanxiu:    { title:'山 中 岁 月', id:'sanxiu' },
@@ -9230,7 +10025,6 @@ const END_SUB = {
   life:  '你坐着坐着，天就黑了。\n没有痛苦。只是没有下一次呼吸了。',
   slay:  '你倒下去的地方，是你自己选的。\n这一点很重要。',
   karma: '你做过的事，一件一件回来了。\n它们排着队，很有耐心。',
-  ascend:'你从地上站起来的时候，山在响。\n你听见有人在很远的地方说：“又来了一个。”',
   sit:   '你没有等到最后。\n你自己选的时辰。你自己关的门。',
   sect:  '你不是最后一个走的。\n你是最后一个知道宗门没了的。',
   world: '你把石头放在了它该放的地方。\n\n那座快画完的阵，停在了最后一笔上。\n没有人知道是谁做的——包括那个守着假阵的人。\n\n天还是天。云又开始动了。\n\n很多年以后，有人在山上问起这件事。\n你说：“我不知道你在说什么。”\n\n你没有说谎。你确实忘了。\n有人替你忘了。',
@@ -9260,7 +10054,9 @@ G.FRAG = {
   action: 90,    // 走过多少路（400 次行动封顶）
   clue:   70,    // 线索（20 条封顶）
   cult:   40,    // 当前这一层修到多满
-  ascend: 150,   // 筑基
+  /* ⚠️ 第 29 轮：删掉了 ascend:150（筑基）。
+     它挂在已经删掉的 'ascend' 结局上，是一份永远发不出去的碎片。
+     走到上限那一份现在是 capstone:170。 */
   sanxiu: 60,    // 山中岁月
   hidden: 140,   // 重修（隐藏结局）
   /* 第 21 轮：境界上限锁在元婴之后，「走到上限」就是这一世的主要目标，
@@ -9278,8 +10074,7 @@ function fragBreakdown(reason){
   const pClue   = Math.min(1, s.clues.length / 20);
   const needNow = Math.max(1, (G.REALMS[s.realmIdx] || {need:1}).need);
   const pCult   = Math.min(1, s.cult / needNow);
-  const bonus   = reason === 'ascend' ? F.ascend
-                : reason === 'sanxiu' ? F.sanxiu
+  const bonus   = reason === 'sanxiu' ? F.sanxiu
                 : reason === 'hidden' ? F.hidden
                 : reason === 'capstone' ? (F.capstone || 0) : 0;
   const parts = {
@@ -9305,8 +10100,12 @@ function endRun(reason){
   }
 
   // 隐藏结局优先：只要集齐全部 7 条线索，无论怎么结束，都会导向「重修」。
-  // 例外是「筑基」「山中岁月」「此世圆满」——那是玩家自己走完的路，不该被覆盖。
-  if (reason !== 'ascend' && reason !== 'hidden' && reason !== 'sanxiu' && reason !== 'capstone'){
+  // 例外是「山中岁月」「此世圆满」——那是玩家自己走完的路，不该被覆盖。
+  // ⚠️ 第 29 轮：这里的 'ascend' 跟着那个结局一起删了。
+  // 注意「天谴」（karma）**不在**豁免名单里，这是有意的：
+  // 七条线索是玩家自己一条条攒出来的，不能因为死法不同就被没收。
+  // 被天谴劈死的人只要线索齐，照样导向「重修」。
+  if (reason !== 'hidden' && reason !== 'sanxiu' && reason !== 'capstone'){
     const CLUE_IDS = ['clue_name','clue_book','clue_master','clue_disciple','clue_page','clue_dream','clue_xinmo'];
     if (CLUE_IDS.every(id=>s.clues.includes(id))) reason = 'hidden';
   }
@@ -9328,13 +10127,23 @@ function endRun(reason){
   /* ⚠️ 第 28 轮修复：这两个计数器原本都挂在 reason==='ascend' 上。
      第 25 轮把「炼气九层 → 筑基」从「终极一战结局」改成普通突破之后，
      endRun('ascend') 就再也没有任何地方调用了 ——
-     于是档案柜上的「突破筑基 N 次」和宗门卡片上的「通关 N 次」
-     永远是 0（界面在撒谎，而且是玩家一眼就能看到的数字）。
+     于是档案柜上的统计和宗门卡片上的「通关 N 次」永远是 0。
      修法：不再看「以什么结局收场」，改看「这一世真的走到了哪里」。
-       · wins    = 走出炼气、踏进筑基以上（筑基一层 = realmIdx 9）
-       · cleared = 走完这一篇（此世圆满） */
-  if (s.realmIdx >= 9) meta.wins += 1;
-  if (!meta.endings.includes(e.id)) meta.endings.push(e.id);
+
+     ⚠️ 第 29 轮补充：光把数字修对还不够，**标签本身也过时了**。
+     玩家原话：「目前都更新这么多轮了文本还停留在最开始的筑基」。
+     游戏早就跑到元婴了，档案柜还在数「突破筑基」——
+     那是第 25 轮之前「筑基就是通关」时期的说法。
+     现在改成三个玩家真正会关心的里程碑，一起数：
+        · 走出炼气  —— 迈过第一道门槛（筑基一层 = realmIdx 9）
+        · 结丹      —— 过了结丹之劫（大境界 3 金丹）
+        · 此世圆满  —— 走到元婴九层收束（= 宗门卡片上的「通关」） */
+  const m = meta;
+  if (!m.mile) m.mile = { zhuji:0, jiedan:0, capstone:0 };
+  if (s.realmIdx >= 9)  { m.wins += 1;  m.mile.zhuji += 1; }
+  if (s.realmIdx >= 18) m.mile.jiedan += 1;
+  if (reason === 'capstone') m.mile.capstone += 1;
+  if (!m.endings.includes(e.id)) m.endings.push(e.id);
 
   const w = meta.worlds.zongmen;
   if (s.realmIdx > (w.bestRealm||0)) w.bestRealm = s.realmIdx;
@@ -10705,15 +11514,40 @@ function startTribulation(extreme){
 /* ---------------- 业障满：天谴 ----------------
    这是唯一「打输可能真的死」的战斗，也是业障唯一的用处。
    ⚠️ 天谴不是「天劫」——它和境界无关，什么时候业障满了什么时候来。
-   所以它不受 CONFIG.tribulation 那套大境界门槛的约束。 */
+   所以它不受 CONFIG.tribulation 那套大境界门槛的约束。
+
+   ⚠️ 第 29 轮：天谴从「一次判决」改成「循环的代价」，见 data.js 里的长注释。
+   规则全部收在引擎里（以前散在 ui.js 的一句 if 里，测不到也改不动）。 */
 function karmaOverflow(){
   return s.karma >= G.CONFIG.tribulation.killerKarma;
+}
+
+/* 现在轮不轮得到天谴：业障满 **且** 不在冷却里 */
+function karmaTribulationReady(){
+  if (!karmaOverflow()) return false;
+  return (s.actions || 0) >= (s.karmaCool || 0);
+}
+
+/* 距离下一次天谴还有几步（界面用来说清楚「现在安不安全」） */
+function karmaCooldownLeft(){
+  return Math.max(0, (s.karmaCool || 0) - (s.actions || 0));
+}
+
+/* 天谴洗业：收走当前业障的一部分，人必须重新作恶才会再招来一次 */
+function burnKarma(){
+  const p = G.CONFIG.tribulation.karmaBurn;
+  const before = s.karma;
+  s.karma = Math.max(0, Math.floor(s.karma * (1 - p)));
+  return before - s.karma;
 }
 
 function startKillerTribulation(){
   const names = Object.keys(G.TRIBULATIONS);
   const key = names[Math.floor(s.rng()*names.length)];
   const t = G.TRIBULATIONS[key];
+  /* 冷却在这里盖章：无论打输打赢，天谴都算「已经来过一次」。
+     盖章放在开打之前，是为了让「战斗中途关掉页面再读档」也不会白刷一次。 */
+  s.karmaCool = (s.actions || 0) + G.CONFIG.tribulation.karmaCooldown;
   return startChallenge({
     type:'tribulation', killer:true, tbName:key,
     name:'天谴 · ' + key,
@@ -11014,13 +11848,17 @@ function availableActions(){
   });
 
   const restLeft = Math.max(0, G.CONFIG.restPerRealm - (s.restUsed||0));
+  /* 第 29 轮：走魔道的人必须能在按钮上看见「静养能压业障」，
+     否则这条活路等于不存在。 */
+  const atoneNow = Math.min(s.karma, G.CONFIG.tribulation.karmaAtonement);
   list.push({
     id:'rest', name:'静养', cost:st.cost, disabled: restLeft<=0,
-    desc:'什么都不做，睡一觉。回复寿元，但宗门会少一个人手。',
+    desc:'什么都不做，睡一觉。回复寿元，但宗门会少一个人手。\n（静下来也算一种交代：会把业障压下去一点。）',
     /* ⚠️ 这里的数字必须与 doAction('rest') 真正用的公式一致
        （dev/verify-uiclaims.js 会去核对「按钮上的数字 = 实际回复量」） */
     meta: restLeft>0
       ? `寿元回复约 ${Math.round(st.maxLife*0.14*(1+restBonus()))}　本境界还可 ${restLeft} 次`
+        + (atoneNow > 0 ? `　业障 −${atoneNow}` : '')
       : '本境界的静养次数已经用完了。突破后方可再养。'
   });
 
@@ -11193,7 +12031,12 @@ G.Engine = {
   // Boss
   pickBoss, clueProgress, checkHiddenEnding, markBossActive, clearBossActive,
   // 敌人信息与战斗奖励
-  foeRealmInfo, grantCombatRewards, shouldTribulate, maxAttrPossible,
+  foeRealmInfo, grantCombatRewards, shouldTribulate, maxAttrPossible, maxAttrFor,
+  evAttr, evAttrSum, evAttrRank, evTextOf, evPeer, evBonus, evBonusTotal, evBonusShare, evMainAttr,
+  /* 第 29 轮：测试与界面都需要「把内景同步到当前大境界」这一个动作。
+     直接改 realmIdx 而不调它，内景会停在旧大境界上 ——
+     第 29 轮写 verify-story.js 时踩到，表现为「两个玩家可用行动不一样」。 */
+  syncDaoJi,
   // 世界线
   worldStage, checkWorldEnding,
   // 宗门（第 15 轮）
@@ -11218,12 +12061,135 @@ G.Engine = {
   evScale, evGain, evLifePct, addDebt, checkDebts,
   // 结局
   endRun, sitDown, checkSectCollapse,
-  karmaOverflow,
+  karmaOverflow, karmaTribulationReady, karmaCooldownLeft, burnKarma, addBoon,
 
   // 工具
   ENDINGS, END_SUB,
   makeRng
 };
+
+/* ============================================================
+   事件作者用的全局助手（第 29 轮）
+   ------------------------------------------------------------
+   ⚠️ 为什么必须挂到 window 上：engine.js 整体包在一个 IIFE 里，
+   里面的 evAttr / evTextOf 是私有的。而事件数据写在 src/events*.js，
+   是**另一个文件里的普通对象字面量**，它在运行时求值时只看得到全局作用域。
+   所以给事件作者用的东西必须显式发布出来，否则
+   `when:()=>evAttr('shenshi')>=40` 会直接 ReferenceError。
+
+   （a_hasAnyCard 就是同类东西，它一直住在 events.js 的全局作用域里。）
+   ============================================================ */
+window.evAttr     = evAttr;
+window.evAttrSum  = evAttrSum;
+window.evAttrRank = evAttrRank;
+window.evTextOf   = evTextOf;
+/* 第 29 轮：写「属性影响事件」真正要用的三个东西 ——
+   evPeer 让门槛与境界无关，evBonus / evMainAttr 让门槛认得出 build。 */
+window.evPeer     = evPeer;
+window.evBonus    = evBonus;
+window.evBonusTotal = evBonusTotal;
+window.evBonusShare = evBonusShare;
+window.evMainAttr = evMainAttr;
+/* 「这一局我练的是什么道」——事件里做属性分支时最常用的一句 */
+window.evTopAttr  = function(){
+  const A = attrs();
+  let best = G.ATTRS[0].id, bv = -1;
+  G.ATTRS.forEach(a=>{ const v = A[a.id]||0; if (v > bv){ bv = v; best = a.id; } });
+  return best;
+};
+
+})();
+
+
+/* ===== saveio.js ===== */
+/* ============================================================
+   存档导出 / 导入（第 19 轮）
+   ------------------------------------------------------------
+   为什么需要：
+     浏览器按「源」隔离 localStorage。本地 file:// 与公网网址
+     是两个不同的源，进度互不可见。要搬过去只能靠导出字符串。
+   包含：
+     ① 元层存档（碎片、升级、档案、世界刻度）
+     ② 局内存档（当前这一局的进度，如果有）
+   ============================================================ */
+
+(function(){
+'use strict';
+
+/* 收集本游戏用到的所有 localStorage 键 */
+function saveKeys(){
+  return [G.CONFIG.saveKey, 'jiyi_xiufu_ju_run_v1'];
+}
+
+/* 导出成一个可复制的字符串 */
+function exportSave(){
+  const pack = { v: 1, at: Date.now(), data: {} };
+  saveKeys().forEach(function(k){
+    try{
+      const v = localStorage.getItem(k);
+      if (v) pack.data[k] = v;
+    }catch(e){}
+  });
+  const json = JSON.stringify(pack);
+  /* 用 encodeURIComponent + unescape 处理中文，避免 btoa 报错 */
+  const b64 = btoa(unescape(encodeURIComponent(json)));
+  return b64;
+}
+
+/* 从字符串导入 */
+function importSave(str){
+  if (!str || typeof str !== 'string') return { ok:false, msg:'内容是空的' };
+  const s = str.trim().replace(/\s+/g, '');
+  let pack;
+  try{
+    const json = decodeURIComponent(escape(atob(s)));
+    pack = JSON.parse(json);
+  }catch(e){
+    return { ok:false, msg:'这段内容看不懂，可能复制时少了一段' };
+  }
+  if (!pack || !pack.data) return { ok:false, msg:'内容格式不对' };
+
+  let n = 0;
+  Object.keys(pack.data).forEach(function(k){
+    try{ localStorage.setItem(k, pack.data[k]); n++; }catch(e){}
+  });
+  if (!n) return { ok:false, msg:'里面没有可用的存档' };
+
+  /* 重新读入内存 */
+  try{
+    if (typeof G.Engine.reload === 'function') G.Engine.reload();
+  }catch(e){}
+
+  return { ok:true, count:n,
+           meta: !!pack.data[G.CONFIG.saveKey],
+           run:  !!pack.data['jiyi_xiufu_ju_run_v1'] };
+}
+
+/* 给界面看的摘要 */
+function saveSummary(){
+  const out = { meta:null, run:null };
+  try{
+    const m = localStorage.getItem(G.CONFIG.saveKey);
+    if (m){
+      const d = JSON.parse(m);
+      out.meta = { frag:d.frag||0, runs:d.runs||0, wins:d.wins||0,
+                   ups:Object.keys(d.up||{}).length,
+                   lore:(d.lore||[]).length,
+                   endings:(d.endings||[]).length };
+    }
+    const r = localStorage.getItem('jiyi_xiufu_ju_run_v1');
+    if (r){
+      const d = JSON.parse(r);
+      out.run = { realm:(G.REALMS[d.realmIdx]||{}).name||'?',
+                  actions:d.actions||0, life:d.life, maxLife:d.maxLife };
+    }
+  }catch(e){}
+  return out;
+}
+
+G.Engine.exportSave = exportSave;
+G.Engine.importSave = importSave;
+G.Engine.saveSummary = saveSummary;
 
 })();
 
@@ -11481,10 +12447,20 @@ function renderArchive(){
   pane.appendChild(sec3);
 
   // 统计
+  /* ⚠️ 第 29 轮：这一段以前写的是「走过 N 世　突破筑基 M 次」。
+     两个问题：① M 恒为 0（计数器挂在已删掉的结局上，第 28 轮修好）
+     ② **标签停在「筑基」**——游戏早就跑到元婴了，那是第 25 轮之前
+     「筑基就是通关」时期的说法。玩家一眼就看出来了。
+     现在数的是三个真的里程碑，且每一项都能落回引擎里的计数。 */
   const sec4 = el('div','arc-sec');
   sec4.appendChild(el('div','arc-h','统 计'));
+  const mile = m.mile || { zhuji:0, jiedan:0, capstone:0 };
   sec4.appendChild(el('div','arc-i',
-    `走过 ${m.runs} 世　突破筑基 ${m.wins} 次<br>累计行动 ${m.totalActions} 次`));
+    `走过 <b>${m.runs}</b> 世　累计行动 ${m.totalActions} 次`));
+  sec4.appendChild(el('div','arc-i','　' +
+    `走出炼气 <b>${mile.zhuji}</b> 世　` +
+    `结丹 <b>${mile.jiedan}</b> 次　` +
+    `此世圆满 <b>${mile.capstone}</b> 次`));
   pane.appendChild(sec4);
 
   /* ---- 天骄榜（第 22 轮）----
@@ -11649,6 +12625,39 @@ function renderRun(){
       djEl.className = 'daoji-text' + (dj.maxed ? ' maxed' : (dj.affordable ? ' ready' : ''));
     } else {
       djEl.innerHTML = '';
+    }
+  }
+
+  /* ---- 主线进度（第 29 轮）----
+     玩家反馈「主线过于模糊」。实测确认：它以前只活在「宗门」面板里，
+     不点开那个面板，主界面上完全看不出有这条线。
+     这一行只做一件事：**让它看得见**。
+     ⚠️ 刻意不做成弹窗、不做成红点、不催——用户明确说了
+     「不能过于强迫玩家一定要走，因为可能会让玩家产生厌烦的心理」。
+     点了才展开，不点就当它不存在，走不走都不影响任何数值收益。 */
+  const shEl = $('storyHud');
+  if (shEl){
+    const pr = G.Engine.storyProgress ? G.Engine.storyProgress() : null;
+    /* 散修篇没有宗门主线，整行隐藏 */
+    if (!pr || st.chapter === 'sanxiu'){
+      shEl.style.display = 'none';
+      shEl.innerHTML = '';
+    } else if (pr.done >= pr.total){
+      shEl.style.display = '';
+      shEl.className = 'story-hud done';
+      shEl.innerHTML = `<span class="sh-k">三月初七</span>` +
+        `<span class="sh-v">四页都看过了</span>`;
+    } else {
+      const ready = pr.need <= 0;
+      shEl.style.display = '';
+      shEl.className = 'story-hud' + (ready ? ' ready' : '');
+      shEl.innerHTML =
+        `<span class="sh-k">三月初七</span>` +
+        `<span class="sh-v">第 ${pr.done+1}/${pr.total} 页` +
+        (pr.next ? `　<b>${pr.next.name}</b>` : '') + `</span>` +
+        `<span class="sh-n">` +
+        (ready ? '可以往下查了' : `还差 ${pr.need} 点贡献`) +
+        `</span>`;
     }
   }
 
@@ -12492,8 +13501,14 @@ function afterActionFlow(){
   const boss = G.Engine.pickBoss();
   if (boss){ setTimeout(()=>showBoss(boss), 260); return; }
 
-  // 业障满 → 天谴（输了直接死）
-  if (G.Engine.karmaOverflow() && Math.random()<0.5){
+  /* 业障满 → 天谴（输了直接死）
+     ⚠️ 第 29 轮修复：这一段以前是
+          if (G.Engine.karmaOverflow() && Math.random()<0.5) startKillerTribulationFlow();
+        没有冷却、也没有洗业 —— 业障到 20 之后每一步都有 50% 概率挨一次
+        terror 级必死战，实测一局 43~69 次。玩家看到的就是「每走一步就一次天劫」。
+        现在判定收在引擎的 karmaTribulationReady() 里（业障满 + 不在冷却），
+        概率仍然保留一点点随机，但冷却把它压成「几十步一次」。 */
+  if (G.Engine.karmaTribulationReady() && Math.random()<0.5){
     startKillerTribulationFlow();
     return;
   }
@@ -12669,8 +13684,14 @@ function showEvent(ev){
   if (cat) head.appendChild(el('div','ev-cat ev-cat-' + cat, cat));
   /* 正文按空行拆段后逐段淡入；只有一段就整体淡入。
      ⚠️ 这里全部用 appendChild 拼节点，不用 innerHTML + querySelector ——
-     假 DOM（dev/uidom.js）解析不了选择器，用节点拼两边才都能测。 */
-  const rawText = String(ev.text||'');
+     假 DOM（dev/uidom.js）解析不了选择器，用节点拼两边才都能测。
+
+     第 29 轮：text / flavor 可以是**函数** —— 同一个事件在属性不同的人眼里
+     长得不一样（玩家反馈：「事件可能因为玩家属性的变化而变化这个效果
+     完全没有做出来」）。求值统一走 G.Engine.evTextOf()：
+     只有函数才调用、并且吞掉异常，所以老的字符串事件完全不受影响。 */
+  const rawText = G.Engine.evTextOf(ev.text);
+  const evFlavor = G.Engine.evTextOf(ev.flavor);
   const paras = rawText.split(/\n\s*\n/).map(x=>x.trim()).filter(Boolean);
   if (paras.length > 1){
     paras.forEach((p,i)=>{
@@ -12684,7 +13705,7 @@ function showEvent(ev){
     d.innerHTML = rawText.replace(/\n/g,'<br>');
     head.appendChild(d);
   }
-  if (ev.flavor) head.appendChild(el('div','ev-flavor', String(ev.flavor).replace(/\n/g,'<br>')));
+  if (evFlavor) head.appendChild(el('div','ev-flavor', evFlavor.replace(/\n/g,'<br>')));
   body.appendChild(head);
 
   const wrap = el('div');
@@ -12985,6 +14006,14 @@ function finishChallenge(){
       ${r.card ? `<div class="reward-line gold">获得招式 · <b>${r.card}</b></div>` : ''}
       ${r.extra ? `<div class="reward-line">${r.extra}</div>` : ''}
     </div>`;
+    /* 第 29 轮：劫余要单独给一块 —— 它是「多渡一劫」的理由，
+       埋在 extra 那一行里没人看得见。 */
+    if (r.boon){
+      html += `<div class="boon-box">
+        <div class="boon-h">劫 余 · ${r.boon.name}</div>
+        <div class="boon-t">${r.boon.text.replace(/\n/g,'<br>')}</div>
+      </div>`;
+    }
     sheet('◆ 战 利 品', html, [ btn('收下','btn-main btn-go', ()=>{
       closeSheet(); renderRun();
       const sc = G.Engine.checkSectCollapse();
@@ -13553,7 +14582,7 @@ function showWheel(killerBoost){
     setTimeout(()=>{
       disc.classList.remove('spinning');
       pointer.classList.remove('spinning');
-      const out = G.Engine.applyWheelResult(res.hit.id);
+      const out = G.Engine.applyWheelResult(res.hit.id, { killer: killerBoost });
       closeSheet();
       sheet('◆ ' + res.hit.name,
         `<div class="ev-text">${res.hit.text.replace(/\n/g,'<br>')}</div>` +
@@ -13789,19 +14818,26 @@ function showSect(){
     '藏经阁折扣 ' + Math.round(rank.discount*100) + '%<br>' +
     '<span style="color:#6f6459">' + rank.desc + '</span>'));
 
-  /* ---- 宗门主线《三月初七》 ---- */
+  /* ---- 宗门主线《三月初七》 ----
+     第 29 轮：文案改成和主界面 HUD 同源（storyProgressLine），
+     两处说的是同一件事，不会各说各话。
+     ⚠️ 指引也从「再做 N 次宗门事务」改掉了：那句话读起来像派活，
+     而且把「贡献」说成只有宗门事务才给（其实任务、事件、月俸都会给）。
+     现在只说「攒够多少贡献」——怎么攒由玩家自己决定。 */
   const story = st.story;
   const sBox = el('div','sect-story');
   if (story.done >= story.total){
     sBox.innerHTML = '<div class="ss-title">三 月 初 七</div>' +
-      '<div class="ss-line">你已经看到了全部四页。</div>';
+      '<div class="ss-line">你已经看到了全部四页。</div>' +
+      '<div class="ss-hint">剩下的在别处。</div>';
   } else {
     sBox.innerHTML = '<div class="ss-title">三 月 初 七</div>' +
       '<div class="ss-line">第 ' + (story.done+1) + ' / ' + story.total + ' 页　' +
       (story.next ? story.next.name : '') + '</div>' +
       '<div class="ss-hint">' + (story.need > 0
-        ? ('再做 ' + story.need + ' 次宗门事务，就会有新的发现')
-        : '你已经可以往下查了') + '</div>';
+        ? ('再攒 ' + story.need + ' 点贡献就能往下翻（宗门事务、任务、事件都给）')
+        : '你已经可以往下查了') + '</div>' +
+      '<div class="ss-opt">这条路不走也行——它不挡任何东西。</div>';
   }
   body.appendChild(sBox);
 
@@ -13944,21 +14980,41 @@ function showSect(){
 }
 
 /* ============================================================
-   《三月初七》—— 宗门主线（第 27 轮重做演出）
+   《三月初七》—— 宗门主线
    ------------------------------------------------------------
-   玩家反馈：「三月初七远没有达到预期……这是网页文字游戏，玩家一般不会
-   过多关注这个，可能只觉得是个普通小事件。总之在演出效果上没达到预期。」
+   第 27 轮重做演出（专属封面 / 逐段浮现 / 结果卡）。
+   第 29 轮再来一次，这次解决的是**「模糊」**：
 
-   旧版的毛病：它长得和普通事件**一模一样** —— 同一个弹层、同一套按钮、
-   同一段一次性铺完的正文。玩家的注意力根本没有理由停在这里。
+   玩家原话：「当前的主线有些过于模糊了，请想方案进行优化
+   （但不能过于强迫玩家一定要走，因为可能会让玩家有厌烦的心理）」。
 
-   这一版做四件事，全都是为了让它在视觉上「不像一个普通事件」：
-     ① 专属封面：章节号 + 页码 + 标题，进门先给一屏
-     ② **逐段浮现**：正文按空行拆段，一段一段淡入（不是一下子全砸出来）
-     ③ 更大的正文排版：行距、字号、首段强调都和普通事件拉开档次
-     ④ 结果卡：选完之后正文换成「你做了什么 / 发生了什么」，
-        并且**明确写出这一页得到了什么线索**（普通事件没有这一步）
+   「模糊」具体模糊在哪（第 29 轮实测确认）：
+     · 它只活在「宗门」面板的一个小盒子里。不点开宗门面板，
+       玩家在主界面上完全看不到有这条线存在。
+     · 线索面板只列「你还差几条」，从不告诉你这些线索跟主线什么关系。
+     · 唯一的指引是一句「再做 N 次宗门事务」——读起来像派活，
+       而不是「这条线在往前挪」。
+
+   所以这一轮做三件事，全部是**可见性**，一件都不加限制：
+     ① 主界面 HUD 上一行常驻进度（第 N/4 页 · 还差多少）
+        —— 只是「看得见」，不弹窗、不打断、不催
+     ② 点开它是一个**案卷**：这条线是什么、你查到哪了、
+        你手上哪些东西是从它这儿来的
+     ③ 明确写出「这条路你不想走也可以」——
+        主线永不影响任何数值收益，不走的人一点都不会亏
+
+   ⚠️ 有意**不做**的事：不给主线加独占奖励、不加每日/每局强制、
+   不在玩家没准备好时弹窗。用户明确说了「不能过于强迫」。
    ============================================================ */
+
+/* 一条主线进度的短句，主界面 HUD 与宗门面板共用，保证两处说的是同一件事 */
+function storyProgressLine(){
+  const pr = G.Engine.storyProgress();
+  if (!pr) return '';
+  if (pr.done >= pr.total) return '《三月初七》四页都看过了';
+  return `《三月初七》第 ${pr.done+1}/${pr.total} 页` +
+         (pr.need > 0 ? `　还差 ${pr.need} 点贡献` : '　可以往下查了');
+}
 
 /* 把正文按空行拆成段落，逐段淡入。
    ⚠️ 不能按 \n 拆 —— 正文里的换行大多是「诗行」，
@@ -14081,25 +15137,73 @@ function showLog(){
   sheet('记 事', body, []);
 }
 
-/* 线索：故意不告诉你每条线索「怎么拿」，只告诉你「还差几条」。
-   这是本作「隐隐投射」的核心——玩家自己拼，游戏不讲解。 */
+/* 线索 · 案卷（第 29 轮改写）
+   ------------------------------------------------------------
+   旧版：列一句「你已经注意到了 N / M 处不对」，然后把 LORE 条目
+   一条条铺出来，没拿到的写「你还什么都没有注意到」。
+
+   问题（对应玩家说的「主线过于模糊」）：
+   玩家在这里看不到**这条线是什么**、**我查到哪了**、
+   **我手上哪些东西是这条线给的**。线索和主线是两套各说各话的东西。
+
+   现在它是一份案卷：先给主线的位置，再给手上真的有的东西，
+   没拿到的只报数量（本作「隐隐投射」的调子不能丢），
+   最后明确写一句「这条路可以不走」——把选择权交回去。 */
 function showClue(){
   const st = G.Engine.state();
   const raw = st.raw;
   const prog = G.Engine.clueProgress();
+  const pr = G.Engine.storyProgress ? G.Engine.storyProgress() : null;
   const body = el('div');
 
+  /* ---- ① 主线在哪儿 ---- */
+  if (pr && st.chapter !== 'sanxiu'){
+    const box = el('div','case-main');
+    box.innerHTML =
+      `<div class="case-h">宗 门 主 线</div>` +
+      `<div class="case-t">三 月 初 七</div>` +
+      `<div class="case-l">` +
+        (pr.done >= pr.total
+          ? '四页你都看过了。剩下的在别处。'
+          : `你翻到了第 <b>${pr.done}</b> / ${pr.total} 页` +
+            (pr.next ? `　下一页：<b>${pr.next.name}</b>` : '') +
+            `<br>` +
+            (pr.need > 0
+              ? `<span class="case-dim">再攒 <b>${pr.need}</b> 点宗门贡献，就能往下翻。</span>`
+              : `<span class="case-ok">已经可以往下翻了。</span>`)) +
+      `</div>`;
+    body.appendChild(box);
+
+    /* ⚠️ 这一句是刻意写的：用户要求「不能过于强迫玩家一定要走」。 */
+    body.appendChild(el('div','case-opt',
+      '这条路你可以不走。它不挡任何东西，也不给独一份的好处——' +
+      '想查就查，不想查就把它撂在那儿。'));
+  }
+
+  /* ---- ② 手上真的有的东西 ---- */
+  body.appendChild(el('div','arc-h','你 注 意 到 的 地 方'));
   body.appendChild(el('div','arc-i',
-    `你已经注意到了 <b style="color:#c9a227">${prog.got}</b> / ${prog.total} 处不对。\n` +
+    `一共 <b style="color:#c9a227">${prog.got}</b> / ${prog.total} 处。` +
     (prog.got===0 ? '目前一切正常。' : '它们之间，好像有点关系。')));
 
-  G.LORE.zongmen.forEach(c=>{
-    if (raw.clues.includes(c.id)) body.appendChild(el('div','arc-i', c.text));
-    else body.appendChild(el('div','arc-i unk','（你还什么都没有注意到）'));
-  });
+  const got = G.LORE.zongmen.filter(c=>raw.clues.includes(c.id));
+  if (got.length){
+    got.forEach(c=>{
+      const row = el('div','case-clue');
+      row.innerHTML = `<div class="cc-t">${c.title || c.id}</div>` +
+                      `<div class="cc-x">${String(c.text||'').replace(/\n/g,'<br>')}</div>`;
+      body.appendChild(row);
+    });
+  } else {
+    body.appendChild(el('div','arc-i unk','（你还什么都没有注意到）'));
+  }
+  if (prog.got < prog.total){
+    body.appendChild(el('div','arc-i unk',
+      `还有 ${prog.total - prog.got} 处，你见过，但当时没有停下来看。`));
+  }
 
   body.appendChild(el('div','rune','— 集齐全部，会有什么事发生 —'));
-  sheet('线 索', body, []);
+  sheet('线 索 · 案 卷', body, []);
 }
 
 function showMenu(){
@@ -14282,6 +15386,10 @@ function init(){
   $('btnSect').addEventListener('click', showSect);
   $('btnClue').addEventListener('click', showClue);
   $('btnLog').addEventListener('click', showLog);
+  /* 主界面那行主线进度可点：点开就是案卷。
+     ⚠️ 只加「点了有用」，不加「不点会有损失」——用户要求主线不能强迫。 */
+  const shBtn = $('storyHud');
+  if (shBtn && shBtn.addEventListener) shBtn.addEventListener('click', showClue);
   $('btnMenu').addEventListener('click', showMenu);
   $('btnBackMeta').addEventListener('click', ()=>{ show('screen-meta'); renderMeta(); });
 
@@ -14332,7 +15440,7 @@ G.UI.__dev = {
   startTianjiaoFlow, renderRun, showDeck, showAttrs, doNurtureFlow,
   showTianjiaoCompass, showEvent, showSectStory, showStoryResult, renderStoryText,
   showMijingNotice, showMijingEnter, showMijingFloor, resolveMijingPick, showMijingExit,
-  showMijingBook, doDivineMijing, renderArchive
+  showMijingBook, doDivineMijing, renderArchive, showClue, showSect, showBag, startChallengeFlow
 };
 
 document.addEventListener('DOMContentLoaded', init);

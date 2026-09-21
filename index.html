@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta name="build" content="2026/9/20 19:53:08">
-<!-- build: 2026/9/20 19:53:08 -->
+<meta name="build" content="2026/9/22 00:19:16">
+<!-- build: 2026/9/22 00:19:16 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#0d0b0a">
@@ -1159,7 +1159,7 @@ button{touch-action:manipulation;}
 
 <script>
 /* ===== realms.js ===== */
-﻿/* ============================================================
+/* ============================================================
    境界表生成器（第 17 轮）
    ------------------------------------------------------------
    从「炼气 ~ 渡劫」共 8 个大境界，每大境界 9 小层。
@@ -1192,8 +1192,27 @@ G.MAJOR_DEFS = [
     desc:'此界之巅。你成了阵的候选——或者它的对手。' }
 ];
 
-/* 小层名：一~九层 + 一个「圆满」 */
-G.SUB_NAMES = ['一层','二层','三层','四层','五层','六层','七层','八层','九层'];
+/* ---------------- 小境界的命名（第 30 轮） ----------------
+   玩家原话：「从筑基开始，小境界改为（前期、中期、后期、巅峰），
+   简化突破流程，每次突破得到的加成更多，但所需要的修为也更多」。
+
+     炼气  ：一层 ~ 九层（**保持 9 档不动** —— 用户明确说「从筑基开始」，
+             而且炼气是教学段，前几步每 3~5 次修行就破一层，节奏快、适合上手）
+     筑基起：前期 / 中期 / 后期 / 巅峰（每个大境界 4 档，原来是 9 档）
+
+   一局（炼气~元婴）可玩档数 36 → 21，突破次数 35 → 20（少 43%）。
+   两套名字都从同一张 SUBS_PER_MAJOR 来，加一个大境界只要写一个数字。 */
+G.SUB_NAMES_LIANQI = ['一层','二层','三层','四层','五层','六层','七层','八层','九层'];
+G.SEG_NAMES        = ['前期','中期','后期','巅峰'];
+G.SUBS_PER_MAJOR   = [9,4,4,4,4,4,4,4];
+G.subNamesOf = function(major){
+  return (major === 1) ? G.SUB_NAMES_LIANQI : G.SEG_NAMES;
+};
+G.subsOfMajor = function(major){
+  return G.SUBS_PER_MAJOR[major-1] || 4;
+};
+/* 兼容旧名：老代码/老测试里用到 SUB_NAMES 的地方拿到的是炼气那套 */
+G.SUB_NAMES = G.SUB_NAMES_LIANQI;
 
 /* 每大境界突破时给的属性点（境界越高给得越多） */
 G.REALM_ATTR_GAIN = [];
@@ -1231,9 +1250,15 @@ G.CURVE = {
   tierMulLife: 3,        // 跨大境界的寿元上限倍率（大境界真的是道坎）
 
   /* ---- 行动预算 ---- */
-  actsPerPool: 52,       // 一个寿元池能支撑多少次行动
-                         // ⚠️ 它**不决定一局长度**：池子与消耗同比例涨，
-                         //    所以每次突破后「还能行动几次」是恒定的。
+  /* 一个寿元池能支撑多少次行动。
+     ⚠️ 它**不是**一局长度的旋钮 —— 第 30 轮实测确认过：
+     52 → 61（池子更经花）反而让一局从 186.7 掉到 173.6。
+     原因是 need（突破需求）与 cost 同比例：gain = speed×cost、
+     need = gain×K，所以 cost 降一半，需求也降一半；
+     而事件给的修为**不随 cost 缩放**，于是需求被事件覆盖得更多、
+     突破来得更早、整局更短。
+     真正的一局长度旋钮是下面的 cultsBase。 */
+  actsPerPool: 52,
 
   /* ============================================================
      修炼速度（第 23 轮重做后的最终模型）
@@ -1272,46 +1297,117 @@ G.CURVE = {
   speedCross: 3.0,
 
   /* ---- 突破需求 ---- */
-  cultsBase: 12,         // 炼气期一层要几次修行
-                         // ⚠️ 这才是**一局长度**的旋钮：调大 = 每层要更多修行 = 一局更长。
-                         //    10 时一局约 200~240 次行动（玩家选定 200~260）。
-  cultsDecay: 0.88       // 每个大境界下调（境界越高练得越快）
+  /* 炼气期一步要几次修行。
+     ⚠️ **这才是一局长度的旋钮**（第 30 轮实测确认）：
+     调大 = 每步要更多修行 = 一局更长；调小 = 更短。
+     它同时是「每次突破要的修为多不多」的旋钮 —— 也就是玩家
+     「所需要的修为也更多」那句话要的那个量。
+
+     第 30 轮的值：12 → 14.5。
+     为什么必须调：把 9 档压成 4 档之后，每步的跨度是原来的 2.25 倍，
+     一局从 36 档变成 21 档，实测一局从 ~219 掉到 186.7 次行动。
+     玩家明确选了「保持一样长」，所以把每步的修行次数抬上去补回来。
+     实测记录（dev/playthrough.js 300 局）：
+       12.0 → 186.7 次行动　15.2 → 230.0 次　→ 取 14.5 ≈ 219 次（对齐旧基线）。 */
+  cultsBase: 14.5,
+  cultsDecay: 0.88,      // 每个大境界下调（境界越高练得越快）
+
+  /* ---- 第 30 轮：突破奖励的比例 ----
+     reward = 当层寿元 × BW。旧表 3%，新表 7.2%（炼气仍 3%）。
+     为什么必须动它：一局的长度 ≈ Σ(突破拿到的寿元)/当层消耗。
+     突破从 9 档压到 4 档之后，段内那几步的寿元增量要除以更高的当层消耗，
+     段内行动预算会掉三成。reward 带来的行动数 = 52×BW（与境界无关），
+     正好用它把这个缺口线性补回来。
+     ⚠️ 同一个旋钮也是玩家要的「每次突破得到的加成更多」。
+     数值搜索过程见 dev/dbg-newrealm2.js（误差 0.1 次行动）。 */
+  rewardBase: 0.03,      // 炼气期沿用旧值
+  rewardSeg:  0.072      // 筑基起
 };
+
+/* 境界表版本：改了表结构就 +1。
+   ⚠️ 局内存档里存的是 realmIdx（一个**下标**）。
+   表一变长变短，同一个下标指向的境界就完全不是一回事 ——
+   老存档直接读进来会让玩家凭空出现在别的境界上。
+   engine.js 的 loadRun 用这个号判断该不该作废局内存档。 */
+G.REALM_TABLE_VERSION = 2;
 
 (function buildRealms(){
   const C = G.CURVE;
   const list = [];
   let prevTopLife = 0;
 
+  /* 段内寿元涨幅：段末 = 段首 ×(1 + 0.6×8/9) = 段首 ×1.5333。
+     ⚠️ 那个 (8/9) 是**旧表 9 档时代的形状**，这里刻意保留成常数：
+     它让 N=9 的炼气走出来的寿元与旧表一字不差，
+     同时让 N=4 的筑基/金丹/元婴落在同样的段首段末上 ——
+     跨大境界那一跳（×3）因此完全不变，敌人曲线/天劫门槛/比武赛道
+     挂在大境界边界上的东西一个都不用重调。
+     段内取点：frac = (s/(N-1)) × 0.6 × 8/9
+       N=9 → frac = (s/8)×0.5333 = (s/9)×0.6   ← 与旧公式完全等价
+       N=4 → 0 / 0.1778 / 0.3556 / 0.5333 */
+  const SPAN = 0.6 * 8 / 9;
+
   G.MAJOR_DEFS.forEach(function(m, mi){
     const major = mi + 1;
+    const N = G.subsOfMajor(major);
+    const names = G.subNamesOf(major);
     const life0 = mi === 0
       ? m.maxLife
       : Math.round(prevTopLife * C.tierMulLife);
     /* 本段的修炼速度基准（跨段的跳变在这里） */
     const sp0 = C.baseSpeed * Math.pow(C.speedCross, mi);
-    /* 本段的「每层修炼次数」（逐段下调，让高境界练得更快） */
-    const K = C.cultsBase * Math.pow(C.cultsDecay, mi);
+    /* 段内每步倍率：保证「段内速度总涨幅」恒等于 1.10^8，与档数无关。
+       ⚠️ 必须按 N 算。第一版图省事给整表都用了 1.10^(8/3)，
+       结果还是 9 档的炼气段内速度涨到 1.288^8 = 7.6 倍（旧 2.14 倍），
+       炼气的修行收益被凭空放大、需求被摊薄 —— 与「炼气一个数都不动」矛盾。
+       被 dev/dbg-newrealm2.js 抓到。 */
+    const SW = Math.pow(C.speedWithin, 8 / (N - 1));
+    /* 突破奖励：炼气沿用旧值，筑基起用新值 */
+    const BW = (major === 1) ? C.rewardBase : C.rewardSeg;
 
+    /* ---- 先按旧表（9 档）算出这个大境界的「突破需求总量」 ----
+       这是要保住的设计量：一个大境界总共要练多久，
+       不该因为把它切成 4 段还是 9 段而改变。
+       做法：用旧的寿元/速度形状跑一遍得到 Σgain，再乘旧的需求系数 ——
+       于是旧表在这个大境界上的需求总量被**算出来**，而不是抄一张表。 */
+    const K_old = C.cultsBase * Math.pow(C.cultsDecay, mi);
+    let legacyGainSum = 0;
     for (let s = 0; s < 9; s++){
-      const life = Math.round(life0 * (1 + (s / 9) * 0.6));
+      const lifeL = Math.round(life0 * (1 + (s / 9) * 0.6));
+      const costL = Math.max(1, Math.round(lifeL / C.actsPerPool));
+      const gainL = Math.max(1, Math.round(sp0 * Math.pow(C.speedWithin, s) * costL));
+      legacyGainSum += gainL;
+    }
+    const needTotal = K_old * legacyGainSum;
+
+    const seg = [];
+    for (let s = 0; s < N; s++){
+      const frac = N === 1 ? 0 : (s / (N - 1)) * SPAN;
+      const life = Math.round(life0 * (1 + frac));
       const cost = Math.max(1, Math.round(life / C.actsPerPool));
-      const speed = sp0 * Math.pow(C.speedWithin, s);
+      const speed = sp0 * Math.pow(SW, s);
       const gain  = Math.max(1, Math.round(speed * cost));
-      const need  = Math.max(10, Math.round(gain * K));
+      seg.push({ life:life, cost:cost, gain:gain });
+    }
+    /* 需求系数按新表的 Σgain 归一：这样「每一步练多久」在大境界内是均匀的，
+       而整个大境界的需求总量与旧表一致。 */
+    const gainSum = seg.reduce(function(n, x){ return n + x.gain; }, 0);
+    const K = needTotal / gainSum;
+
+    seg.forEach(function(x, s){
       list.push({
-        name: m.name + G.SUB_NAMES[s],
+        name: m.name + names[s],
         major: major,
         sub: s + 1,
-        maxLife: life,
-        cost: cost,
-        speed: Number((gain / cost).toFixed(3)),   // 定义式：gain / cost
-        gain: gain,
-        need: need,
-        reward: Math.round(life * 0.03),
+        maxLife: x.life,
+        cost: x.cost,
+        speed: Number((x.gain / x.cost).toFixed(3)),   // 定义式：gain / cost
+        gain: x.gain,
+        need: Math.max(10, Math.round(x.gain * K)),
+        reward: Math.round(x.life * BW),
         desc: m.desc
       });
-    }
+    });
     prevTopLife = list[list.length-1].maxLife;
   });
 
@@ -1333,19 +1429,27 @@ G.CURVE = {
   });
   G.REALMS = list;
 
-  /* 属性成长表：按大境界给点，越往后越多 */
+  /* ---------------- 属性成长表 ----------------
+     按大境界给点，越往后越多。
+     ⚠️ 第 30 轮：档数从 9 变成 4，所以**每一步**要给的属性点变多
+     （× 9/N = 2.25），但**每个大境界的属性总量**保持不变 ——
+     战斗平衡看的是总量（元婴段末的 attrSum 决定敌人的强弱），
+     不是每一步给多少。这正是玩家要的「每次突破得到的加成更多」的另一半。
+     实测：到可玩上限的累计属性 984（旧 982，+0.2%）。 */
   G.REALM_ATTR_GAIN = [];
   list.forEach(function(r, i){
     if (i === 0) return;                 // 第一层是开局，不给成长
     const m = r.major;
     const base = 1 + (m - 1) * 1.6;      // 大境界越高，基数越大
+    const n = G.subsOfMajor(m);
+    const scale = (n === 9) ? 1 : (9 / n);
     G.REALM_ATTR_GAIN.push({
-      tipo:   Math.round(2 * base),
-      lingli: Math.round(2 * base),
-      wuxing: Math.round(1 * base),
-      shenfa: Math.round(1 * base),
-      shenshi:Math.round(1 * base),
-      gengu:  Math.round(1 * base)
+      tipo:   Math.round(2 * base * scale),
+      lingli: Math.round(2 * base * scale),
+      wuxing: Math.round(1 * base * scale),
+      shenfa: Math.round(1 * base * scale),
+      shenshi:Math.round(1 * base * scale),
+      gengu:  Math.round(1 * base * scale)
     });
   });
 })();
@@ -1386,10 +1490,21 @@ G.realmCapIndex = capIndex;
 G.playableRealmCount = function(){ return capIndex() + 1; };
 /* 是否已经走到本世上限 */
 G.isRealmCapped = function(realmIdx){ return realmIdx >= capIndex(); };
-/* 上限那一档的境界名（用于结局文案） */
+/* 上限那一档的境界名（用于结局文案）
+   ⚠️ 第 30 轮：要剥掉的后缀有两套 —— 炼气是「九层」这类，
+   筑基起是「前期/中期/后期/巅峰」。 */
 G.realmCapName = function(){
   const r = G.REALMS[capIndex()];
-  return r ? r.name.replace(/[一二三四五六七八九]层$/, '') : '';
+  if (!r) return '';
+  return G.stripSubSuffix(r.name);
+};
+
+/* 把一个境界名剥成「大境界名」（去掉小境界后缀）。
+   两套后缀都要认：一层~九层 / 前期·中期·后期·巅峰。 */
+G.stripSubSuffix = function(name){
+  return String(name||'')
+    .replace(/[一二三四五六七八九]层$/, '')
+    .replace(/(前期|中期|后期|巅峰)$/, '');
 };
 
 /* 修为基础收益：随境界指数增长 */
@@ -1401,7 +1516,7 @@ G.cultBase = function(realmIdx){
 /* 玩家当前所处的大境界名 */
 G.majorRealmOf = function(realmIdx){
   const r = G.REALMS[Math.min(realmIdx, G.REALMS.length-1)];
-  return r ? r.name.replace(/[一二三四五六七八九]层$/, '') : '炼气';
+  return r ? G.stripSubSuffix(r.name) : '炼气';
 };
 
 /* 敌人基准强度：只按大境界分段，段内平缓。
@@ -1928,21 +2043,25 @@ G.TOURNEY_FINAL_NAMES = {
   4: ['白鹿书院祭酒','无量寺首座','天机阁大推演']
 };
 
-/* 赛道：一个大境界一条。needSub = 需要走到该大境界的第几层 */
+/* 赛道：一个大境界一条。needSub = 需要走到该大境界的第几段
+   ⚠️ 第 30 轮：筑基起的小境界从 9 档改成 4 档（前期/中期/后期/巅峰），
+   所以门槛不能再写 5 —— 那一段根本不存在，`cur.sub < 5` 恒为真，
+   **整条赛道永远发不出请帖**（比武大会会静默消失，不报错）。
+   炼气仍是 9 档，保持 5（第五层）；其余改成 2（中期）。 */
 G.TOURNEY_BRACKETS = [
   { id:'tz_lianqi', major:1, name:'炼气擂', needSub:5,
     desc:'山门外的野台子。四乡的散修都会来，赢了有几块灵石，输了丢点脸。',
     reward:{ stone:60,  cult:22,  contrib:12, favor:2 },
     champion:{ stone:150, cult:60, contrib:30, favor:5, title:'炼气魁首' } },
-  { id:'tz_zhuji', major:2, name:'筑基擂', needSub:5,
+  { id:'tz_zhuji', major:2, name:'筑基擂', needSub:2,
     desc:'各家的内门弟子在这里碰头。台下坐着几位长老，他们不说话，只看。',
     reward:{ stone:220, cult:24,  contrib:20, favor:3 },
     champion:{ stone:520, cult:70, contrib:50, favor:8, title:'筑基魁首' } },
-  { id:'tz_jindan', major:3, name:'金丹擂', needSub:5,
+  { id:'tz_jindan', major:3, name:'金丹擂', needSub:2,
     desc:'一城之擂。上台的都是有字号的人，报名字要报师门。',
     reward:{ stone:800, cult:26,  contrib:30, favor:4 },
     champion:{ stone:1900, cult:80, contrib:80, favor:12, title:'金丹魁首' } },
-  { id:'tz_yuanying', major:4, name:'元婴擂', needSub:5,
+  { id:'tz_yuanying', major:4, name:'元婴擂', needSub:2,
     desc:'一域之擂。来的人不多，但每一个都能独自镇住一座山。',
     reward:{ stone:3000, cult:28,  contrib:45, favor:6 },
     champion:{ stone:7000, cult:95, contrib:120, favor:16, title:'元婴魁首' } }
@@ -2137,11 +2256,21 @@ G.BOSSES = {
     id:'boss_zhuji', name:'天劫 · 雷池之影', kind:'final', title:'结 丹',
     /* ⚠️ 第 28 轮：trigger 多了「没在池边坐下过」这一条。
        以前只要没打上 boss_zhuji_done 就会反复触发，而坐下也会打上它，
-       于是「坐下」= 一个隐形的「打赢」。 */
-    trigger:function(s){ return s.realmIdx>=17 && s.realmIdx<18
-      && !s.flags.includes('boss_zhuji_done')
-      && !s.flags.includes('boss_zhuji_rest'); },
-    intro:'筑基九层，气已经满了。\n满到身体装不下，开始往外渗。\n\n结丹要在一瞬间把那口气收回去。\n收不回去的，就在这一刻散掉。\n\n你站在雷池边上。池子里没有水，全是白的。\n\n一个声音从池底升上来，很平：\n“上一个站在这里的人，也没进去。”\n“你想清楚了吗？”',
+       于是「坐下」= 一个隐形的「打赢」。
+
+       ⚠️ 第 30 轮：判断从小层下标改成「大境界 + 是不是最后一段」。
+       原来写的是 realmIdx>=17 && <18（筑基九层）——
+       境界表改成「筑基起 4 段」之后，筑基巅峰变成了下标 12，
+       那句硬编码会指向完全不同的境界（新表 17 是元婴前期）。
+       改成结构性判断之后，以后再动档数也不会失效。 */
+    trigger:function(s){
+      const cur = G.REALMS[s.realmIdx];
+      if (!cur || cur.major !== 2) return false;          // 只在筑基期
+      if (cur.sub !== G.subsOfMajor(2)) return false;     // 且只在最后一段（巅峰）
+      return !s.flags.includes('boss_zhuji_done')
+          && !s.flags.includes('boss_zhuji_rest');
+    },
+    intro:'筑基巅峰，气已经满了。\n满到身体装不下，开始往外渗。\n\n结丹要在一瞬间把那口气收回去。\n收不回去的，就在这一刻散掉。\n\n你站在雷池边上。池子里没有水，全是白的。\n\n一个声音从池底升上来，很平：\n“上一个站在这里的人，也没进去。”\n“你想清楚了吗？”',
     choices:[
       { label:'走进去', hint:'天劫 · 结丹',
         eff:function(s,a){
@@ -2594,7 +2723,7 @@ window.G = window.G || {};
 
 /* ---------------- 全局配置（想自己调数值就改这里） ---------------- */
 G.CONFIG = {
-  version: '0.9.0',
+  version: '0.10.0',
   saveKey: 'jiyi_xiufu_ju_v1',
 
   /* ---------------- 境界上限（第 21 轮） ----------------
@@ -2674,9 +2803,22 @@ G.CONFIG = {
     karmaAtonement: 4        // 「静养」一次压下去的业障（静养有每境界次数上限）
   },
 
-  // 恢复类行动：每个境界的次数上限（突破后重置）
-  // 这是为了保证「寿元」始终是唯一的硬约束，不能靠刷回复无限续命
-  restPerRealm: 3,
+  /* 恢复类行动：每个境界的次数上限（突破后重置）
+     这是为了保证「寿元」始终是唯一的硬约束，不能靠刷回复无限续命。
+
+     ⚠️ 第 30 轮：这个上限是**按境界数**累加的，所以改境界表会连带改掉它。
+     旧表一局 36 档 → 终生最多 36×3 = 108 次静养、36×2 = 72 次养身；
+     新表一局 21 档 → 只剩 21×3 = 63 次、21×2 = 42 次。
+     实测（dev/playthrough.js）：一局从 218.8 次行动掉到 184 次，
+     其中一部分缺口就来自这里 —— 突破次数少了，玩家一辈子能恢复的次数也少了。
+     修法：把每境界的次数调高，让**终生可用的总次数**回到原来的量级。
+       静养 108/21 ≈ 5 → 5 次/境界（终生 105）
+       养身  72/21 ≈ 3 → 3 次/境界（终生  63）
+     这是「按比例搬运」，不是放宽限制：每境界仍然只有固定的几次。 */
+  restPerRealm: 5,
+  /* 养身每个境界的次数上限（引擎里读的就是它；
+     第 30 轮之前这个 2 硬编码在 engine.js 的 availableActions 里） */
+  nourishPerRealm: 3,
 
   /* 散修篇：山里的日子比宗门里便宜。
      散修活动的基础寿元消耗按此折扣计算——这是「休闲」的数值保障：
@@ -7684,6 +7826,10 @@ function defaultMeta(){
     worldStage: 0,          // 已解锁的世界线阶段序号
     zhenzhenDown: false,    // 是否击败过隐藏 Boss「镇阵人」
     tianjiao: []            // 已击败的天骄 id（终身成就，第 22 轮）
+    ,
+    /* 第 30 轮：元层是按哪一版境界表写的（bestRealm 是个下标，
+       表一变就必须重记；见 loadMeta） */
+    realmTable: 0
   };
 }
 
@@ -7705,6 +7851,15 @@ function loadMeta(){
        被 dev/verify-endings.js 第 7 节当场抓到）。 */
     if (!saved.mile) m.mile = { zhuji: saved.wins || 0, jiedan: 0, capstone: 0 };
     else m.mile = Object.assign({ zhuji:0, jiedan:0, capstone:0 }, saved.mile);
+    /* ⚠️ 第 30 轮：meta 里的 bestRealm 也是一个**境界下标**。
+       境界表改版（筑基起 9 档 → 4 档）之后，旧的下标会指向别的境界，
+       宗门卡片上就会显示一个玩家从来没到过的境界。
+       元层的东西不能因为改表就丢，所以只把这一个字段归零重记，
+       碎片 / 升级 / 档案柜一个字都不动。 */
+    if (saved.realmTable !== G.REALM_TABLE_VERSION){
+      if (m.worlds && m.worlds.zongmen) m.worlds.zongmen.bestRealm = 0;
+    }
+    m.realmTable = G.REALM_TABLE_VERSION;
     if (!m.worlds) m.worlds = defaultMeta().worlds;
     if (!m.worlds.zongmen) m.worlds.zongmen = { unlocked:true, cleared:0, best:0, bestRealm:0 };
     /* ---------------- 存档迁移（第 25 轮） ----------------
@@ -10543,13 +10698,19 @@ function endRun(reason){
      游戏早就跑到元婴了，档案柜还在数「突破筑基」——
      那是第 25 轮之前「筑基就是通关」时期的说法。
      现在改成三个玩家真正会关心的里程碑，一起数：
-        · 走出炼气  —— 迈过第一道门槛（筑基一层 = realmIdx 9）
-        · 结丹      —— 过了结丹之劫（大境界 3 金丹）
-        · 此世圆满  —— 走到元婴九层收束（= 宗门卡片上的「通关」） */
+        · 走出炼气  —— 迈过第一道门槛（筑基前期）
+        · 结丹      —— 走进了金丹期
+        · 此世圆满  —— 走到元婴最后一档收束（= 宗门卡片上的「通关」）
+
+     ⚠️ 第 30 轮：判断从「硬编码下标」改成「看大境界」。
+     原来写的是 realmIdx>=9 / >=18，那是炼气 9 档、每大境界 9 档时代的数字。
+     境界表改成「筑基起 4 段」之后，下标 18 从「金丹一层」变成了「元婴中期」，
+     这两行会静默地数错（不报错，只是数字不对 —— 最难发现的那一类）。 */
   const m = meta;
   if (!m.mile) m.mile = { zhuji:0, jiedan:0, capstone:0 };
-  if (s.realmIdx >= 9)  { m.wins += 1;  m.mile.zhuji += 1; }
-  if (s.realmIdx >= 18) m.mile.jiedan += 1;
+  const endMajor = (G.REALMS[s.realmIdx] || { major:1 }).major;
+  if (endMajor >= 2) { m.wins += 1;  m.mile.zhuji += 1; }
+  if (endMajor >= 3) m.mile.jiedan += 1;
   if (reason === 'capstone') m.mile.capstone += 1;
   if (!m.endings.includes(e.id)) m.endings.push(e.id);
 
@@ -10995,6 +11156,14 @@ function saveRun(){
     const copy = {};
     Object.keys(s).forEach(k=>{ if (k !== 'rng') copy[k] = s[k]; });
     copy.__savedAt = Date.now();
+    /* ⚠️ 第 30 轮：记下「这份存档是按哪一版境界表写的」。
+       局内存档里存的是 realmIdx —— 一个**下标**。
+       第 30 轮把筑基起的小境界从 9 档改成 4 档，同一个下标
+       指向的境界完全变了（新表 12 = 筑基巅峰，旧表 12 = 筑基四层；
+       新表 17 = 元婴前期，旧表 17 = 筑基九层）。
+       老存档直接读回来，玩家会凭空出现在别的境界上，
+       而且 maxLife / need / cost 全是旧值 —— 那是一个改不回来的坏局面。 */
+    copy.__realmTable = G.REALM_TABLE_VERSION;
     /* ⚠️ 第 22 轮：把「正在进行的战斗」一起存下来。
        以前只存 s，于是玩家打到一半关掉页面，重开后战斗凭空消失，
        而战斗之前的行动已经被扣掉了 —— 净亏损。
@@ -11010,6 +11179,19 @@ function saveRun(){
   }
 }
 
+/* 存档是不是按**当前这一版**境界表写的。
+   undefined（第 30 轮之前的档）一律算作废。 */
+function runSaveTableOk(d){
+  return !!d && d.__realmTable === G.REALM_TABLE_VERSION;
+}
+
+/* 作废一份境界表版本对不上的局内存档。
+   只清局内那一个键 —— 元层（碎片、升级、档案柜）一个字都不动。 */
+function dropStaleRun(){
+  try{ localStorage.removeItem(RUN_KEY); }catch(e){}
+  log('境界表改版了，上一局没法接着打（进度已重新开始，桌上的东西都还在）。');
+}
+
 function hasSavedRun(){
   try{
     const raw = localStorage.getItem(RUN_KEY);
@@ -11018,6 +11200,10 @@ function hasSavedRun(){
     if (!d || !d.deck) return null;
     /* 已经结束的局不算「可继续的存档」（第 21 轮加的两道防线之一） */
     if (d.ended) return null;
+    /* ⚠️ 第 30 轮：境界表版本对不上的档不能拿出来给玩家「继续」——
+       否则会读出一个境界错乱的局面。这里就丢掉，别让它留在磁盘上
+       （第 21 轮的教训：一份陈旧的局内存档会一直留着，直到玩家再开一局）。 */
+    if (!runSaveTableOk(d)){ dropStaleRun(); return null; }
     // 用存档里的行动步数做扰动，让恢复后的随机数不会完全重复
     return { realm: (G.REALMS[d.realmIdx]||{}).name || '?',
              chapter: d.chapter, actions: d.actions||0,
@@ -11034,7 +11220,10 @@ function loadRun(){
     const d = JSON.parse(raw);
     if (!d || !d.deck) return null;
     if (d.ended) return null;          // 打完的局不允许读回来（第 21 轮）
+    /* ⚠️ 第 30 轮：同上，版本对不上直接作废（并清掉那个键）。 */
+    if (!runSaveTableOk(d)){ dropStaleRun(); return null; }
     delete d.__savedAt;
+    delete d.__realmTable;
     const savedChallenge = d.__challenge || null;
     delete d.__challenge;
     d.rng = makeRng((d.seed||'x') + '#' + (d.actions||0));
@@ -12270,7 +12459,11 @@ function availableActions(){
       : '本境界的静养次数已经用完了。突破后方可再养。'
   });
 
-  const nourishLeft = Math.max(0, 2 - (s.nourishUsed||0));
+  /* ⚠️ 第 30 轮：上限从写死的 2 改成 CONFIG.nourishPerRealm。
+     理由和 restPerRealm 一样：它是**按境界数**累加的，
+     境界表从 36 档变 21 档之后，终生可养的次数会跟着砍半。
+     写死在两处（这里和按钮文案）很容易只改一边，所以收进 CONFIG。 */
+  const nourishLeft = Math.max(0, (G.CONFIG.nourishPerRealm || 2) - (s.nourishUsed||0));
   list.push({
     id:'nourish', name:'养身', cost:st.cost, disabled: nourishLeft<=0,
     desc:'用灵气缓缓滋养身体。永久提升寿元上限，净收益很薄。',

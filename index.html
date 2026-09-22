@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta name="build" content="2026/9/22 20:47:51">
-<!-- build: 2026/9/22 20:47:51 -->
+<meta name="build" content="2026/9/22 21:15:38">
+<!-- build: 2026/9/22 21:15:38 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#0d0b0a">
@@ -3081,69 +3081,188 @@ G.SECT_TASKS = [
    玩家每次推进都要做选择——而选择决定「下一个人是谁」。             */
 G.SECT_STORY = {
   title:'三月初七',
+  /* 从哪一页开始。老存档的 s.storyStage 是数字下标，engine 里做了兼容。 */
+  start:'st1',
+  /* ============================================================
+     结构（每局走到 5 页；三条路线，只有第 3 页之后不同）
+       st1 一个日子  12   ┐
+       st2 三个说法  35   ├ 公共
+       st3 名单      70   ┘  ← 这里按你的选择分岔
+         ├ 看清那个名字 → st4a 查下去  100 → st5a 那个名字的主人 135
+         ├ 放回去       → st4b 装作不知道 100 → st5b 那一夜        135
+         └ 拿给师父看   → st4c 问长辈    100 → st5c 师父的册子    135
+     ⚠️ 门槛实测过：一局「累计宗门贡献」中位 171、25% 分位 145，
+     所以 135 这一档约 78% 的局能翻到 —— 不会重演第 27 轮
+     「最后一页正常玩永远看不到」那个坑（当时最后一页要 230）。
+     ============================================================ */
   stages: [
     { id:'st1', name:'第一页 · 一个日子',
-      contrib:12,   /* 第 27 轮：需要「累计宗门贡献」达到这个数才翻页 */
-      text:'你在执事堂帮忙对账。\n账本很厚，你翻到一半，看见一行字：\n\n「三月初七，支灵石三百，用途：—」\n\n用途那一栏是空的。\n你往前翻，往前翻，又翻到三次。\n每一次都是三月初七。',
+      contrib:12,
+      text:'你在执事堂帮忙对账。\n账本很厚，纸是黄的，边角被翻得起了毛。\n\n翻到一半，你看见一行字：\n\n「三月初七，支灵石三百，用途：—」\n\n用途那一栏是空的。\n你以为只是记漏了，就往前翻。\n\n又翻到一次。\n再往前翻，还有一次。\n\n三次都是三月初七。\n三次的用途栏都是空的。\n\n你把账本合上，又打开，那四行字还在。',
       choices:[
         { label:'问管账的老执事', hint:'他管了三十年账',
-          eff:(s,a)=>{ a.sectContrib(4); a.clue('clue_date');
-            return '他抬头看了你一眼，很久才说话。\n\n“三月初七啊……”他说，“那天下了雨。”\n\n“下了雨就要支三百灵石吗？”\n他没回答，把账本合上了。'; } },
+          eff:(s,a)=>{ a.sectContrib(4); a.clue('clue_date'); a.flag('story_asked_clerk');
+            return '他抬头看了你一眼，很久才说话。\n\n“三月初七啊……”他说，“那天下了雨。”\n\n“下了雨就要支三百灵石吗？”\n\n他没回答，把账本合上了。\n合上之前，你看见他把手指夹在某一页里——\n正是你刚才翻到的那一页。\n\n宗门贡献 +4　线索 +1'; } },
         { label:'偷偷抄下来', hint:'把这一页记在心里',
-          eff:(s,a)=>{ a.clue('clue_date'); a.cult(20); a.karma(1);
-            return '你把那四行字抄在了袖子里。\n回屋之后你摊开看——墨迹比平常干得快。\n\n而且第四行的字迹，和前三次不太一样。\n修为 +' + a.gain(20) + '　业障 +1'; } },
+          eff:(s,a)=>{ a.clue('clue_date'); a.cult(20); a.karma(1); a.flag('story_copied');
+            return '你把那四行字抄在了袖子里。\n\n回屋之后你摊开看——墨迹比平常干得快。\n\n而且第四行的字迹，和前三次不太一样：\n前三行是一个人写的，第四行是另一个人。\n\n那个人写字的时候手很稳。\n稳得不像在记账。\n\n修为 +' + a.gain(20) + '　业障 +1　线索 +1'; } },
         { label:'不管它，继续对账', hint:'也许只是记漏了',
-          eff:(s,a)=>{ a.sectContrib(6); a.life(5);
-            return '你把账对完了。\n三百灵石，三次。你没有再想。\n\n那天晚上你睡得很好。寿元 +5　宗门贡献 +6'; } }
+          eff:(s,a)=>{ a.sectContrib(6); a.life(5); a.flag('story_ignored');
+            return '你把剩下的账对完了。\n\n三百灵石，三次。合情合理，数目对得上，\n签字画押一样不缺。\n\n你没有再想。\n那天晚上你睡得很好，一觉到天亮。\n\n寿元 +5　宗门贡献 +6'; } }
       ] },
 
     { id:'st2', name:'第二页 · 三个说法',
       contrib:35,
-      text:'你问了三个人。\n\n师父说：“三月初七？那天我在闭关。”\n大师兄说：“那天你还没来。”\n伙房的老实人说：“那天支了三百灵石，我记得清楚，因为那天没米下锅。”\n\n三个人说的是同一天。\n三个说法对不上，但三个人都很确定。',
+      text:'你问了三个人。\n\n师父说：“三月初七？那天我在闭关。”\n大师兄说：“那天你还没来。”\n伙房的老实人说：“那天支了三百灵石，我记得清楚，因为那天没米下锅。”\n\n三个人说的是同一天。\n三个说法对不上，但三个人都很确定。\n\n你注意到一件事：\n他们回答之前，都停了很短的一下。\n短到几乎听不出来。',
       choices:[
         { label:'去查记档（需要 20 贡献）', hint:'记档不会说谎',
           eff:(s,a)=>{ if (s.sectContrib < 20) return '管记档的人说：“你没这个权限。”';
-            a.sectContrib(-20); a.clue('clue_date'); a.cult(60);
-            return '你把三月初七那一册翻出来了。\n\n那一页是空的。不是没写，是**被人撕掉了**。\n撕口很整齐——是用尺子压着撕的。\n\n你把书合上，发现自己的手在抖。\n修为 +' + a.gain(60) + ''; } },
+            a.sectContrib(-20); a.clue('clue_date'); a.cult(60); a.flag('story_archive');
+            return '你把三月初七那一册翻出来了。\n\n那一页是空的。\n不是没写，是**被人撕掉了**。\n\n撕口很整齐——是用尺子压着撕的。\n撕的人不想留下毛边。\n\n你把书合上，发现自己的手在抖。\n\n修为 +' + a.gain(60) + '　线索 +1'; } },
         { label:'去问师父：那天到底怎么了', hint:'你决定直接问',
-          eff:(s,a)=>{ a.favor(2); a.clue('clue_master'); a.life(-8);
-            return '师父听你问完，沉默了很久。\n\n然后他说：“你问这个做什么。”\n不是疑问句。\n\n“三月——”他停了一下，\n“那天下了雨。”\n\n他第二次说这句话了。\n人情 +2　寿元 −8'; } },
+          eff:(s,a)=>{ a.favor(2); a.clue('clue_master'); a.life(-8); a.flag('story_asked_master');
+            return '师父听你问完，沉默了很久。\n\n然后他说：“你问这个做什么。”\n\n不是疑问句。\n\n“三月——”他停了一下，\n“那天下了雨。”\n\n他第二次说这句话了。\n\n你退出去的时候，听见他在里面翻东西。\n翻了很久，一直在翻。\n\n人情 +2　寿元 −8　线索 +1'; } },
         { label:'把三个说法都记下来', hint:'先不动声色',
-          eff:(s,a)=>{ a.clue('clue_date'); a.cult(35); a.sectContrib(5);
-            return '你找了张纸，把三个说法并排写下来。\n\n写着写着你发现一件事：三个人说的三月初七，\n**年份不一样**。\n\n师父说的是三十年前。\n大师兄说的是三年前。\n老实人说的是去年。\n\n但他们说的都是“三月初七”。\n修为 +' + a.gain(35) + '　宗门贡献 +5'; } }
+          eff:(s,a)=>{ a.clue('clue_date'); a.cult(35); a.sectContrib(5); a.flag('story_noted');
+            return '你找了张纸，把三个说法并排写下来。\n\n写着写着你发现一件事：\n三个人说的三月初七，**年份不一样**。\n\n师父说的是三十年前。\n大师兄说的是三年前。\n老实人说的是去年。\n\n但他们说的都是“三月初七”。\n\n一年只有一个三月初七。\n除非——那不是同一天，是同一件事。\n\n修为 +' + a.gain(35) + '　宗门贡献 +5　线索 +1'; } }
       ] },
 
     { id:'st3', name:'第三页 · 名单',
       contrib:70,
-      text:'你在藏经阁最里面的架子上，找到了一本册子。\n\n封面没有字。里面是一列名字，一行一个。\n二十三个名字。\n\n你数了数：**有六个名字，你从来没有听说过**。\n你去问别人，别人说：“有吗？我不记得。”\n\n你再翻一页。\n最后一行的名字，被人用很重的墨涂掉了。\n但透光看，还看得出笔画。',
+      text:'你在藏经阁最里面的架子上，找到了一本册子。\n\n封面没有字。里面是一列名字，一行一个。\n二十三个名字。\n\n你数了数：**有六个名字，你从来没有听说过**。\n你去问别人，别人说：“有吗？我不记得。”\n\n问第三个人的时候，他反问你：“你说的是哪几个？”\n\n你张了张嘴，发现自己也说不全那六个名字了。\n\n你再翻一页。\n最后一行的名字，被人用很重的墨涂掉了。\n但透光看，还看得出笔画。',
+      /* 这一页是岔路口：三个选项通向三条不同的后续 */
       choices:[
         { label:'对着光看清那个名字', hint:'你需要知道那是谁',
           eff:(s,a)=>{ a.clue('clue_page'); a.clue('clue_erased'); a.karma(2); a.cult(80);
-            return '你把册子举到窗边。\n\n笔画一点点显出来。\n你认出来了。\n\n那是大师兄的名字。\n\n——不，是大师兄**现在**这个名字。\n而他今天早上还跟你打过招呼。\n修为 +' + a.gain(80) + '　业障 +2'; } },
+            a.flag('story_saw_name');
+            return '你把册子举到窗边。\n\n笔画一点点显出来。\n\n你认出来了。\n\n那是大师兄的名字。\n\n——不，是大师兄**现在**这个名字。\n\n而他今天早上还跟你打过招呼，\n还问你要不要一起去后山。\n\n你把册子合上，放回原处。\n放的时候你特意把书脊对齐了，\n像什么都没发生过。\n\n修为 +' + a.gain(80) + '　业障 +2　线索 +2'; },
+          next:()=>'st4a' },
         { label:'把册子放回去，当没看见', hint:'有些事不知道更好',
           eff:(s,a)=>{ a.life(15); a.sectContrib(8); a.clue('clue_page');
-            return '你把册子放回了原来的位置，退后两步，\n还顺手把架子上的灰抹平了。\n\n你走出藏经阁的时候，太阳很好。\n你在门口站了一会儿，觉得这样也挺好。\n寿元 +15　宗门贡献 +8'; } },
+            a.flag('story_looked_away');
+            return '你把册子放回了原来的位置，退后两步，\n还顺手把架子上的灰抹平了。\n\n抹的时候你想了一件事：\n这层灰有多久没人碰过了？\n\n你走出藏经阁的时候，太阳很好。\n你在门口站了一会儿。\n\n有个小弟子跑过来，仰头问你：\n“师兄，藏经阁最里面那排架子，是放什么的？”\n\n“不知道。”你说，“别进去。”\n\n寿元 +15　宗门贡献 +8　线索 +1'; },
+          next:()=>'st4b' },
         { label:'拿给师父看', hint:'让长辈来判断',
           eff:(s,a)=>{ a.clue('clue_page'); a.clue('clue_master'); a.favor(3); a.cult(50);
-            return '师父接过册子，翻开，一页一页看。\n\n看到最后一行的时候，他的手停了。\n\n“这个啊。”他说，“这个是我写的。”\n\n“我写的时候，还没想好写谁。”\n\n他把册子还给你，转身走了。\n人情 +3　修为 +' + a.gain(50) + ''; } }
+            a.flag('story_told_master');
+            return '师父接过册子，翻开，一页一页看。\n\n看得很慢。慢到你能听见外面的鸟叫。\n\n看到最后一行的时候，他的手停了。\n\n“这个啊。”他说，“这个是我写的。”\n\n“我写的时候，还没想好写谁。”\n\n他把册子还给你，转身走了。\n\n走到门口他停下来，背对着你说：\n“下次别拿给别人看。”\n\n人情 +3　修为 +' + a.gain(50) + '　线索 +2'; },
+          next:()=>'st4c' }
       ] },
 
-    { id:'st4', name:'第四页 · 下一个',
-      contrib:110,
-      text:'今天早上，你去伙房打饭。\n\n打饭的换了一个人。\n\n“老实人呢？”你问。\n“哪个老实人？”\n\n你描述了半天：个子不高，脸上有疤，管了十几年伙房的那个。\n\n对方摇摇头：“管伙房的一直是我啊。”\n\n你回到屋里，找出那张写着三个说法的纸。\n纸上只剩两个说法了。\n\n**你记得自己写过三行。**',
+    /* ==================== 路线 A：你看清了那个名字 ==================== */
+    { id:'st4a', name:'第四页 · 查下去',
+      contrib:100,
+      text:'你开始查大师兄。\n\n你查得很小心：不问人，只看东西。\n\n看他的剑穗什么时候换的。\n看他每天什么时候去后山。\n看他房里那盏灯几点灭。\n\n查到第九天，你发现一件事：\n\n**他的东西，全都是三年前的。**\n\n剑是三年前的剑，衣服是三年前的款式，\n连他喝水的碗，都是三年前那批。\n\n三年之内，他没有添过一样新东西。\n\n一个有活人住着的屋子，不会这样。',
       choices:[
-        { label:'把这件事写下来，再抄三份藏在不同的地方', hint:'对抗遗忘',
-          eff:(s,a)=>{ a.clue('clue_erased'); a.cult(120); a.life(-20); a.sectContrib(10);
-            return '你写了三份。\n一份塞在床板下，一份压在祖师堂的香炉底，一份缝进衣服里。\n\n写完你想了很久，然后在每一份的最后加了一句：\n\n**“如果你看到这个，说明我已经不在了。”**\n修为 +' + a.gain(120) + '　寿元 −20'; } },
-        { label:'什么都不做，去山门口坐一会儿', hint:'你有点累了',
-          eff:(s,a)=>{ a.life(25); a.sectContrib(5);
-            return '你坐在山门的石阶上，从天亮坐到天黑。\n\n今天没有人消失。\n今天宗门里所有人都还在。\n\n你不知道明天会怎么样，\n但你今天在这里。\n寿元 +25'; } },
-        { label:'去问大师兄：你叫什么名字', hint:'你想确认一件事',
-          eff:(s,a)=>{ a.clue('clue_name'); a.clue('clue_erased'); a.karma(3); a.cult(90);
-            return '他在练剑。你走过去问他：“师兄，你叫什么名字？”\n\n他停下来，笑着说了一个名字。\n\n然后他愣了一下。\n\n“等等。”他说，“我为什么要想一下？”\n\n他看着自己的手，看了很久。\n\n“我为什么要想一下。”\n修为 +' + a.gain(90) + '　业障 +3'; } }
-      ] }
+        { label:'去问他本人', hint:'你和他还算说得上话',
+          eff:(s,a)=>{ a.clue('clue_name'); a.karma(2); a.cult(90); a.flag('story_confronted');
+            return '你把话摊开了说。\n\n他听完，没有生气，也没有否认。\n\n他低头看自己的手，看了很久。\n\n“你说得对。”他说，“我也发现了。”\n\n“发现什么？”\n\n“我每天早上起来，都要想一下自己叫什么。”\n\n他抬起头，笑了一下，那个笑很难看。\n“想一下就好了。想一下，一天就过去了。”\n\n修为 +' + a.gain(90) + '　业障 +2　线索 +1'; } },
+        { label:'什么都不说，继续记', hint:'记下来就是证据',
+          eff:(s,a)=>{ a.clue('clue_erased'); a.sectContrib(12); a.cult(60); a.flag('story_recorded');
+            return '你把这些一条条记在纸上，记了满满两页。\n\n记完你把它折好，塞进床板底下。\n\n第二天早上你去看，纸还在。\n\n但上面的字淡了一层。\n\n你把纸拿出来重新描了一遍。\n描完你想：如果每天都要描一遍，\n那我到底是在记事，还是在替谁记事。\n\n宗门贡献 +12　修为 +' + a.gain(60) + '　线索 +1'; } },
+        { label:'去告诉大师兄：你可能不是你了', hint:'也许他该知道',
+          eff:(s,a)=>{ a.favor(4); a.karma(-2); a.clue('clue_name'); a.cult(40); a.flag('story_warned');
+            return '你把册子上的事跟他说了。\n\n他听完愣了很久，然后做了一件你想不到的事——\n\n他朝你鞠了一躬。\n\n“谢谢。”他说。\n\n“谢我什么？”\n\n“这三年，没有人跟我说过一句真话。”\n\n那天晚上他请你在伙房吃了饭。\n他吃得很少，但一直在笑。\n\n人情 +4　业障 −2　修为 +' + a.gain(40) + '　线索 +1'; } }
+      ],
+      next:()=>'st5a' },
+
+    { id:'st5a', name:'第五页 · 那个名字的主人',
+      contrib:135,
+      text:'第十一天，大师兄不见了。\n\n不是消失——是**换了一个人**。\n\n早上练剑的还是那个位置，还是那把剑，\n还是那套你看了三年的招式。\n\n但那个人不认得你了。\n\n“早。”他说。\n\n就一个字，语气完全不对。\n\n你站在原地看着他练完一整套剑。\n一招都没错。\n\n错的是别的什么。\n\n你回到屋里，找出那张纸。\n上面写着「大师兄」三个字的地方，\n现在是一小片空白——\n不是淡了，是那块纸本身变得很薄，\n薄得能看见底下的桌面。',
+      choices:[
+        { label:'去祖师堂上一炷香', hint:'你不知道该跟谁说这件事',
+          eff:(s,a)=>{ a.karma(-3); a.clue('clue_date'); a.life(20); a.sectContrib(10);
+            a.flag('story_incense');
+            return '祖师堂里没有人。\n\n你点了香，插进炉子，跪下来。\n\n你没求什么。你只是在那儿跪着。\n\n跪到香烧完，你听见身后有脚步声。\n回头，是师父。\n\n他也在你旁边跪下了。\n\n两个人一句话都没说，一起跪到第二炷香烧完。\n\n起来的时候他说：“记着今天。”\n\n业障 −3　寿元 +20　宗门贡献 +10　线索 +1'; } },
+        { label:'把册子上剩下的名字全抄下来', hint:'至少别让他们也没了',
+          eff:(s,a)=>{ a.clue('clue_page'); a.clue('clue_erased'); a.cult(130); a.life(-18);
+            a.sectContrib(14); a.flag('story_copied_all');
+            return '你连夜把二十三个名字抄了一遍。\n\n抄到第十七个的时候，手开始抖。\n不是累——是那个名字你抄到一半，\n忽然想不起它怎么念了。\n\n你盯着自己刚写下的三个字，看了很久。\n\n然后你照着笔画，一个字一个字念了出来。\n念完它又回来了。\n\n抄到天亮，二十三个名字，一个不少。\n\n修为 +' + a.gain(130) + '　寿元 −18　宗门贡献 +14　线索 +2'; } },
+        { label:'什么都不做。看看会不会轮到你', hint:'你有点想知道答案',
+          eff:(s,a)=>{ a.karma(3); a.clue('clue_xinmo'); a.cult(150);
+            a.flag('story_waited');
+            return '你照常过日子。\n\n吃饭，打坐，去执事堂对账。\n每天早上起来第一件事，是想一下自己叫什么。\n\n想得出来。\n\n第三天早上，你想了两次才想起来。\n\n你没有慌。你坐在床边，把名字念了三遍，\n然后去伙房打饭。\n\n打饭的人问你：“今天怎么这么早？”\n\n你说：“睡不着。”\n\n修为 +' + a.gain(150) + '　业障 +3　线索 +1'; } }
+      ],
+      /* 这条路到此为止。next 返回 null 是**收束**的意思，
+         不是「没写」—— 见 engine.js 里 advanceStory 的说明。 */
+      next:()=>null },
+
+    /* ==================== 路线 B：你把册子放了回去 ==================== */
+    { id:'st4b', name:'第四页 · 装作不知道',
+      contrib:100,
+      text:'你把册子放回去之后，日子过得很快。\n\n快到有点不正常。\n\n你每天对账、打坐、去伙房，\n一抬头天就黑了，再一抬头又是早上。\n\n你数了数，已经过去二十六天。\n\n这二十六天里，你没有想起过那本册子。\n\n**一次都没有。**\n\n不是你忘了——是你每次快要想到的时候，\n脑子里就自动转去别的地方，\n像走路绕开一个水坑。\n\n今天你路过藏经阁。\n\n门开着。里面没有人。',
+      choices:[
+        { label:'进去，再看一眼', hint:'就一眼',
+          eff:(s,a)=>{ a.clue('clue_page'); a.karma(2); a.cult(85); a.flag('story_went_back');
+            return '你走到最里面那排架子。\n\n册子还在原来的位置。\n\n你把它抽出来，翻开——\n\n第一页的名字变了。\n\n不是你上次看到的那些。\n\n最上面一行，是**你自己的名字**。\n\n你盯着看了很久，然后把它放了回去。\n放的时候你手很稳。\n\n走出来的时候，天已经黑了。\n\n修为 +' + a.gain(85) + '　业障 +2　线索 +1'; } },
+        { label:'把门关上，走开', hint:'你已经决定过了',
+          eff:(s,a)=>{ a.life(25); a.sectContrib(10); a.karma(-2); a.flag('story_closed_door');
+            return '你把门拉上，还看了一眼门轴——\n怕它响。\n\n它没有响。\n\n你往回走。走到一半，你停下来，回头看了一眼。\n\n藏经阁安安静静地立在那儿。\n\n那天晚上你睡得很沉。\n第二天早上你起来，神清气爽。\n\n你决定以后每天都走这条路。\n\n寿元 +25　宗门贡献 +10　业障 −2'; } },
+        { label:'站在门口等', hint:'你想看看谁会来',
+          eff:(s,a)=>{ a.clue('clue_erased'); a.cult(70); a.life(-12); a.flag('story_waited_door');
+            return '你在门口站了一整个下午。\n\n没有人来。\n\n天快黑的时候，来了一只猫。\n它从门缝里钻进去，过了一会儿又出来，\n嘴里叼着一样东西。\n\n你追了两步，它跑了。\n\n地上掉了一片纸。\n是从册子上撕下来的。\n\n上面只有一个字，被猫咬掉了一半。\n\n修为 +' + a.gain(70) + '　寿元 −12　线索 +1'; } }
+      ],
+      next:()=>'st5b' },
+
+    { id:'st5b', name:'第五页 · 那一夜',
+      contrib:135,
+      text:'那天夜里，你醒了。\n\n不是被声音吵醒的。是**安静**醒的。\n\n平常夜里总有东西响：风、虫、远处的狗、\n伙房那扇关不严的窗。\n\n今天什么都没有。\n\n你躺着没动，听了一会儿。\n\n然后你意识到：不是外面安静了，\n是你听不见了。\n\n你坐起来，拍了拍自己的耳朵。\n\n拍第三下的时候，声音全回来了，\n比刚才还响——\n\n是你自己的心跳。\n\n窗外有个人影。\n他站在那里，不动，也不走。',
+      choices:[
+        { label:'出去看看是谁', hint:'你大概知道是谁',
+          eff:(s,a)=>{ a.clue('clue_name'); a.clue('clue_erased'); a.cult(120); a.life(-15);
+            a.karma(1); a.flag('story_went_out');
+            return '你披上衣服出去。\n\n院子里站着的是老实人。\n\n“你不是——”你说。\n\n“是我。”他说，“我还在。”\n\n“他们说你没了。”\n\n“我没没。”他笑了一下，“我只是没人记得了。”\n\n他抬起手，月光穿过去了。\n\n“你别记我。”他说，“记了，下一个就是你。”\n\n然后他转身走了。\n走到墙根那儿就没了，没翻墙，就是没了。\n\n修为 +' + a.gain(120) + '　寿元 −15　业障 +1　线索 +2'; } },
+        { label:'把被子蒙上，继续睡', hint:'明天还要对账',
+          eff:(s,a)=>{ a.life(30); a.sectContrib(12); a.karma(-3); a.flag('story_covered');
+            return '你把被子拉上来，盖住头。\n\n心跳很响。你数着它，数到一百多就睡着了。\n\n第二天早上，院子里什么都没有。\n\n你去伙房打饭，是老实人给你打的。\n\n“今天有粥。”他说。\n\n“嗯。”\n\n你端着碗找了个角落坐下。\n你吃得很慢，一口一口。\n\n寿元 +30　宗门贡献 +12　业障 −3'; } },
+        { label:'隔着窗问他一句话', hint:'不开门',
+          eff:(s,a)=>{ a.clue('clue_date'); a.cult(100); a.sectContrib(8); a.flag('story_asked_window');
+            return '你隔着窗问：“那天到底支了三百灵石干什么？”\n\n外面停了一会儿。\n\n“买棺材。”他说。\n\n“谁的？”\n\n“不记得了。”他说，“钱是我经手的，\n我记得我数了三百块，数了三遍。\n\n但我想不起来是给谁买的。”\n\n“三月初七那天，宗门里死过人？”\n\n他没有回答。\n\n你再问的时候，窗外已经没有人了。\n\n修为 +' + a.gain(100) + '　宗门贡献 +8　线索 +1'; } }
+      ],
+      /* 这条路到此为止。next 返回 null 是**收束**的意思，
+         不是「没写」—— 见 engine.js 里 advanceStory 的说明。 */
+      next:()=>null },
+
+    /* ==================== 路线 C：你拿给师父看了 ==================== */
+    { id:'st4c', name:'第四页 · 问长辈',
+      contrib:100,
+      text:'师父那句“下次别拿给别人看”，你想了三天。\n\n第四天你去找他。\n\n他的门关着。你在外面站了很久，\n久到你确定他在里面——\n因为你听见他翻了两次书。\n\n你敲门。\n\n里面安静了。\n\n“进来。”\n\n他坐在桌边，桌上摊着那本册子。\n\n就是他让你“别拿给别人看”的那本。',
+      choices:[
+        { label:'问：这本册子是谁写的', hint:'',
+          eff:(s,a)=>{ a.clue('clue_book'); a.clue('clue_master'); a.cult(90); a.favor(2);
+            a.flag('story_asked_book');
+            return '“我写的。”他说。\n\n“每一年都写？”\n\n“每一年的三月初七都写。”\n\n“写了多少年？”\n\n他把册子往前推了推，翻到第一页。\n\n第一页的字迹和后面完全不一样，\n笔画很嫩，像刚学写字的人写的。\n\n“第一年我十九岁。”他说。\n“今年我七十三。”\n\n修为 +' + a.gain(90) + '　人情 +2　线索 +2'; } },
+        { label:'问：为什么不能给别人看', hint:'',
+          eff:(s,a)=>{ a.clue('clue_erased'); a.karma(2); a.cult(70); a.flag('story_asked_why');
+            return '他看着你，看了很久。\n\n“因为看了就得记。”\n\n“记了会怎么样？”\n\n“记了，你就得替他们记着。”\n他把册子合上，手按在上面。\n“我已经替二十三个人记着名字了。\n再多一个，我怕我自己先没了。”\n\n“那您为什么还写？”\n\n“因为不写，他们就真的没了。”\n\n修为 +' + a.gain(70) + '　业障 +2　线索 +1'; } },
+        { label:'不说这个了，问他那天为什么下雨', hint:'换个问法',
+          eff:(s,a)=>{ a.clue('clue_date'); a.life(-10); a.cult(110); a.flag('story_asked_rain');
+            return '他愣了一下。\n\n“你怎么知道下雨。”\n\n“您说过两次。”\n\n他低下头，很久没说话。\n\n“那天没下雨。”他终于说。\n\n“那您为什么说下雨？”\n\n“因为说下雨，你们就不会再问了。”\n\n他抬起头，眼睛是红的。\n“三十年前那天，宗门里少了六个人。\n一个都没找到。”\n\n“然后呢？”\n\n“然后就没有然后了。第二天所有人都忘了。”\n\n修为 +' + a.gain(110) + '　寿元 −10　线索 +1'; } }
+      ],
+      next:()=>'st5c' },
+
+    { id:'st5c', name:'第五页 · 师父的册子',
+      contrib:135,
+      text:'那之后，师父开始每天叫你过去。\n\n不是教功法。是让你坐在旁边，\n看他写那本册子。\n\n他写得很慢，一个字要停两次。\n\n“看着我写。”他说，“看仔细点。”\n\n看了七天。第八天他没叫你。\n\n你去敲门，没人应。\n\n推门进去，屋里是空的。\n\n桌上摊着册子，翻到最新的一页。\n\n那一页上只写了一个名字。\n\n是**你的**。',
+      choices:[
+        { label:'把自己的那一行划掉', hint:'你还没准备好',
+          eff:(s,a)=>{ a.karma(-3); a.life(25); a.sectContrib(15); a.flag('story_crossed_out');
+            return '你拿起笔，把自己那一行划掉了。\n\n划得很轻。\n\n然后你合上册子，把它放回原来的位置，\n又找了块布把桌子盖好。\n\n做完这些你坐下来，坐了很久。\n\n屋外的天一点点暗下去。\n你忽然想起一件事：\n师父是不是也这么划过一次。\n\n业障 −3　寿元 +25　宗门贡献 +15'; } },
+        { label:'接着往下写：把师父的名字也写上', hint:'他替你记了三十年',
+          eff:(s,a)=>{ a.clue('clue_name'); a.clue('clue_erased'); a.cult(160); a.life(-22);
+            a.flag('story_wrote_master');
+            return '你把册子翻到新的一页。\n\n笔在手里停了一会儿。\n\n你写下师父的名字。\n一笔一笔，写得很慢，慢到和他写的时候一样。\n\n写完你发现纸是湿的。\n\n不是墨。\n\n你把册子合上，抱在怀里，坐了一夜。\n\n第二天早上，山上的钟响了。\n你不记得是谁在敲。\n\n修为 +' + a.gain(160) + '　寿元 −22　线索 +2'; } },
+        { label:'把册子带走，离开宗门', hint:'有些东西不该留在这儿',
+          eff:(s,a)=>{ a.clue('clue_book'); a.clue('clue_name'); a.karma(4); a.cult(120);
+            a.life(-15); a.flag('story_took_book');
+            return '你把册子用布包好，塞进怀里。\n\n从后山走。你知道一条路，没人走。\n\n走到半山腰，你回头看了一眼。\n\n山门还在。灯笼还亮着。\n\n但你想不起来那两盏灯笼是谁挂的了。\n\n你低头看怀里的册子，它很沉。\n\n你继续往下走。\n\n修为 +' + a.gain(120) + '　寿元 −15　业障 +4　线索 +2'; } }
+      ],
+      /* 这条路到此为止。next 返回 null 是**收束**的意思，
+         不是「没写」—— 见 engine.js 里 advanceStory 的说明。 */
+      next:()=>null }
   ]
 };
+
 /* 弟子资质的封顶（第 28 轮）。见 engine.js 的 growDisciple 说明。 */
 G.DISCIPLE_MAX_Q = 9;
 
@@ -7979,6 +8098,498 @@ G.EVENTS = (G.EVENTS || []).concat([
 ]);
 
 
+/* ===== events12.js ===== */
+/* ============================================================
+   《记忆修复局》事件数据 · 第十二批（第 31 轮）
+   主线《三月初七》的**余波** —— 让主线也长出因果
+   ------------------------------------------------------------
+   玩家原话：「哪怕是三月初七也一样，本质上内容量过少了」
+   「我希望很多事件能做到有关联」。
+
+   第 31 轮把主线从线性四页改成了 9 页、三条路线的故事图
+   （每局走 5 页，正文 858 字，原来 472 字）。
+   但「有岔路」只解决了一半 —— 另一半是：**主线里做的选择要到别处回响**。
+   所以这一批：
+     · 主线的每一个关键选择都会打一个 story_* 标记
+     · 这里给每个标记写一个**普通事件池里的**后续
+       （所以主线的影响会渗到你平常的探索、修行里，而不是只活在主线里）
+     · 全部登记进 G.CAUSE，于是它们会出现在案卷的「未了之事」里
+   ============================================================ */
+
+G.CAUSE = Object.assign(G.CAUSE || {}, {
+  /* 第一页 */
+  story_copied:     { label:'你抄在袖子上的那四行', from:'你把账本上那四行抄了下来', hint:'墨干得比平常快。', event:'ev12_story_copy' },
+  story_ignored:    { label:'你没有再想的那笔账', from:'你选择继续对账、不去想它', hint:'', event:'ev12_story_ignore' },
+  story_asked_clerk:{ label:'老执事夹在账本里的那根手指', from:'你去问了管账的老执事', hint:'他把手指夹在某一页里。', event:'ev12_story_clerk' },
+  /* 第二页 */
+  story_archive:    { label:'被撕掉的那一页', from:'你去查了三月初七那一册', hint:'撕口很整齐，是用尺子压着撕的。', event:'ev12_story_archive' },
+  story_noted:      { label:'你写下的三个说法', from:'你把三个说法并排记了下来', hint:'它们说的年份不一样。', event:'ev12_story_noted' },
+  story_asked_master:{ label:'师父第二次说「那天下了雨」', from:'你直接去问了师父', hint:'', event:'ev12_story_master' },
+  /* 第三页（岔路口） */
+  story_saw_name:   { label:'你透过光看清的那个名字', from:'你把册子举到窗边', hint:'那是大师兄现在的名字。', event:'ev12_story_name' },
+  story_looked_away:{ label:'你顺手抹平的那层灰', from:'你把册子放回去、假装没看见', hint:'', event:'ev12_story_away' },
+  story_told_master:{ label:'师父那句「下次别拿给别人看」', from:'你把册子拿给了师父', hint:'', event:'ev12_story_told' },
+  /* 路线 A */
+  story_confronted: { label:'大师兄说他每天早上要想一下自己叫什么', from:'你去和大师兄摊牌了', hint:'', event:'ev12_story_confront' },
+  story_recorded:   { label:'你每天都要重描一遍的那两页纸', from:'你把大师兄的异常一条条记了下来', hint:'字会淡。', event:'ev12_story_record' },
+  story_warned:     { label:'你请大师兄吃的那顿饭', from:'你告诉大师兄他可能不是他了', hint:'', event:'ev12_story_warn' },
+  /* 路线 B */
+  story_went_back:  { label:'册子第一页上你自己的名字', from:'你又进藏经阁看了一眼', hint:'', event:'ev12_story_back' },
+  story_closed_door:{ label:'你拉上藏经阁的门', from:'你把门关上、走开了', hint:'门轴没有响。', event:'ev12_story_door' },
+  story_waited_door:{ label:'猫叼走的那半张纸', from:'你在藏经阁门口站了一下午', hint:'上面只有一个字，被咬掉了一半。', event:'ev12_story_cat' },
+  /* 路线 C */
+  story_asked_book: { label:'师父十九岁写下的第一页', from:'你问他册子是谁写的', hint:'', event:'ev12_story_book' },
+  story_asked_why:  { label:'师父替你记着的二十三个名字', from:'你问他为什么不能给别人看', hint:'', event:'ev12_story_why' },
+  story_asked_rain: { label:'三十年前少的那六个人', from:'你问师父那天为什么说下雨', hint:'那天没下雨。', event:'ev12_story_rain' },
+  /* 第五页：三条路的收束 */
+  story_incense:    { label:'你和师父一起跪完的那两炷香', from:'你去祖师堂上了一炷香', hint:'', event:'ev12_story_incense' },
+  story_copied_all: { label:'你连夜抄完的二十三个名字', from:'你把册子上剩下的名字全抄了', hint:'抄到一半会想不起怎么念。', event:'ev12_story_all' },
+  story_waited:     { label:'你每天早上想名字的那个习惯', from:'你选择什么都不做、等答案', hint:'', event:'ev12_story_wait' },
+  story_went_out:   { label:'月光穿过他手的那一夜', from:'你出去看了院子里站着的人', hint:'', event:'ev12_story_out' },
+  story_covered:    { label:'你把被子拉上来的那一夜', from:'你蒙上被子继续睡了', hint:'', event:'ev12_story_cover' },
+  story_asked_window:{ label:'三百灵石买的那口棺材', from:'你隔着窗问了一句话', hint:'他没说是给谁买的。', event:'ev12_story_window' },
+  story_crossed_out:{ label:'你划掉自己那一行的笔迹', from:'你把自己的名字划掉了', hint:'划得很轻。', event:'ev12_story_cross' },
+  story_wrote_master:{ label:'你替师父写下的那一行', from:'你把师父的名字写进了册子', hint:'纸是湿的，不是墨。', event:'ev12_story_wrote' },
+  story_took_book:  { label:'你带走的那本册子', from:'你把册子带走了', hint:'它很沉。', event:'ev12_story_took' }
+});
+
+G.EVENTS = (G.EVENTS || []).concat([
+
+/* ============ 第一页的余波 ============ */
+
+{
+  id:'ev12_story_copy', tier:0, title:'袖子上的字还在', cat:'线索',
+  when:s=>s.flags.includes('story_copied') && flagAge('story_copied') >= 14,
+  text:()=>'你洗衣服的时候，从袖子里摸出一小块硬的东西。\n\n' +
+    '是那天抄的那四行字——墨已经干透，把布浆住了。\n\n' +
+    '四行字里，只有第四行还很清楚。',
+  flavor:()=>causeLine('story_copied'),
+  choices:[
+    { label:'把那一小块布剪下来收好', eff:(s,a)=>{ a.clue('clue_date'); a.sectContrib(8); a.cult(45,'mid');
+        return '你沿着字迹剪下一块方布，把它夹进书里。\n\n剪完之后那件衣服袖子短了一截，穿不出去。\n\n你把它压在箱底。\n\n线索 +1　宗门贡献 +8　修为 +'+a.gain(45,'mid'); } },
+    { label:'整件烧掉', eff:(s,a)=>{ a.karma(-2); a.life(10); a.sectContrib(5);
+        return '你把整件衣服扔进了灶里。\n\n布烧起来的时候，那四行字最后亮了一下。\n\n你看着它变成灰，心里空了一下，然后就好了。\n\n业障 −2　寿元 +10　宗门贡献 +5'; } }
+  ]
+},
+
+{
+  id:'ev12_story_clerk', tier:0, title:'老执事不在了', cat:'人事',
+  when:s=>s.flags.includes('story_asked_clerk') && flagAge('story_asked_clerk') >= 16,
+  text:()=>'执事堂换了个人管账。\n\n你问老执事去哪了。\n\n新来的翻了翻册子，说：\n“一直是我管啊。”',
+  flavor:()=>causeLine('story_asked_clerk'),
+  choices:[
+    { label:'去看看他的座位', eff:(s,a)=>{ a.clue('clue_erased'); a.cult(55,'high'); a.sectContrib(6);
+        return '桌子擦得很干净，抽屉是空的。\n\n你拉开最底下那格，里面有一根手指长的木条——\n像是从什么东西上掰下来的。\n\n你把它放回去了。\n\n线索 +1　修为 +'+a.gain(55,'high')+'　宗门贡献 +6'; } },
+    { label:'问新来的：那本账呢', eff:(s,a)=>{ a.clue('clue_date'); a.sectContrib(10); a.favor(2);
+        return '“哪本？”\n\n“就是很厚的那本，黄的。”\n\n他找了半天，从架子最底下拖出来一本。\n\n是黄的，也很厚。但你翻到三月初七那一页——\n上面写着「支灵石三百，用途：修祠堂」。\n\n用途那一栏是满的。\n\n线索 +1　宗门贡献 +10　人情 +2'; } }
+  ]
+},
+
+{
+  id:'ev12_story_ignore', tier:0, title:'那笔账找上你了', cat:'人事',
+  when:s=>s.flags.includes('story_ignored') && flagAge('story_ignored') >= 18,
+  text:()=>'管账的来找你，说少了三百灵石。\n\n“不是我拿的。”你说。\n\n“账上写着你的名字。”',
+  flavor:()=>causeLine('story_ignored'),
+  choices:[
+    { label:'跟他去对账', eff:(s,a)=>{ a.sectContrib(-15); a.stone(-60); a.cult(70,'high');
+        return '你跟着去了。\n\n账上确实写着你的名字。\n日期是三月初七。\n\n你盯着那三个字看了很久——\n字迹是你的。\n\n你没再辩解，把灵石补上了。\n\n宗门贡献 −15　灵石 −60　修为 +'+a.gain(70,'high'); } },
+    { label:'不认', eff:(s,a)=>{ a.karma(3); a.sectContrib(-8); a.clue('clue_name');
+        return '“不是我的字。”你说。\n\n他看了你一会儿，把册子合上了。\n\n“行。”他说，“那就先记着。”\n\n你走出执事堂，回头看了一眼——\n他还在原地看着你。\n\n业障 +3　宗门贡献 −8　线索 +1'; } }
+  ]
+},
+
+/* ============ 第二页的余波 ============ */
+
+{
+  id:'ev12_story_archive', tier:0, title:'管记档的人调走了', cat:'线索',
+  when:s=>s.flags.includes('story_archive') && flagAge('story_archive') >= 16,
+  text:()=>'管记档的那个人被调走了。\n\n走之前，他来找过你一次。\n\n他没进门，站在窗外，只说了一句话：\n“那册子不是我撕的。”',
+  flavor:()=>causeLine('story_archive'),
+  choices:[
+    { label:'追出去问他', eff:(s,a)=>{ a.clue('clue_erased'); a.cult(80,'high'); a.sectContrib(12);
+        return '你追出去，他已经走到山门了。\n\n“那是谁撕的？”\n\n他停下脚步，没回头。\n\n“撕的人，是那一页上本来该有的名字。”\n\n“什么意思？”\n\n“他不想在上面。”\n\n他下山了。\n\n线索 +1　修为 +'+a.gain(80,'high')+'　宗门贡献 +12'; } },
+    { label:'去记档室看看那一册还在不在', eff:(s,a)=>{ a.clue('clue_date'); a.sectContrib(8); a.cult(50,'mid');
+        return '那一册还在。\n\n你翻到三月初七——那一页被补上了。\n\n补得很整齐，字迹和前后一模一样。\n\n但纸是新的。\n\n线索 +1　宗门贡献 +8　修为 +'+a.gain(50,'mid'); } }
+  ]
+},
+
+{
+  id:'ev12_story_noted', tier:0, title:'你那张纸上多了一行', cat:'线索',
+  when:s=>s.flags.includes('story_noted') && flagAge('story_noted') >= 15,
+  text:()=>'你把那张写着三个说法的纸拿出来。\n\n' +
+    '上面多了一行。\n\n' +
+    '不是你的字。\n\n' +
+    '写的是第四个说法——一个你从来没听过的年份。',
+  flavor:()=>causeLine('story_noted'),
+  choices:[
+    { label:'照着那个年份去查', eff:(s,a)=>{ a.clue('clue_date'); a.clue('clue_erased'); a.sectContrib(14); a.cult(90,'high'); a.life(-12);
+        return '你去翻了那一年的记档。\n\n那一年，宗门里少了六个人。\n\n记档上写着「外出未归」。\n\n六个名字，你一个都不认识。\n\n线索 +2　宗门贡献 +14　修为 +'+a.gain(90,'high')+'　寿元 −12'; } },
+    { label:'把纸烧了', eff:(s,a)=>{ a.karma(-2); a.life(15); a.sectContrib(4);
+        return '你点了灯，把纸凑上去。\n\n烧到一半，你看见那第四行字自己动了一下。\n\n然后就没有了。\n\n业障 −2　寿元 +15　宗门贡献 +4'; } }
+  ]
+},
+
+{
+  id:'ev12_story_master', tier:0, title:'师父又在翻东西', cat:'线索',
+  when:s=>s.flags.includes('story_asked_master') && flagAge('story_asked_master') >= 15,
+  text:()=>'你路过师父的屋子，里面又在翻东西。\n\n' +
+    '和上次一样，翻了很久。\n\n' +
+    '这次你站在门外听完了全程——\n他翻的一直是同一叠纸。',
+  flavor:()=>causeLine('story_asked_master'),
+  choices:[
+    { label:'敲门进去', eff:(s,a)=>{ a.clue('clue_master'); a.clue('clue_book'); a.sectContrib(12); a.cult(70,'high'); a.favor(2);
+        return '他让你进去，桌上摊着一叠纸。\n\n每一张上面都写着一个名字，\n写了很多遍，密密麻麻。\n\n“我在练。”他说。\n\n“练什么？”\n\n“练着别忘。”\n\n线索 +2　宗门贡献 +12　修为 +'+a.gain(70,'high')+'　人情 +2'; } },
+    { label:'走开', eff:(s,a)=>{ a.karma(-1); a.life(8); a.sectContrib(6);
+        return '你没敲门，走开了。\n\n身后翻纸的声音一直没停。\n\n业障 −1　寿元 +8　宗门贡献 +6'; } }
+  ]
+},
+
+/* ============ 第三页（岔路）的余波 ============ */
+
+{
+  id:'ev12_story_name', tier:0, title:'大师兄问你借一样东西', cat:'人事',
+  when:s=>s.flags.includes('story_saw_name') && flagAge('story_saw_name') >= 15,
+  text:()=>'大师兄来找你，说想借一样东西。\n\n' +
+    '“借什么？”\n\n' +
+    '“随便什么。你身上随便什么东西都行。”\n\n' +
+    '他笑了一下：“我想留个念想。”',
+  flavor:()=>causeLine('story_saw_name'),
+  choices:[
+    { label:'给他一件', eff:(s,a)=>{ a.stone(-40); a.favor(4); a.clue('clue_name'); a.cult(60,'high');
+        return '你把随身的灵石给了他几块。\n\n他捏在手里看了很久，然后收进袖子。\n\n“谢谢。”他说，“我会记得这是你给的。”\n\n灵石 −40　人情 +4　修为 +'+a.gain(60,'high')+'　线索 +1'; } },
+    { label:'“你留不住的。”', eff:(s,a)=>{ a.karma(2); a.clue('clue_erased'); a.cult(85,'high');
+        return '你说完这句话，他脸上的笑没有变。\n\n“我知道。”他说。\n\n“那你还借？”\n\n“借了，今天就有。”\n\n他走了。你站在原地，觉得自己刚才说错了话。\n\n业障 +2　修为 +'+a.gain(85,'high')+'　线索 +1'; } }
+  ]
+},
+
+{
+  id:'ev12_story_away', tier:0, title:'那层灰又厚了', cat:'世界',
+  when:s=>s.flags.includes('story_looked_away') && flagAge('story_looked_away') >= 16,
+  text:()=>'你又路过藏经阁。\n\n' +
+    '这次你没进去，只在门口看了一眼那排架子。\n\n' +
+    '灰又厚了——厚到看不出有没有人碰过。',
+  flavor:()=>causeLine('story_looked_away'),
+  choices:[
+    { label:'就站在门口看', eff:(s,a)=>{ a.life(18); a.sectContrib(8); a.cult(35,'mid');
+        return '你站了一会儿。\n\n有个小弟子过来问你找什么，你说不找什么。\n\n他哦了一声，跑了。\n\n你回去接着对账。\n\n寿元 +18　宗门贡献 +8　修为 +'+a.gain(35,'mid'); } },
+    { label:'进去把灰擦了', eff:(s,a)=>{ a.clue('clue_page'); a.karma(1); a.sectContrib(6); a.cult(65,'high'); a.life(-10);
+        return '你找了块布，把那排架子从上到下擦了一遍。\n\n擦到最里面那格的时候，你停了一下。\n\n册子还在。\n\n你没有拿出来。你只是把灰擦干净了。\n\n线索 +1　宗门贡献 +6　修为 +'+a.gain(65,'high')+'　寿元 −10'; } }
+  ]
+},
+
+{
+  id:'ev12_story_told', tier:0, title:'师父问你：你信不信我', cat:'人事',
+  when:s=>s.flags.includes('story_told_master') && flagAge('story_told_master') >= 16,
+  text:()=>'师父把你叫过去，问你一句话。\n\n' +
+    '“你信不信我。”\n\n' +
+    '他问得很平静，像在问今天吃什么。',
+  flavor:()=>causeLine('story_told_master'),
+  choices:[
+    { label:'“信。”', eff:(s,a)=>{ a.favor(5); a.clue('clue_master'); a.sectContrib(15); a.cult(80,'high');
+        return '他点点头。\n\n“那这本册子，以后你来写。”\n\n他把册子推到你面前。\n你没伸手。\n\n“不用现在。”他说，“但你要知道，早晚是你的。”\n\n人情 +5　宗门贡献 +15　修为 +'+a.gain(80,'high')+'　线索 +1'; } },
+    { label:'“不信。”', eff:(s,a)=>{ a.karma(1); a.clue('clue_erased'); a.cult(100,'high'); a.life(-8);
+        return '他愣了一下，然后笑了。\n\n“好。”他说，“这句是真的。”\n\n他把册子收回去，锁进了抽屉。\n\n“不信的人，才看得见。”\n\n业障 +1　修为 +'+a.gain(100,'high')+'　寿元 −8　线索 +1'; } }
+  ]
+},
+
+/* ============ 路线 A 的余波 ============ */
+
+{
+  id:'ev12_story_confront', tier:3, title:'大师兄开始躲你', cat:'人事',
+  when:s=>s.flags.includes('story_confronted') && flagAge('story_confronted') >= 16,
+  text:()=>'自从摊牌之后，大师兄开始躲你。\n\n' +
+    '不是恨你——他每天还是照常练剑。\n\n' +
+    '只是他不再让你看见他早上醒来时的样子。',
+  flavor:()=>causeLine('story_confronted'),
+  choices:[
+    { label:'每天早上都去看他练剑', eff:(s,a)=>{ a.favor(3); a.clue('clue_name'); a.sectContrib(12); a.cult(110,'high'); a.life(-12);
+        return '你连着去了七天。\n\n头三天他没理你。第四天他朝你点了下头。\n\n第七天他练完之后走过来说：\n“今天早上我想起来了。”\n\n“想起来什么？”\n\n“我叫什么。”他说，“一次就想起。”\n\n人情 +3　宗门贡献 +12　修为 +'+a.gain(110,'high')+'　寿元 −12　线索 +1'; } },
+    { label:'不去了', eff:(s,a)=>{ a.life(15); a.cult(50,'mid'); a.sectContrib(6);
+        return '你不再去了。\n\n他还是每天练剑。\n\n你偶尔远远看一眼，觉得他的动作比从前慢了一点。\n\n也可能是你看错了。\n\n寿元 +15　修为 +'+a.gain(50,'mid')+'　宗门贡献 +6'; } }
+  ]
+},
+
+{
+  id:'ev12_story_record', tier:3, title:'你床板底下的纸', cat:'线索',
+  when:s=>s.flags.includes('story_recorded') && flagAge('story_recorded') >= 16,
+  text:()=>'你掀开床板。\n\n' +
+    '那两页纸还在。\n\n' +
+    '但你上次描过的字，又淡了一层。\n\n' +
+    '而纸本身变薄了——薄到能透光。',
+  flavor:()=>causeLine('story_recorded'),
+  choices:[
+    { label:'拿到灶边，把它烤干', eff:(s,a)=>{ a.clue('clue_erased'); a.sectContrib(10); a.cult(95,'high');
+        return '你把纸举到灶火旁边，慢慢烘。\n\n烘了半个时辰，字回来了，比原来还黑。\n\n但纸也更脆了。你知道它撑不了几次。\n\n线索 +1　宗门贡献 +10　修为 +'+a.gain(95,'high'); } },
+    { label:'抄到竹片上', hint:'换一种不容易淡的东西',
+      eff:(s,a)=>{ a.clue('clue_erased'); a.clue('clue_date'); a.sectContrib(16); a.cult(70,'high'); a.life(-14);
+        return '你找了片竹简，用刀一个字一个字刻上去。\n\n刻了两天。手上起了三个泡。\n\n刻完之后你把纸烧了——纸上的字会淡，竹上的不会。\n\n线索 +2　宗门贡献 +16　修为 +'+a.gain(70,'high')+'　寿元 −14'; } }
+  ]
+},
+
+{
+  id:'ev12_story_warn', tier:3, title:'他请你再吃一顿饭', cat:'人事',
+  when:s=>s.flags.includes('story_warned') && flagAge('story_warned') >= 16,
+  text:()=>'大师兄又请你在伙房吃饭。\n\n' +
+    '这次桌上多摆了一副碗筷。\n\n' +
+    '“给谁的？”你问。\n\n' +
+    '“不知道。”他说，“就是想摆。”',
+  flavor:()=>causeLine('story_warned'),
+  choices:[
+    { label:'坐下，把三副碗筷都用上', eff:(s,a)=>{ a.favor(5); a.karma(-3); a.clue('clue_name'); a.cult(100,'high'); a.life(12);
+        return '你给自己和他各盛了一碗，\n然后给那副空碗筷也盛了一碗。\n\n他看着那碗饭，很久没动。\n\n“你说，这碗是给谁的。”\n\n“给还记得他的人。”\n\n他低头吃饭，吃得很慢。\n\n人情 +5　业障 −3　修为 +'+a.gain(100,'high')+'　寿元 +12　线索 +1'; } },
+    { label:'把空碗筷收走', eff:(s,a)=>{ a.karma(1); a.clue('clue_erased'); a.cult(75,'high'); a.sectContrib(8);
+        return '你把那副碗筷拿走了，放回架子上。\n\n他没拦你。\n\n那顿饭你们两个人吃得很快，谁都没说话。\n\n走的时候他忽然说：“谢谢。”\n\n业障 +1　修为 +'+a.gain(75,'high')+'　宗门贡献 +8　线索 +1'; } }
+  ]
+},
+
+/* ============ 路线 B 的余波 ============ */
+
+{
+  id:'ev12_story_back', tier:3, title:'你名字的那一行', cat:'线索',
+  when:s=>s.flags.includes('story_went_back') && flagAge('story_went_back') >= 16,
+  text:()=>'你最近总做一个一样的梦。\n\n' +
+    '梦里你站在那排架子前面，翻开册子。\n\n' +
+    '第一页第一行是你的名字。\n\n' +
+    '你想把它划掉，但手里没有笔。',
+  flavor:()=>causeLine('story_went_back'),
+  choices:[
+    { label:'白天去把那册子借出来', eff:(s,a)=>{ a.clue('clue_page'); a.clue('clue_name'); a.sectContrib(14); a.cult(120,'high'); a.life(-16); a.karma(2);
+        return '你找了借口，把册子借了出来。\n\n回到屋里翻开——第一页第一行不是你的名字。\n\n是一个你不认识的名字。\n\n但那个名字的写法，和你的名字很像。\n像一个人写自己名字写快了的样子。\n\n线索 +2　宗门贡献 +14　修为 +'+a.gain(120,'high')+'　寿元 −16　业障 +2'; } },
+    { label:'不去，改成每天早起想一遍自己的名字', eff:(s,a)=>{ a.life(20); a.sectContrib(10); a.cult(60,'high');
+        return '你开始每天早上起来，先把自己的名字念三遍。\n\n念了半个月。\n\n梦不做了。\n\n寿元 +20　宗门贡献 +10　修为 +'+a.gain(60,'high'); } }
+  ]
+},
+
+{
+  /* ⚠️ 这个事件是被 dev/verify-linkage.js 逼出来的：
+     我在 G.CAUSE 里登记了 story_closed_door 这条因果、写明了后续事件叫
+     ev12_story_door，**但那个事件根本没写**。
+     于是「你拉上藏经阁的门」这个选择留下了一句空头承诺 ——
+     和第 31 轮开头查出来的那 74 个断头标记、以及那 9 处从没兑现的 debt
+     是同一类错误，只不过这次是发生在我修它们的那一轮里。
+     测试报「27 个标记只有 26 个有后续」，顺着查出来的就是它。 */
+  id:'ev12_story_door', tier:3, title:'那扇门你没再开过', cat:'世界',
+  when:s=>s.flags.includes('story_closed_door') && flagAge('story_closed_door') >= 16,
+  text:()=>'你决定以后都走那条路之后，确实一直走那条路。\n\n' +
+    '绕开藏经阁，多走两百步。\n\n' +
+    '走了小半年。\n\n' +
+    '今天你照常绕，走到一半停下来——\n' +
+    '前面那两百步，你走了小半年，\n但你想不起这条路上有什么。\n\n' +
+    '一棵树都没有。',
+  flavor:()=>causeLine('story_closed_door'),
+  choices:[
+    { label:'回头，去看一眼藏经阁', eff:(s,a)=>{ a.clue('clue_page'); a.clue('clue_erased'); a.sectContrib(14); a.cult(120,'high'); a.life(-14);
+        return '你走回去。\n\n藏经阁还在。门开着。\n\n你站在门口往里看，最里面那排架子——\n\n是空的。\n\n不是册子没了，是**架子**没了。\n那面墙是平的，抹得跟旁边一模一样。\n\n线索 +2　宗门贡献 +14　修为 +'+a.gain(120,'high')+'　寿元 −14'; } },
+    { label:'不回头，接着走', eff:(s,a)=>{ a.karma(-2); a.life(22); a.sectContrib(10); a.cult(60,'high');
+        return '你接着往前走。\n\n两百步走完，转上大路。\n\n路上有人跟你打招呼，你应了一声。\n\n那天之后你没再数过步数。\n\n业障 −2　寿元 +22　宗门贡献 +10　修为 +'+a.gain(60,'high'); } }
+  ]
+},
+
+{
+  id:'ev12_story_cat', tier:3, title:'那只猫又来了', cat:'世界',
+  when:s=>s.flags.includes('story_waited_door') && flagAge('story_waited_door') >= 16,
+  text:()=>'那只猫又来了。\n\n' +
+    '它蹲在藏经阁门口，看着你。\n\n' +
+    '嘴里叼着东西——又是从册子上撕下来的一片纸。',
+  flavor:()=>causeLine('story_waited_door'),
+  choices:[
+    { label:'拿吃的跟它换', eff:(s,a)=>{ a.stone(-20); a.clue('clue_erased'); a.clue('clue_page'); a.sectContrib(12); a.cult(90,'high');
+        return '你去伙房要了半条鱼。\n\n它闻了闻，把纸放下，叼着鱼跑了。\n\n纸上有两个字。\n\n一个你认得，另一个被咬掉了。\n\n灵石 −20　线索 +2　宗门贡献 +12　修为 +'+a.gain(90,'high'); } },
+    { label:'直接抢', eff:(s,a)=>{ a.karma(2); a.life(-8); a.clue('clue_erased'); a.sectContrib(6); a.cult(60,'high');
+        return '你伸手去抢。\n\n它比你想的快得多。\n\n手背上留了三道口子，纸也没抢到。\n\n它叼着纸跳上墙头，回头看了你一眼。\n\n业障 +2　寿元 −8　线索 +1　宗门贡献 +6　修为 +'+a.gain(60,'high'); } }
+  ]
+},
+
+/* ============ 路线 C 的余波 ============ */
+
+{
+  id:'ev12_story_book', tier:3, title:'第一页的字迹', cat:'线索',
+  when:s=>s.flags.includes('story_asked_book') && flagAge('story_asked_book') >= 16,
+  text:()=>'你又想起了那本册子的第一页。\n\n' +
+    '那手很嫩的字。\n\n' +
+    '你忽然想起来：那种字，你见过。\n\n' +
+    '在刚入门的小弟子写的字帖上。',
+  flavor:()=>causeLine('story_asked_book'),
+  choices:[
+    { label:'去找今年刚入门的小弟子', eff:(s,a)=>{ a.clue('clue_book'); a.clue('clue_master'); a.sectContrib(14); a.cult(100,'high'); a.favor(2);
+        return '你找了个最小的，让他写几个字给你看。\n\n他写了自己的名字，手抖得厉害。\n\n和册子第一页的字，一模一样。\n\n“你今年多大？”\n\n“十一。”\n\n你算了一下：师父说第一年他十九岁。\n\n线索 +2　宗门贡献 +14　修为 +'+a.gain(100,'high')+'　人情 +2'; } },
+    { label:'去问师父他今年多大', eff:(s,a)=>{ a.clue('clue_master'); a.sectContrib(10); a.cult(70,'high'); a.life(-6);
+        return '“七十三。”他说。\n\n“那您十九岁是哪一年？”\n\n他算了很久。\n\n久到你觉得他算不出来。\n\n“算不出来。”他最后说，“我每年都算一遍，每年都算不出来。”\n\n线索 +1　宗门贡献 +10　修为 +'+a.gain(70,'high')+'　寿元 −6'; } }
+  ]
+},
+
+{
+  id:'ev12_story_why', tier:3, title:'二十三块木牌', cat:'线索',
+  when:s=>s.flags.includes('story_asked_why') && flagAge('story_asked_why') >= 18,
+  text:()=>'祖师堂的香炉底下，你摸到了东西。\n\n' +
+    '掏出来一看，是二十三块小木牌。\n\n' +
+    '每一块上面刻着一个名字。',
+  flavor:()=>causeLine('story_asked_why'),
+  choices:[
+    { label:'一个一个念出来', eff:(s,a)=>{ a.clue('clue_name'); a.clue('clue_erased'); a.sectContrib(18); a.cult(140,'high'); a.life(-20); a.karma(-4);
+        return '你把二十三块木牌摆在供桌上，一块一块念。\n\n念到第十九块的时候，堂里的风停了。\n\n念完最后一块，你把木牌收回香炉底下，\n又添了一炷香。\n\n那天晚上你梦见二十三个背影，都在往山上走。\n\n线索 +2　宗门贡献 +18　修为 +'+a.gain(140,'high')+'　寿元 −20　业障 −4'; } },
+    { label:'原样放回去', eff:(s,a)=>{ a.karma(-2); a.life(12); a.sectContrib(8);
+        return '你把木牌一块块放回香炉底下，摆成原来的样子。\n\n摆完你退后两步，确认看不出来。\n\n然后你上了一炷香。\n\n业障 −2　寿元 +12　宗门贡献 +8'; } }
+  ]
+},
+
+{
+  id:'ev12_story_rain', tier:3, title:'那六个人的名字', cat:'线索',
+  when:s=>s.flags.includes('story_asked_rain') && flagAge('story_asked_rain') >= 18,
+  text:()=>'你按师父说的那个年份，去翻那一年的记档。\n\n' +
+    '「外出未归」——六个名字。\n\n' +
+    '其中一个，姓和你一样。',
+  flavor:()=>causeLine('story_asked_rain'),
+  choices:[
+    { label:'去问师父认不认识这个人', eff:(s,a)=>{ a.clue('clue_name'); a.clue('clue_master'); a.sectContrib(16); a.cult(130,'high'); a.life(-16);
+        return '你把那个名字写给师父看。\n\n他看了很久，然后把纸折起来，还给你。\n\n“认识。”他说。\n\n“他是谁？”\n\n“他是我师兄。”师父说，“也是你师祖收的第一个徒弟。”\n\n“那为什么记档上写的是外人？”\n\n“因为写记档的人，把他忘了。”\n\n线索 +2　宗门贡献 +16　修为 +'+a.gain(130,'high')+'　寿元 −16'; } },
+    { label:'自己悄悄查下去', eff:(s,a)=>{ a.clue('clue_erased'); a.sectContrib(12); a.cult(100,'high'); a.karma(1);
+        return '你没告诉任何人。\n\n你把那六个名字抄下来，藏在身上。\n\n查了几天，你发现这六个人有一个共同点：\n他们都在某一年拜入宗门，\n而那一年，记档上写的是「无事」。\n\n线索 +1　宗门贡献 +12　修为 +'+a.gain(100,'high')+'　业障 +1'; } }
+  ]
+},
+
+/* ============ 第五页：三条路线的收束 ============ */
+
+{
+  id:'ev12_story_incense', tier:3, title:'那两炷香', cat:'修行',
+  when:s=>s.flags.includes('story_incense') && flagAge('story_incense') >= 16,
+  text:()=>'你又去祖师堂上香。\n\n' +
+    '炉子里有烧了一半的香——不是你的。\n\n' +
+    '插的位置和你上次一模一样。',
+  flavor:()=>causeLine('story_incense'),
+  choices:[
+    { label:'在那儿等', eff:(s,a)=>{ a.clue('clue_master'); a.cult(120,'high'); a.sectContrib(14); a.life(-14);
+        return '你跪下来等。\n\n等到第二炷香烧完，师父来了。\n\n他看见你，点了点头，在你旁边跪下。\n\n“以后初一十五，都来。”他说。\n\n“好。”\n\n线索 +1　修为 +'+a.gain(120,'high')+'　宗门贡献 +14　寿元 −14'; } },
+    { label:'上完香就走', eff:(s,a)=>{ a.karma(-2); a.life(18); a.sectContrib(8);
+        return '你把自己那炷香插好，磕了三个头，起身走了。\n\n走到门口，你回头看了一眼。\n\n两炷香并排烧着，烟往上走，在半空合成一股。\n\n业障 −2　寿元 +18　宗门贡献 +8'; } }
+  ]
+},
+
+{
+  id:'ev12_story_all', tier:4, title:'你抄的那些名字', cat:'线索',
+  when:s=>s.flags.includes('story_copied_all') && flagAge('story_copied_all') >= 16,
+  text:()=>'你抄的那二十三张纸，最近开始出问题。\n\n' +
+    '有三个名字，你怎么看都不认识了。\n\n' +
+    '笔画都在，但连不成字。',
+  flavor:()=>causeLine('story_copied_all'),
+  choices:[
+    { label:'把不认识的那三个念出来——照笔画硬念', eff:(s,a)=>{ a.clue('clue_name'); a.clue('clue_erased'); a.sectContrib(20); a.cult(170,'high'); a.life(-24);
+        return '你对着笔画，一个音一个音地拼。\n\n拼到第三个的时候，屋子里的灯灭了。\n\n你没有停。黑暗里你把那三个名字念完了。\n\n念完之后灯自己亮了。\n\n纸上那三个名字又连成了字——\n而且比你抄的时候清楚。\n\n线索 +2　宗门贡献 +20　修为 +'+a.gain(170,'high')+'　寿元 −24'; } },
+    { label:'把那三张纸烧了', eff:(s,a)=>{ a.karma(-3); a.life(20); a.sectContrib(10);
+        return '你把那三张烧了。\n\n火烧到一半，纸上渗出一点水。\n\n你看着它烧完，把灰扫进香炉里。\n\n业障 −3　寿元 +20　宗门贡献 +10'; } }
+  ]
+},
+
+{
+  id:'ev12_story_wait', tier:4, title:'今天想不起来了', cat:'修行',
+  when:s=>s.flags.includes('story_waited') && flagAge('story_waited') >= 16,
+  text:()=>'今天早上，你想不起自己叫什么了。\n\n' +
+    '不是完全想不起——\n你记得第一个字，记得是三个字。\n\n' +
+    '中间那个字，怎么都想不出来。',
+  flavor:()=>causeLine('story_waited'),
+  choices:[
+    { label:'坐下来，一直想到想起来为止', eff:(s,a)=>{ a.clue('clue_name'); a.sectContrib(16); a.cult(150,'high'); a.life(-26); a.karma(-2);
+        return '你坐下了。\n\n坐到中午，坐到天黑，坐到第二天早上。\n\n第二天早上，你忽然想起来了。\n\n想起来的时候你出了一身汗，\n像从很深的水里浮上来。\n\n线索 +1　宗门贡献 +16　修为 +'+a.gain(150,'high')+'　寿元 −26　业障 −2'; } },
+    { label:'不管了，先去做事', eff:(s,a)=>{ a.karma(2); a.cult(90,'high'); a.sectContrib(6);
+        return '你起来去打水、对账、扫地。\n\n一天下来没人叫过你的名字。\n\n晚上躺下的时候，你已经不太在意那个字了。\n\n业障 +2　修为 +'+a.gain(90,'high')+'　宗门贡献 +6'; } }
+  ]
+},
+
+{
+  id:'ev12_story_out', tier:4, title:'月光穿过去的那只手', cat:'世界',
+  when:s=>s.flags.includes('story_went_out') && flagAge('story_went_out') >= 18,
+  text:()=>'你开始能在白天看见一些东西。\n\n' +
+    '不是影子，也不是人。\n\n' +
+    '是**空出来的地方**——\n有些人走过的地方，会短暂地空一下，\n像水面上被抹掉的一圈纹。',
+  flavor:()=>causeLine('story_went_out'),
+  choices:[
+    { label:'记住那些空出来的地方', eff:(s,a)=>{ a.clue('clue_erased'); a.clue('clue_page'); a.sectContrib(18); a.cult(160,'high'); a.life(-18); a.karma(1);
+        return '你随身带了块炭，看见空的地方就往地上画一道。\n\n画了十几天，地上那些道连成了一个形状。\n\n你退后看，那是一个人走路的路线。\n\n从伙房出发，绕过祖师堂，一直走到后山。\n\n线索 +2　宗门贡献 +18　修为 +'+a.gain(160,'high')+'　寿元 −18　业障 +1'; } },
+    { label:'不再看', eff:(s,a)=>{ a.karma(-2); a.life(22); a.cult(50,'mid');
+        return '你开始低头走路。\n\n走了几天，那些空的地方就不出现了。\n\n也可能是你不看了。\n\n业障 −2　寿元 +22　修为 +'+a.gain(50,'mid'); } }
+  ]
+},
+
+{
+  id:'ev12_story_cover', tier:4, title:'那一夜之后', cat:'修行',
+  when:s=>s.flags.includes('story_covered') && flagAge('story_covered') >= 18,
+  text:()=>'你把被子蒙上那一夜之后，睡得很好了。\n\n' +
+    '好到有点不对。\n\n' +
+    '你开始记不住梦。不是梦变少了——\n是醒来之后一点痕迹都不剩。',
+  flavor:()=>causeLine('story_covered'),
+  choices:[
+    { label:'睡前在床头放一张纸，醒来先写三个字', eff:(s,a)=>{ a.clue('clue_dream'); a.sectContrib(14); a.cult(130,'high'); a.life(-14);
+        return '第一天早上你写了「什么都没有」。\n\n第七天你写了「又是那条路」。\n\n第十四天你写了三个字，\n写完之后你盯着看，不认识那三个字。\n\n线索 +1　宗门贡献 +14　修为 +'+a.gain(130,'high')+'　寿元 −14'; } },
+    { label:'继续睡', eff:(s,a)=>{ a.life(30); a.sectContrib(10); a.cult(70,'high'); a.karma(-2);
+        return '你继续睡。\n\n睡得越来越好。\n\n有一天你早上醒来，觉得昨天好像发生过什么，\n但想了半天，只记得伙房的粥。\n\n业障 −2　寿元 +30　宗门贡献 +10　修为 +'+a.gain(70,'high'); } }
+  ]
+},
+
+{
+  id:'ev12_story_window', tier:4, title:'三百灵石的那口棺材', cat:'线索',
+  when:s=>s.flags.includes('story_asked_window') && flagAge('story_asked_window') >= 18,
+  text:()=>'你去查了那一年三月初七的账。\n\n' +
+    '三百灵石，确实支出去了。\n\n' +
+    '同一天，宗门里少了六个人。\n\n' +
+    '而一口棺材，装不了六个人。',
+  flavor:()=>causeLine('story_asked_window'),
+  choices:[
+    { label:'去后山找那口棺材', eff:(s,a)=>{ a.clue('clue_page'); a.clue('clue_erased'); a.sectContrib(20); a.cult(180,'high'); a.life(-22);
+        return '你在后山找了三天。\n\n第三天在一片竹林后面找到一处新土——\n其实是三十年前的旧土，但表面比周围新。\n\n你挖开。\n\n里面是一口棺，很新，没有钉。\n\n打开，里面是空的，\n底上躺着六样东西：六块牌子，刻着六个名字。\n\n线索 +2　宗门贡献 +20　修为 +'+a.gain(180,'high')+'　寿元 −22'; } },
+    { label:'不去，把这件事记下来就够了', eff:(s,a)=>{ a.clue('clue_date'); a.sectContrib(12); a.cult(90,'high'); a.life(10);
+        return '你把这个数目、这个日子、这六个人，记在了纸上。\n\n记完你把它和别的纸放在一起。\n\n那一叠已经很厚了。\n\n线索 +1　宗门贡献 +12　修为 +'+a.gain(90,'high')+'　寿元 +10'; } }
+  ]
+},
+
+{
+  id:'ev12_story_cross', tier:4, title:'你划掉的那一行', cat:'线索',
+  when:s=>s.flags.includes('story_crossed_out') && flagAge('story_crossed_out') >= 18,
+  text:()=>'你划掉的那一行，最近又显出来了。\n\n' +
+    '不是墨渗上来——是纸在那个位置变薄了。\n\n' +
+    '薄到能看见下一页的字。',
+  flavor:()=>causeLine('story_crossed_out'),
+  choices:[
+    { label:'把下一页也翻开看', eff:(s,a)=>{ a.clue('clue_page'); a.clue('clue_name'); a.sectContrib(18); a.cult(170,'high'); a.life(-20); a.karma(2);
+        return '你翻开下一页。\n\n上面只有一个名字。\n\n是你划掉自己那一行**之后**才写的。\n\n字迹是你的。\n\n线索 +2　宗门贡献 +18　修为 +'+a.gain(170,'high')+'　寿元 −20　业障 +2'; } },
+    { label:'用墨把那一行重新涂实', eff:(s,a)=>{ a.karma(-3); a.life(24); a.sectContrib(12); a.cult(80,'high');
+        return '你研了很浓的墨，一层一层涂上去。\n\n涂到第五层，纸不再透了。\n\n你把册子合上，放回去。\n\n业障 −3　寿元 +24　宗门贡献 +12　修为 +'+a.gain(80,'high'); } }
+  ]
+},
+
+{
+  id:'ev12_story_wrote', tier:4, title:'你替师父写的那一行', cat:'线索',
+  when:s=>s.flags.includes('story_wrote_master') && flagAge('story_wrote_master') >= 18,
+  text:()=>'你写下师父名字的那一页，现在是湿的。\n\n' +
+    '纸一直没干。\n\n' +
+    '而且那一行下面，多了两个字。\n\n' +
+    '写的是「谢谢」。',
+  flavor:()=>causeLine('story_wrote_master'),
+  choices:[
+    { label:'在下面回一句', eff:(s,a)=>{ a.clue('clue_master'); a.sectContrib(20); a.cult(160,'high'); a.life(-16); a.karma(-4);
+        return '你在「谢谢」下面写了三个字：「不客气」。\n\n写完纸就干了。\n\n干得很快，一眨眼的工夫。\n\n你把册子合上，发现封面上的字浮出来了——\n原来它一直有字，只是看不见。\n\n上面写着：宗门名录。\n\n线索 +1　宗门贡献 +20　修为 +'+a.gain(160,'high')+'　寿元 −16　业障 −4'; } },
+    { label:'把那一页撕下来', eff:(s,a)=>{ a.karma(3); a.clue('clue_erased'); a.cult(130,'high'); a.sectContrib(8); a.life(-10);
+        return '你把那一页撕了下来。\n\n撕口很整齐——你找了把尺子压着撕的。\n\n撕完你才反应过来：三十年前撕那一页的人，\n也是这么撕的。\n\n业障 +3　修为 +'+a.gain(130,'high')+'　宗门贡献 +8　寿元 −10　线索 +1'; } }
+  ]
+},
+
+{
+  id:'ev12_story_took', tier:4, title:'你带走的那本册子', cat:'世界',
+  when:s=>s.flags.includes('story_took_book') && flagAge('story_took_book') >= 18,
+  text:()=>'你带走的册子，最近开始变重。\n\n' +
+    '不是错觉——你称过。\n\n' +
+    '每过一天，重一点。',
+  flavor:()=>causeLine('story_took_book'),
+  choices:[
+    { label:'打开看看多了什么', eff:(s,a)=>{ a.clue('clue_page'); a.clue('clue_name'); a.sectContrib(18); a.cult(190,'high'); a.life(-24); a.karma(3);
+        return '你翻开册子。\n\n名字变多了。\n\n你走的时候抄下来的二十三个，现在有四十多个。\n\n多出来的那些，你一个都不认识。\n\n但最后一行是你的名字。\n\n写得很大，占了整整一行。\n\n线索 +2　宗门贡献 +18　修为 +'+a.gain(190,'high')+'　寿元 −24　业障 +3'; } },
+    { label:'把它埋了', eff:(s,a)=>{ a.karma(-4); a.life(26); a.sectContrib(10); a.cult(90,'high');
+        return '你找了个没人的地方，挖了个坑。\n\n放进去的时候，册子在你手里沉了一下，\n像是想留下来。\n\n你还是填了土。\n\n填完之后你在上面踩了两脚，走了。\n\n业障 −4　寿元 +26　宗门贡献 +10　修为 +'+a.gain(90,'high'); } }
+  ]
+}
+
+]);
+
+
 /* ===== mijing.js ===== */
 /* ============================================================
    秘境（第 27 轮新增）
@@ -12628,17 +13239,50 @@ function paySalary(){
   return { amount:amount, rank:rank.name };
 }
 
-/* ---- 宗门主线《三月初七》----
+/* 宗门主线《三月初七》的「讲完了」哨兵（第 31 轮）。
+   ⚠️ 不能用 null —— 那个值同时表示「还没开始」。见 storyStage()。 */
+G.STORY_DONE = '__story_done__';
+
+/* ---------------- 宗门主线《三月初七》 ----------------
    ⚠️ 第 27 轮：进度门槛从「累计宗门行动次数」改成「累计宗门贡献」。
    旧版四页要 25 / 70 / 140 / **230** 次宗门行动 ——
    而一局总共才约 213 次行动，第四页**永远看不到**
    （实测：正常玩只有 34% 的局能翻到第四页，而且那是靠模拟器硬刷出来的）。
    同时主页面的「宗门事务」现在自动给贡献，所以这条线不再要求
-   「进宗门面板反复点任务」这种多此一举的操作。 */
+   「进宗门面板反复点任务」这种多此一举的操作。
+
+   ⚠️ 第 31 轮：从**线性四页**改成**有岔路的故事图**。
+   玩家原话：「哪怕是三月初七也一样，本质上内容量过少了」，
+   而且它当时确实是 `storyStage + 1` 一条直线：4 页、472 字、12 个选项，
+   选什么都只影响收益，不影响下一页是什么。
+
+   现在的结构：
+     · s.storyStage 存的是**页面的 id**（字符串），不再是下标
+     · 每页可以声明 next(s) → 下一页的 id（不写就顺着数组往后走）
+     · 于是「你查下去」和「你合上册子」会走到**不同的第 4、第 5 页**，
+       两条路线最后收在同一个尾声，但读到的东西不一样
+     · 门槛：12 / 35 / 70 / 100 / 135
+       实测一局「累计宗门贡献」中位 171、25% 分位 145 ——
+       135 这一步约 78% 的局能翻到，不会重演第 27 轮「最后一页看不到」。
+     · 老存档的 storyStage 是**数字**（下标），这里做一次兼容；
+       顺便按「读过的页数」记进 s.storyDone，给界面显示进度用。 */
 function storyStage(){
-  const idx = s.storyStage || 0;
-  if (idx >= G.SECT_STORY.stages.length) return null;
-  return G.SECT_STORY.stages[idx];
+  const stages = G.SECT_STORY.stages;
+  const cur = s.storyStage;
+  /* 老存档：数字下标 */
+  if (typeof cur === 'number'){
+    return stages[Math.min(cur, stages.length-1)] || null;
+  }
+  /* ⚠️ 「讲完了」必须用一个**独立的哨兵值**，不能就用 null/undefined。
+     因为 null 同时是「还没开始」的意思（下面那行 `cur || start`），
+     于是走完最后一条路线之后 storyStage() 会重新返回第一页 ——
+     **主线无限循环**，而且 HUD 永远显示「第 1/N 页」。
+     被 dev/verify-story.js 的 while 循环挂死抓到（它跑了 120 秒没停）。 */
+  if (cur === G.STORY_DONE) return null;
+  const id = cur || G.SECT_STORY.start || (stages[0] && stages[0].id);
+  if (!id) return null;
+  for (let i=0;i<stages.length;i++) if (stages[i].id === id) return stages[i];
+  return null;
 }
 function storyReady(){
   const st = storyStage();
@@ -12653,22 +13297,74 @@ function storyNeed(st){
   if (typeof st.contrib === 'number') return st.contrib;
   return st.at || 0;
 }
-function advanceStory(){
+/* 翻到下一页。返回值是**刚读完的那一页**（界面拿它渲染结果卡）。
+   ⚠️ 第 31 轮：这里不再 `+1`，而是问「下一页是谁」，优先级三档：
+        ① 玩家这一页选的**那个选项**上的 next（岔路就写在这里）
+        ② 这一页自己的 next（整页固定走向）
+        ③ 都没有 → 顺着数组往后（普通线性页）
+   ⚠️⚠️ 一定要把**选中的那个选项**传进来。
+   第一版只看了 `st.next`，而岔路是写在选项上的（st3 的三个选项各有 next），
+   于是 advanceStory 找不到 st.next，直接回落到「顺着数组往后」——
+   三个选项全都走到 st4a。**分叉等于没做**，而且它不报错。
+   被 dev/verify-linkage.js 第 7 节的「路线走查」抓到
+   （它发现从起点只能走出一条直线）。 */
+function advanceStory(choice){
   const st = storyStage();
   if (!st) return null;
-  s.storyStage = (s.storyStage||0) + 1;
+  const stages = G.SECT_STORY.stages;
+  const resolve = fn => { try { return fn(s) || null; } catch(e){ return null; } };
+  /* ⚠️ 必须区分「没写 next」和「写了 next 但它返回 null」：
+       后者是**这条路到此为止**（路线 A 的最后一页就靠它收束）。
+     第一版用 `if (!nextId)` 连着判三次，于是 `next:()=>null`
+     被当成了「没写」，回落到数组顺序 —— 路线 A 会接着往下走到
+     路线 B 的第一页，三条路串成一条。测试里表现为
+     「st5a → st4b → st5b → st4c → st5c」这样一条 9 页的长链。 */
+  let nextId = null, decided = false;
+  if (choice && typeof choice.next === 'function'){ nextId = resolve(choice.next); decided = true; }
+  if (!decided && typeof st.next === 'function'){ nextId = resolve(st.next); decided = true; }
+  if (!decided){
+    const i = stages.indexOf(st);
+    nextId = (i >= 0 && i+1 < stages.length) ? stages[i+1].id : null;
+  }
+  /* ⚠️ 走到头要写**哨兵值**，不能写 null —— 见 storyStage() 的说明：
+     null 会被当成「还没开始」，主线会从头再来一遍（无限循环）。 */
+  s.storyStage = nextId || G.STORY_DONE;
+  /* 读过的页数：界面用它显示「已看几页」。
+     ⚠️ 不能用 storyStage 的下标来数 —— 岔路之后两条路线页数不一样。 */
+  s.storyDone = (s.storyDone||0) + 1;
   gainContrib(10);
+  note('story', `《三月初七》翻过一页：${st.name}`);
   return st;
 }
+/* 从某一页出发、沿着 next 走到头，一共有多少页。
+   给「第 N / 共 M 页」用 —— 岔路之后两条路线的 M 可能不同，
+   所以按当前这条路算，而不是按整个数组的长度。 */
+function storyLenFrom(st){
+  const stages = G.SECT_STORY.stages;
+  if (!st) return 0;
+  let n = 1, cur = st, guard = 0;
+  while (guard++ < 32){
+    let nx = null;
+    if (typeof cur.next === 'function'){ try{ nx = cur.next(s); }catch(e){ nx = null; } }
+    else { const i = stages.indexOf(cur); nx = (i>=0 && i+1<stages.length) ? stages[i+1].id : null; }
+    if (!nx) break;
+    const f = stages.filter(x=>x.id===nx)[0];
+    if (!f) break;
+    n++; cur = f;
+  }
+  return n;
+}
 function storyProgress(){
-  const total = G.SECT_STORY.stages.length;
-  const done = Math.min(s.storyStage||0, total);
   const next = storyStage();
+  const done = s.storyDone || 0;
+  const total = done + storyLenFrom(next);
   const have = sectContribTotal();
   return { done:done, total:total, next:next,
            have: have,
            need: next ? Math.max(0, storyNeed(next) - have) : 0,
-           needAll: next ? storyNeed(next) : 0 };
+           needAll: next ? storyNeed(next) : 0,
+           /* 第 31 轮：还给出「这一页的 id」，界面与测试用它判断走到哪条岔路上 */
+           stageId: next ? next.id : null };
 }
 
 /* ---------------- 弟子 ---------------- */
@@ -13414,7 +14110,7 @@ G.Engine = {
   // 宗门（第 15 轮）
   sectTier, sectBlessing, sectRank, sectContrib, gainContrib,
   shopPrice, canBuyShop, buyFromShop, doSectTask, paySalary,
-  storyStage, storyReady, advanceStory, storyProgress,
+  storyStage, storyReady, advanceStory, storyProgress, storyLenFrom,
 
   /* 比武大会（第 22 轮） */
   tourneyBracket, tourneyReady, startTourney, tourneyNextOpponent,
@@ -16439,7 +17135,11 @@ function showSect(){
 function storyProgressLine(){
   const pr = G.Engine.storyProgress();
   if (!pr) return '';
-  if (pr.done >= pr.total) return '《三月初七》四页都看过了';
+  /* ⚠️ 第 31 轮：不能写死「四页」了。
+     主线从线性四页改成了有岔路的故事图，一共 9 页、每条路走 5 页 ——
+     页数要问 storyProgress()，不要写在文案里。
+     （第 30 轮刚因为「界面写死档数」修过一批，这里是同一类。） */
+  if (pr.done >= pr.total) return `《三月初七》${pr.total} 页都看过了`;
   return `《三月初七》第 ${pr.done+1}/${pr.total} 页` +
          (pr.need > 0 ? `　还差 ${pr.need} 点贡献` : '　可以往下查了');
 }
@@ -16493,8 +17193,12 @@ function showSectStory(){
       (c.hint ? '<div class="ev-cmeta">' + c.hint + '</div>' : '');
     b.addEventListener('click', ()=>{
       const beforeClues = (G.Engine.raw.clues||[]).slice();
+      /* ⚠️ 第 31 轮：必须把**玩家点的那个选项**传给 advanceStory。
+         岔路信息写在选项的 next 上（第三页的三个选项各通向不同的一页），
+         只传空的话引擎只能回落到「顺着数组往后」——
+         三个选项全都会走到同一条路，分叉静默失效。 */
       const r = c.eff(G.Engine.raw, api2);
-      G.Engine.advanceStory();
+      G.Engine.advanceStory(c);
       autoSave();
       /* ④ 结果卡：把「发生了什么」单独演一屏，而不是塞进 toast */
       const gained = (G.Engine.raw.clues||[]).filter(x=>beforeClues.indexOf(x)<0);
@@ -16740,7 +17444,9 @@ function showEnding(r){
     if (s2.clues) bits.push(`线索 ${s2.clues}`);
     if (s2.tianjiaoWon) bits.push(`胜过天骄 ${s2.tianjiaoWon}`);
     if (s2.champions) bits.push(`夺魁 ${s2.champions}`);
-    if (s2.storyDone) bits.push(`三月初七 ${s2.storyDone}/4`);
+    /* ⚠️ 第 31 轮：写死的 /4 要改成实际的路线长度。
+       主线现在一共 9 页、每条路走 5 页，写死 /4 会让结算页显示「5/4」。 */
+    if (s2.storyDone) bits.push(`三月初七 走过 ${s2.storyDone} 页`);
     if (s2.disciplesLost) bits.push(`失去弟子 ${s2.disciplesLost}`);
     if (s2.shielded) bits.push(`被弟子挡过 ${s2.shielded}`);
     if (s2.sectContrib) bits.push(`贡献 ${s2.sectContrib}`);

@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta name="build" content="2026/9/22 21:17:00">
-<!-- build: 2026/9/22 21:17:00 -->
+<meta name="build" content="2026/9/22 21:34:45">
+<!-- build: 2026/9/22 21:34:45 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#0d0b0a">
@@ -8590,6 +8590,752 @@ G.EVENTS = (G.EVENTS || []).concat([
 ]);
 
 
+/* ===== events13.js ===== */
+/* ============================================================
+   《记忆修复局》事件数据 · 第十三批（第 31 轮 · 收尾）
+   把最后 44 个「谁都不读」的标记全部接上
+   ------------------------------------------------------------
+   第 31 轮审计（dev/dbg-deadflags.js）：103 个标记里
+     59 个已经有下文，**44 个谁都不读** —— 内容里写下的空头承诺。
+   这一批就是把那 44 个全部消化掉，于是棘轮可以从 44 收到 0。
+
+   其中 6 组是**同一个事件的不同选项各打了互斥标记**，
+   所以它们天然就是「选 A 走 B、不选 A 走 C」的真分叉：
+     z2_herb_garden  种伤药 / 种稀罕的
+     he6_thin        继续往里走 / 坐下来记细节
+     d6_call         应答 / 反着叫它
+     du6_under       坐下 / 问他那句话
+     du6_last_day    去看一个人 / 把该交代的写下来
+     sx_tree_plant   种门前 / 种屋后靠溪
+   ============================================================ */
+
+G.CAUSE = Object.assign(G.CAUSE || {}, {
+  /* ---- 6 组真分叉 ---- */
+  garden_heal:   { label:'你种的那一圃伤药', from:'你在药圃里种了常用的伤药', hint:'', event:'ev13_garden_heal' },
+  garden_rare:   { label:'你种的那几株少见的', from:'你在药圃里种了几株少见的', hint:'', event:'ev13_garden_rare' },
+  walked_thin:   { label:'你往里走的那一段', from:'世界变薄的时候你继续往里走', hint:'', event:'ev13_walked_thin' },
+  recorded_road: { label:'你记下来的那条路', from:'你坐下来把那条路的细节记了下来', hint:'', event:'ev13_recorded_road' },
+  answered_call: { label:'你应的那一声', from:'阵叫你的时候你应答了', hint:'', event:'ev13_answered_call' },
+  called_back:   { label:'你反着叫回去的那一声', from:'你反着叫了它', hint:'', event:'ev13_called_back' },
+  sat_under:     { label:'你在阵眼下面坐的那一觉', from:'你在阵眼下面坐下了', hint:'', event:'ev13_sat_under' },
+  asked_under:   { label:'你问阵眼的那个问题', from:'你问它「我是不是被换下来的那一本」', hint:'', event:'ev13_asked_under' },
+  last_visit:    { label:'你最后去看的那个人', from:'最后一天你去看了一个人', hint:'', event:'ev13_last_visit' },
+  wrote_all_down:{ label:'你写下来的那些交代', from:'最后一天你把该交代的写了下来', hint:'', event:'ev13_wrote_all' },
+  planted_tree:  { label:'你种在门前的那棵树', from:'你把树苗种在了门前', hint:'', event:'ev13_tree_front' },
+  planted_tree_stream:{ label:'你种在溪边的那棵树', from:'你把树苗种在了屋后靠溪那边', hint:'', event:'ev13_tree_stream' },
+  /* ---- 单个后续 ---- */
+  jade_used:     { label:'你收好的那块玉佩', from:'你把玉佩收了起来', hint:'', event:'ev13_jade' },
+  oath_taken:    { label:'你立的那个誓', from:'你举起手发了誓', hint:'你说不清是什么合上了。', event:'ev13_oath' },
+  woodbox:       { label:'替你挡一次的那只木匣', from:'你从祖师堂拿了那只木匣', hint:'', event:'ev13_woodbox' },
+  wall_talk:     { label:'墙上那三行字', from:'你在墙上接着写了一句', hint:'', event:'ev13_wall_talk' },
+  claimed_self:  { label:'你要回来的那部分', from:'你说「要」', hint:'', event:'ev13_claimed_self' },
+  tree_planted:  { label:'你埋在树下的那粒种子', from:'你在树下挖坑种了点东西', hint:'', event:'ev13_tree_planted' },
+  took_disciple: { label:'你收下的那个徒弟', from:'你收下了一个徒弟', hint:'', event:'ev13_disciple' },
+  circle_contact:{ label:'你替那封信跑的那一趟', from:'你按信上的地址去了一趟', hint:'', event:'ev13_circle' },
+  old_coin:      { label:'你收起来的那枚旧钱', from:'你把那枚旧钱收了起来', hint:'', event:'ev13_coin' },
+  dog:           { label:'你分过吃的那条狗', from:'你分了点吃的给那条狗', hint:'', event:'ev13_dog' },
+  know_herb:     { label:'你认真记下来的那些药', from:'你认真记下了那些药', hint:'', event:'ev13_herb' },
+  old_flag:      { label:'你收起来的那面旧旗', from:'你把旧旗收了起来', hint:'', event:'ev13_flag' },
+  found_talent:  { label:'你替他测出来的那个灵根', from:'你帮那个孩子测了灵根', hint:'', event:'ev13_talent' },
+  own_ward:      { label:'你布在洞府门口的那个阵', from:'你在门口布了个阵', hint:'', event:'ev13_ward' },
+  home_named:    { label:'你刻在石头上的那个名字', from:'你给洞府起了名字刻在石头上', hint:'', event:'ev13_name' },
+  domain:        { label:'你圈起来的那片地方', from:'你把那片地方圈了起来', hint:'', event:'ev13_domain' },
+  array_words:   { label:'你记下来的那句话', from:'阵说的那句话你记了下来', hint:'', event:'ev13_array_words' },
+  moon_drawn:    { label:'你画下来的那两个月亮', from:'你把两个月亮画了下来', hint:'', event:'ev13_moon' },
+  map_read:      { label:'你按图找到的那个节点', from:'你按阵图去找了最近的那个节点', hint:'', event:'ev13_map' },
+  yuan_lent:     { label:'你借出去的那一次', from:'你把元婴借了出去', hint:'', event:'ev13_yuan' },
+  line_cut:      { label:'你掐断的那根线', from:'你试着把身上的线掐断了', hint:'', event:'ev13_line' },
+  asked_master_date:{ label:'师父被问住的那一下', from:'你问师父记不记得三月初七', hint:'', event:'ev13_master_date' },
+  flatland:      { label:'你去看过的那片平地', from:'你去了九座山中间那片平地', hint:'', event:'ev13_flatland' },
+  remerge:       { label:'你重新合出来的那个东西', from:'你把两个都打散重新合了一次', hint:'', event:'ev13_remerge' },
+  made_own_tribulation:{ label:'你自己造的那场雷', from:'你自己造了一场雷', hint:'', event:'ev13_own_trib' },
+  asked_other:   { label:'你问它的那个问题', from:'你问它「你顶替我之后，我去哪」', hint:'', event:'ev13_asked_other' },
+  gave_back:     { label:'你还回去的那七成', from:'你还了七成', hint:'', event:'ev13_gave_back' },
+  left_fruit:    { label:'你留在树上的那一半', from:'你留了一半果子在树上', hint:'', event:'ev13_fruit' },
+  oldman_roof:   { label:'你替他修的那个屋顶', from:'你帮山里的老人修了屋顶', hint:'', event:'ev13_roof' },
+  snow_wood:     { label:'你从雪里拖回来的木头', from:'雪后你去林子里看了压塌的树', hint:'', event:'ev13_snow' },
+  built_bridge:  { label:'你干了三天的那座桥', from:'你去村里修了三天桥', hint:'', event:'ev13_bridge' },
+  marked_herb:   { label:'你在崖上记下的位置', from:'你记下了那株药的位置', hint:'', event:'ev13_marked_herb' }
+});
+
+G.EVENTS = (G.EVENTS || []).concat([
+
+/* ==================== 6 组真分叉 ==================== */
+
+{
+  id:'ev13_garden_heal', tier:2, title:'药圃里的伤药', cat:'人事',
+  when:s=>s.flags.includes('garden_heal') && flagAge('garden_heal') >= 15,
+  text:()=>'你种的那一圃伤药，长得很整齐。\n\n' +
+    '整齐到有人来偷。\n\n' +
+    '不是全拔走——只拔了中间那几棵，' +
+    '拔完还把土按回去了。',
+  flavor:()=>causeLine('garden_heal'),
+  choices:[
+    { label:'在圃边留个牌子：要就拿，别按土', eff:(s,a)=>{ a.karma(-3); a.favor(3); a.sectContrib(8); a.cult(40,'mid');
+        return '你找了块木片，写了七个字插在圃边。\n\n过了几天，土没有再被按过——\n但药少得更快了。\n\n你笑了一下，又补种了一排。\n\n业障 −3　人情 +3　宗门贡献 +8　修为 +'+a.gain(40,'mid'); } },
+    { label:'夜里守着', eff:(s,a)=>{ a.clue('clue_erased'); a.cult(60,'high'); a.life(-10);
+        return '你守了三夜。\n\n第三夜来的是个很小的弟子，瘦，穿得单薄。\n\n他蹲下去拔了两棵，想了想，又放回去一棵。\n\n你没出声。\n\n第四天你把那两棵挖出来，捆好，放在了他门口。\n\n线索 +1　修为 +'+a.gain(60,'high')+'　寿元 −10'; } }
+  ]
+},
+
+{
+  id:'ev13_garden_rare', tier:2, title:'那几株少见的', cat:'修行',
+  when:s=>s.flags.includes('garden_rare') && flagAge('garden_rare') >= 15,
+  text:()=>'你种的那几株少见的药，活了两株。\n\n' +
+    '第三株一直没动静——不枯，也不长。\n\n' +
+    '今天你发现它转了半圈：\n' +
+    '叶子原来朝东，现在朝西。',
+  flavor:()=>causeLine('garden_rare'),
+  choices:[
+    { label:'把它连根挖出来看', eff:(s,a)=>{ a.clue('clue_page'); a.cult(70,'high'); a.karma(1); a.life(-8);
+        return '你小心地把它挖出来。\n\n根是完整的，但根下面吊着一样东西——\n一小块石头，被人用线系在根上。\n\n线已经长进根里了。\n\n线索 +1　修为 +'+a.gain(70,'high')+'　业障 +1　寿元 −8'; } },
+    { label:'不管它，看它要转到哪边', eff:(s,a)=>{ a.cult(50,'mid'); a.life(12);
+        return '你决定不碰它。\n\n它转得很慢。半个月之后，它对着西边不动了。\n\n那天下午，西边来了一场雨。\n\n寿元 +12　修为 +'+a.gain(50,'mid'); } }
+  ]
+},
+
+{
+  id:'ev13_walked_thin', tier:7, title:'薄的那一头', cat:'世界',
+  when:s=>s.flags.includes('walked_thin') && flagAge('walked_thin') >= 18,
+  text:()=>'你往里走过的那一段，现在能一眼看到头了。\n\n' +
+    '不是变短了——是那一头**没有东西**。\n\n' +
+    '你站在边上，能看见自己的手在另一边变得很淡。',
+  flavor:()=>causeLine('walked_thin'),
+  choices:[
+    { label:'把手伸到头看看', eff:(s,a)=>{ a.clue('clue_erased'); a.cult(120,'high'); a.life(-26); a.karma(2);
+        return '你把手伸了进去。\n\n手还在，你看得见它，但摸不到自己。\n\n你缩回来的时候，手上有三道很细的口子，\n排列得像字。\n\n线索 +1　修为 +'+a.gain(120,'high')+'　寿元 −26　业障 +2'; } },
+    { label:'退回来，把这一段封上', eff:(s,a)=>{ a.karma(-4); a.life(24); a.cult(60,'high');
+        return '你搬了几块石头，把那一段挡住。\n\n挡完你在石头上拍了两下，确认它们还在。\n\n业障 −4　寿元 +24　修为 +'+a.gain(60,'high'); } }
+  ]
+},
+
+{
+  id:'ev13_recorded_road', tier:7, title:'你记下来的那条路', cat:'线索',
+  when:s=>s.flags.includes('recorded_road') && flagAge('recorded_road') >= 18,
+  text:()=>'你记下来的那份东西，最近派上用场了。\n\n' +
+    '有人要走那条路，来问你。\n\n' +
+    '你把纸摊开，发现自己记的东西**比记忆里多**。\n\n' +
+    '上面有一段，你不记得自己写过。',
+  flavor:()=>causeLine('recorded_road'),
+  choices:[
+    { label:'照着多出来的那一段走一遍', eff:(s,a)=>{ a.clue('clue_page'); a.clue('clue_erased'); a.cult(140,'high'); a.life(-20);
+        return '你照着走了一遍。\n\n走到多出来那一段的尽头，是一间屋子。\n\n屋子是新的，门开着，里面有个人背对着你在写字。\n\n你没有进去。你退回来了。\n\n线索 +2　修为 +'+a.gain(140,'high')+'　寿元 −20'; } },
+    { label:'把多出来的那一段划掉', eff:(s,a)=>{ a.karma(-2); a.life(16); a.cult(70,'high');
+        return '你划掉了那一段，然后把整张纸重抄了一份。\n\n抄完你把原来那张烧了。\n\n新抄的那份，你收得很小心。\n\n业障 −2　寿元 +16　修为 +'+a.gain(70,'high'); } }
+  ]
+},
+
+{
+  id:'ev13_answered_call', tier:8, title:'应了之后', cat:'世界',
+  when:s=>s.flags.includes('answered_call') && flagAge('answered_call') >= 18,
+  text:()=>'你应了那一声之后，它一直在叫你。\n\n' +
+    '不是每天——隔几天一次。\n\n' +
+    '每次你都能听见，而且每次都只有你听得见。',
+  flavor:()=>causeLine('answered_call'),
+  choices:[
+    { label:'每次都应', eff:(s,a)=>{ a.clue('clue_name'); a.clue('clue_world'); a.cult(170,'high'); a.life(-24); a.karma(2);
+        return '你应了很多次。\n\n应到某一次，它没有再叫，而是说了一句别的话。\n\n它说了一个名字。\n\n不是你的名字。但你知道那是叫你的。\n\n线索 +2　修为 +'+a.gain(170,'high')+'　寿元 −24　业障 +2'; } },
+    { label:'这一次不应', eff:(s,a)=>{ a.karma(-2); a.life(20); a.cult(80,'high');
+        return '你闭上嘴，什么都没说。\n\n它又叫了两声，然后停了。\n\n从那以后，隔的时间越来越长。\n\n业障 −2　寿元 +20　修为 +'+a.gain(80,'high'); } }
+  ]
+},
+
+{
+  id:'ev13_called_back', tier:8, title:'它回了你一声', cat:'世界',
+  when:s=>s.flags.includes('called_back') && flagAge('called_back') >= 18,
+  text:()=>'你反着叫它的那一声，它记住了。\n\n' +
+    '现在它也用反着的调子。\n\n' +
+    '两边的调子越走越偏，偏到某一天——\n' +
+    '你发现自己在用它的调子叫自己。',
+  flavor:()=>causeLine('called_back'),
+  choices:[
+    { label:'停下，把调子掰回来', eff:(s,a)=>{ a.clue('clue_xinmo'); a.life(-22); a.cult(150,'high'); a.karma(-2);
+        return '你花了很久才把调子掰回来。\n\n掰回来的时候，你出了一身汗，\n而且有一小段时间想不起自己刚才在干什么。\n\n线索 +1　修为 +'+a.gain(150,'high')+'　寿元 −22　业障 −2'; } },
+    { label:'顺着它走', eff:(s,a)=>{ a.clue('clue_world'); a.cult(200,'high'); a.karma(4); a.life(-14);
+        return '你顺着那个调子走。\n\n走着走着，前面亮起来了。\n\n你看清了那是什么地方——\n那是你刚入门那天的山门。\n\n门里走出来一个人。\n\n线索 +1　修为 +'+a.gain(200,'high')+'　业障 +4　寿元 −14'; } }
+  ]
+},
+
+{
+  id:'ev13_sat_under', tier:9, title:'坐下之后', cat:'修行',
+  when:s=>s.flags.includes('sat_under') && flagAge('sat_under') >= 18,
+  text:()=>'你在阵眼下面坐过之后，身上多了一样东西。\n\n' +
+    '不是伤，也不是功法。\n\n' +
+    '是**重量**——你走到哪儿，脚下都沉一点。',
+  flavor:()=>causeLine('sat_under'),
+  choices:[
+    { label:'再回去坐一次', eff:(s,a)=>{ a.attr({gengu:8}); a.cult(180,'high'); a.life(-20); a.karma(-2);
+        return '你又去了，坐下。\n\n这一次要沉得多。你坐着的时候，\n觉得脚下的地在往下走。\n\n起来的时候，你比来的时候稳。\n\n根骨 +8　修为 +'+a.gain(180,'high')+'　寿元 −20　业障 −2'; } },
+    { label:'想办法把那点重量还回去', eff:(s,a)=>{ a.karma(-3); a.life(26); a.cult(90,'high');
+        return '你找了块石头，把身上的重量「说」给它听——\n\n你不知道自己为什么会这么做，但你就是做了。\n\n说完之后，脚下的沉没了。\n\n业障 −3　寿元 +26　修为 +'+a.gain(90,'high'); } }
+  ]
+},
+
+{
+  id:'ev13_asked_under', tier:9, title:'它回答了', cat:'线索',
+  when:s=>s.flags.includes('asked_under') && flagAge('asked_under') >= 18,
+  text:()=>'你问它的那句话，它过了很久才回。\n\n' +
+    '回的时候只有四个字：\n\n' +
+    '「你本来就是。」',
+  flavor:()=>causeLine('asked_under'),
+  choices:[
+    { label:'问它：那被换下去的是谁', eff:(s,a)=>{ a.clue('clue_name'); a.clue('clue_xinmo'); a.cult(200,'high'); a.life(-28); a.karma(3);
+        return '这次它回得很快。\n\n它说了一个名字。\n\n那个名字你听过——是你自己的。\n\n线索 +2　修为 +'+a.gain(200,'high')+'　寿元 −28　业障 +3'; } },
+    { label:'不问了', eff:(s,a)=>{ a.karma(-3); a.life(30); a.cult(100,'high');
+        return '你没再问。\n\n有些答案，你知道了也不会好过。\n\n你站起来，拍了拍衣服上的土，走了。\n\n业障 −3　寿元 +30　修为 +'+a.gain(100,'high'); } }
+  ]
+},
+
+{
+  id:'ev13_last_visit', tier:9, title:'你去看的那个人', cat:'人事',
+  when:s=>s.flags.includes('last_visit') && flagAge('last_visit') >= 16,
+  text:()=>'你最后去看的那个人，还记得你。\n\n' +
+    '这让你有点意外——你本来以为不会有人记得了。\n\n' +
+    '他给你倒了杯水，问你最近怎么样。',
+  flavor:()=>causeLine('last_visit'),
+  choices:[
+    { label:'老老实实跟他说了一遍', eff:(s,a)=>{ a.karma(-4); a.favor(4); a.life(28); a.clue('clue_master');
+        return '你从头到尾说了一遍。\n\n他一句话都没插，听完之后点了点头。\n\n“我记不住那么多。”他说，“但我记住你来了。”\n\n业障 −4　人情 +4　寿元 +28　线索 +1'; } },
+    { label:'只说好的那部分', eff:(s,a)=>{ a.life(16); a.cult(90,'high'); a.favor(2);
+        return '你只说了顺的那一段。\n\n他听得很高兴，给你又添了水。\n\n走的时候他送到门口。\n\n你没回头。\n\n寿元 +16　修为 +'+a.gain(90,'high')+'　人情 +2'; } }
+  ]
+},
+
+{
+  id:'ev13_wrote_all', tier:9, title:'你写下来的那些交代', cat:'线索',
+  when:s=>s.flags.includes('wrote_all_down') && flagAge('wrote_all_down') >= 16,
+  text:()=>'你写下来的那些交代，有几条已经对不上了。\n\n' +
+    '不是写错——是**事情变了**。\n\n' +
+    '有一条写着「后山第三棵树下」，' +
+    '而你去看了，那棵树现在是第二棵。',
+  flavor:()=>causeLine('wrote_all_down'),
+  choices:[
+    { label:'按现在的样子改一遍', eff:(s,a)=>{ a.clue('clue_erased'); a.cult(110,'high'); a.life(-12); a.sectContrib(12);
+        return '你把每一条都重新核了一遍，改到对得上为止。\n\n改完你把旧的划掉，新的写在旁边。\n\n纸上密密麻麻，像两个人写的。\n\n线索 +1　修为 +'+a.gain(110,'high')+'　寿元 −12　宗门贡献 +12'; } },
+    { label:'不改，就留着原来那份', eff:(s,a)=>{ a.clue('clue_date'); a.karma(-2); a.cult(80,'high');
+        return '你把纸收起来了。\n\n原来那份写的是当时真的样子。\n改了就不是了。\n\n线索 +1　修为 +'+a.gain(80,'high')+'　业障 −2'; } }
+  ]
+},
+
+{
+  id:'ev13_tree_front', tier:0, title:'门前那棵树', cat:'世界',
+  when:s=>s.flags.includes('planted_tree') && flagAge('planted_tree') >= 18,
+  text:()=>'你种在门前的那棵树，长得比别处快。\n\n' +
+    '快得不正常——两年就长成了别人十年的样子。\n\n' +
+    '而且它把门挡了一半。',
+  flavor:()=>causeLine('planted_tree'),
+  choices:[
+    { label:'把它挪到旁边去', eff:(s,a)=>{ a.life(-14); a.cult(60,'high');
+        return '你挖了一天，才把根弄出来。\n\n根的下面有一小片整整齐齐的石头——\n像是有人铺过。\n\n你把树挪走了，石头留在那儿。\n\n寿元 −14　修为 +'+a.gain(60,'high'); } },
+    { label:'留着它，以后从旁边绕', eff:(s,a)=>{ a.life(16); a.karma(-1);
+        return '你决定不挪了。\n\n从那天起你每天出门都往左偏半步。\n\n偏了几年，那条小路被踩出来了。\n\n寿元 +16　业障 −1'; } }
+  ]
+},
+
+{
+  id:'ev13_tree_stream', tier:0, title:'溪边那棵树', cat:'世界',
+  when:s=>s.flags.includes('planted_tree_stream') && flagAge('planted_tree_stream') >= 18,
+  text:()=>'你种在溪边的那棵树，把水改了道。\n\n' +
+    '改得很小——只是一条细流从树根那儿绕过去。\n\n' +
+    '但绕过去之后，那条细流是**温的**。',
+  flavor:()=>causeLine('planted_tree_stream'),
+  choices:[
+    { label:'顺着细流往上游走', eff:(s,a)=>{ a.clue('clue_page'); a.cult(80,'high'); a.life(-10);
+        return '你顺着走了半里。\n\n细流的源头是一块石头，石头上有一个手指粗的洞。\n\n水是从洞里出来的。\n\n你把手伸进去，洞比你想的深得多。\n\n线索 +1　修为 +'+a.gain(80,'high')+'　寿元 −10'; } },
+    { label:'每天来这儿洗一次脸', eff:(s,a)=>{ a.life(24); a.cult(40,'mid');
+        return '你每天来洗一次脸。\n\n水是温的，洗完脸上会留一层很薄的滑。\n\n洗了一个月，你觉得自己看起来年轻了一点。\n\n寿元 +24　修为 +'+a.gain(40,'mid'); } }
+  ]
+},
+
+/* ==================== 单个后续 ==================== */
+
+{
+  id:'ev13_jade', tier:1, title:'玉佩发烫的时候', cat:'线索',
+  when:s=>s.flags.includes('jade_used') && flagAge('jade_used') >= 15,
+  text:()=>'你收好的那块玉佩，最近会发烫。\n\n' +
+    '烫的时候都在夜里，而且都是同一个时辰。',
+  flavor:()=>causeLine('jade_used'),
+  choices:[
+    { label:'烫的时候出门看看', eff:(s,a)=>{ a.clue('clue_date'); a.cult(45,'mid'); a.life(-8);
+        return '你端着那块玉出去了。\n\n走到院子里，它忽然不烫了。\n\n你站了一会儿，抬起头——\n\n那天晚上的月亮，比平常大一圈。\n\n线索 +1　修为 +'+a.gain(45,'mid')+'　寿元 −8'; } },
+    { label:'用布把它包起来', eff:(s,a)=>{ a.life(12); a.cult(25,'low');
+        return '你找了块厚布，把它裹了三层，压在箱底。\n\n第二天拿出来摸，还是温的。\n\n寿元 +12　修为 +'+a.gain(25,'low'); } }
+  ]
+},
+
+{
+  id:'ev13_oath', tier:4, title:'那个誓还在', cat:'修行',
+  when:s=>s.flags.includes('oath_taken') && flagAge('oath_taken') >= 18,
+  text:()=>'你立的那个誓，最近开始收利息了。\n\n' +
+    '不是难受——是有些事你**做不了**了。\n\n' +
+    '比如今天有人请你去一个地方，你走到门口就迈不动腿。',
+  flavor:()=>causeLine('oath_taken'),
+  choices:[
+    { label:'硬往里迈', eff:(s,a)=>{ a.life(-30); a.cult(140,'high'); a.karma(3); a.attr({tipo:6});
+        return '你迈了。\n\n腿上是刀割的感觉。你一步一步挪进去，\n进去之后什么都不疼了。\n\n但你在里面待的时候，一直听见有人在远处念你发过的那段话。\n\n寿元 −30　修为 +'+a.gain(140,'high')+'　业障 +3　体魄 +6'; } },
+    { label:'转身走，不跟自己较劲', eff:(s,a)=>{ a.karma(-3); a.life(22); a.cult(60,'high');
+        return '你转身走了。\n\n走的时候腿一点都不沉，反而轻。\n\n有些门关着，就让它关着。\n\n业障 −3　寿元 +22　修为 +'+a.gain(60,'high'); } }
+  ]
+},
+
+{
+  id:'ev13_woodbox', tier:2, title:'木匣里的那块木头', cat:'世界',
+  when:s=>s.flags.includes('woodbox') && flagAge('woodbox') >= 16,
+  text:()=>'你打开木匣看了一眼。\n\n' +
+    '里面那块刻着侧脸的木头，脸**换了一个方向**。\n\n' +
+    '原来朝着盖子上方，现在朝着你。',
+  flavor:()=>causeLine('woodbox'),
+  choices:[
+    { label:'把它翻过去背面朝上', eff:(s,a)=>{ a.karma(-2); a.life(14); a.clue('clue_erased');
+        return '你把它翻过去了。\n\n盖上盖子的时候，你听见里面「咔」了一声。\n\n很轻。像什么松开了。\n\n业障 −2　寿元 +14　线索 +1'; } },
+    { label:'看着那张脸', eff:(s,a)=>{ a.clue('clue_name'); a.cult(70,'high'); a.karma(1);
+        return '你对着那张侧脸看了很久。\n\n看着看着，你认出来了——\n\n那是你入门那天的自己。\n\n线索 +1　修为 +'+a.gain(70,'high')+'　业障 +1'; } }
+  ]
+},
+
+{
+  id:'ev13_wall_talk', tier:0, title:'墙上多了一行', cat:'线索',
+  when:s=>s.flags.includes('wall_talk') && flagAge('wall_talk') >= 16,
+  text:()=>'墙上那三行字，现在变成四行了。\n\n' +
+    '新加的那一行，不是你的字，也不是上次那个人的字。\n\n' +
+    '是**第三种**字迹。',
+  flavor:()=>causeLine('wall_talk'),
+  choices:[
+    { label:'再回一行', eff:(s,a)=>{ a.clue('clue_erased'); a.cult(60,'high'); a.karma(1);
+        return '你写下了第五行。\n\n写完你在那儿站了一会儿，等着。\n\n没有第六行出现。\n\n但你走的时候，觉得墙上热闹了一点。\n\n线索 +1　修为 +'+a.gain(60,'high')+'　业障 +1'; } },
+    { label:'把整面墙刷白', eff:(s,a)=>{ a.karma(-3); a.life(15);
+        return '你找了石灰，把整面墙刷了一遍。\n\n刷的时候你刻意把每一行都盖住。\n\n刷完墙是白的，很干净。\n\n业障 −3　寿元 +15'; } }
+  ]
+},
+
+{
+  id:'ev13_claimed_self', tier:4, title:'要回来之后', cat:'修行',
+  when:s=>s.flags.includes('claimed_self') && flagAge('claimed_self') >= 18,
+  text:()=>'你要回来的那部分，装不太进去。\n\n' +
+    '它比你现在的壳大一点。\n\n' +
+    '所以你每天都要花一点时间，把它按进去。',
+  flavor:()=>causeLine('claimed_self'),
+  choices:[
+    { label:'慢慢撑开自己，把它收下', eff:(s,a)=>{ a.cult(150,'high'); a.life(-24); a.attr({lingli:8,tipo:8});
+        return '你花了很久。\n\n每天多收进去一点，撑得疼，但收得住。\n\n收完的那天，你站在镜子前面看了很久——\n镜子里的人比你记得的大一号。\n\n修为 +'+a.gain(150,'high')+'　寿元 −24　体魄 +8　灵力 +8'; } },
+    { label:'把多的那点削掉', eff:(s,a)=>{ a.karma(2); a.life(20); a.cult(80,'high');
+        return '你把多出来的那点削掉了。\n\n削下来的东西没地方放，你把它埋了。\n\n埋完你觉得轻快，也空了一点。\n\n业障 +2　寿元 +20　修为 +'+a.gain(80,'high'); } }
+  ]
+},
+
+{
+  id:'ev13_tree_planted', tier:2, title:'树底下长出来的', cat:'世界',
+  when:s=>s.flags.includes('tree_planted') && flagAge('tree_planted') >= 18,
+  text:()=>'你埋下去的那粒种子，冒出来了。\n\n' +
+    '但冒出来的不是苗。\n\n' +
+    '是一小截白色的东西，弯着，像一根手指。',
+  flavor:()=>causeLine('tree_planted'),
+  choices:[
+    { label:'挖开看', eff:(s,a)=>{ a.clue('clue_erased'); a.cult(70,'high'); a.karma(2); a.life(-12);
+        return '你挖开了。\n\n下面不是种子——是一块骨头，很小，包在树根里。\n\n根是从骨头上长出来的。\n\n线索 +1　修为 +'+a.gain(70,'high')+'　业障 +2　寿元 −12'; } },
+    { label:'填回去，浇点水', eff:(s,a)=>{ a.karma(-2); a.life(20); a.cult(45,'mid');
+        return '你把土填回去，浇了水。\n\n浇完你拍了两下。\n\n它第二年长成了一棵很普通的树。\n\n业障 −2　寿元 +20　修为 +'+a.gain(45,'mid'); } }
+  ]
+},
+
+{
+  id:'ev13_disciple', tier:2, title:'你收的那个徒弟', cat:'人事',
+  when:s=>s.flags.includes('took_disciple') && flagAge('took_disciple') >= 16,
+  text:()=>'你收下的那个徒弟，最近进步很快。\n\n' +
+    '快到你有点跟不上了。\n\n' +
+    '今天他问你一个问题，你答不上来。',
+  flavor:()=>causeLine('took_disciple'),
+  choices:[
+    { label:'老实说：我也不知道', eff:(s,a)=>{ a.favor(4); a.karma(-3); a.cult(70,'high');
+        return '“我也不知道。”\n\n他愣了一下，然后说：“那我们一起去查？”\n\n你们查了三天。\n\n第三天他先查到了。他讲给你听的时候，你听得比谁都认真。\n\n人情 +4　业障 −3　修为 +'+a.gain(70,'high'); } },
+    { label:'随便编一个像样的答案', eff:(s,a)=>{ a.favor(1); a.karma(2); a.cult(50,'mid');
+        return '你编了一个听起来很有道理的说法。\n\n他点点头，记下来了。\n\n你看着他记，忽然想起自己当年也记过一句差不多的话。\n\n人情 +1　业障 +2　修为 +'+a.gain(50,'mid'); } }
+  ]
+},
+
+{
+  id:'ev13_circle', tier:2, title:'那个圈子的人', cat:'世界',
+  when:s=>s.flags.includes('circle_contact') && flagAge('circle_contact') >= 16,
+  text:()=>'你替那封信跑的一趟，把你带进了一个圈子。\n\n' +
+    '他们做的事不违法，也不伤人。\n\n' +
+    '他们只是**收集**——收集那些快要被忘掉的东西。',
+  flavor:()=>causeLine('circle_contact'),
+  choices:[
+    { label:'也交一样东西进去', eff:(s,a)=>{ a.clue('clue_book'); a.sectContrib(10); a.cult(60,'high'); a.stone(50);
+        return '你交了一页旧纸。\n\n他们收下，登记，放进一个很深的柜子。\n\n“这样就丢不了了。”有人说。\n\n你出门的时候，觉得手里空，心里满。\n\n线索 +1　宗门贡献 +10　修为 +'+a.gain(60,'high')+'　灵石 +50'; } },
+    { label:'跟他们断干净', eff:(s,a)=>{ a.karma(-3); a.life(16); a.cult(40,'mid');
+        return '你把联系方式还了回去，说以后不来了。\n\n他们没劝，只是把你的名字从一本册子上划掉了。\n\n划的时候你看见那本册子很厚。\n\n业障 −3　寿元 +16　修为 +'+a.gain(40,'mid'); } }
+  ]
+},
+
+{
+  id:'ev13_coin', tier:0, title:'旧钱上的字', cat:'线索',
+  when:s=>s.flags.includes('old_coin') && flagAge('old_coin') >= 15,
+  text:()=>'你收起来的那枚旧钱，字被磨平了。\n\n' +
+    '但最近你发现，斜着看能看见一点痕迹。\n\n' +
+    '不是字，是**铸痕**——铸的时候留下的。',
+  flavor:()=>causeLine('old_coin'),
+  choices:[
+    { label:'照着铸痕描出来', eff:(s,a)=>{ a.clue('clue_date'); a.cult(50,'mid'); a.stone(60);
+        return '你用炭笔描了半天。\n\n描出来的不是字，是一个图案——\n一枚钱的正面，但中间没有方孔。\n\n你把它收好。也许哪天用得上。\n\n线索 +1　修为 +'+a.gain(50,'mid')+'　灵石 +60'; } },
+    { label:'拿去换钱', eff:(s,a)=>{ a.stone(80); a.karma(-1);
+        return '你把它换了八十块灵石。\n\n换的时候掌柜多看了两眼，但没多问。\n\n出门之后你回头看了一眼铺子。\n\n灵石 +80　业障 −1'; } }
+  ]
+},
+
+{
+  id:'ev13_dog', tier:0, title:'那条狗还在', cat:'人事',
+  when:s=>s.flags.includes('dog') && flagAge('dog') >= 16,
+  text:()=>'你分过吃的那条狗，还在原来那个路口。\n\n' +
+    '它认得你。\n\n' +
+    '而且它现在会带路——你跟着它走，它总把你带到一个地方。',
+  flavor:()=>causeLine('dog'),
+  choices:[
+    { label:'跟它走到底', eff:(s,a)=>{ a.clue('clue_erased'); a.cult(55,'mid'); a.life(-8);
+        return '它把你带到城外一片乱葬岗。\n\n站在一个没有碑的土包前面，它坐下了。\n\n你在那儿站了一会儿。\n\n回去的路上它一直跟着你，跟到城门口才停下。\n\n线索 +1　修为 +'+a.gain(55,'mid')+'　寿元 −8'; } },
+    { label:'给它留点吃的就走', eff:(s,a)=>{ a.karma(-2); a.life(12); a.favor(1);
+        return '你把干粮掰了一半放在地上。\n\n它没有立刻吃，先看了你一眼。\n\n你走了很远回头看，它才开始吃。\n\n业障 −2　寿元 +12　人情 +1'; } }
+  ]
+},
+
+{
+  id:'ev13_herb', tier:1, title:'你记的那些药', cat:'修行',
+  when:s=>s.flags.includes('know_herb') && flagAge('know_herb') >= 15,
+  text:()=>'你认真记下来的那些药，最近救了一个人。\n\n' +
+    '一个外门弟子中了毒，管事的都不在。\n\n' +
+    '你按记的去采，采回来煎了。',
+  flavor:()=>causeLine('know_herb'),
+  choices:[
+    { label:'守着看他喝完', eff:(s,a)=>{ a.favor(4); a.karma(-3); a.cult(50,'mid');
+        return '你守着他喝完，又守了一夜。\n\n第二天早上他退了烧，睁开眼第一句话是问“我怎么了”。\n\n你说：“没事了。”\n\n人情 +4　业障 −3　修为 +'+a.gain(50,'mid'); } },
+    { label:'煎完就走', eff:(s,a)=>{ a.karma(-2); a.favor(2); a.cult(35,'mid');
+        return '你把药放在床头，说了句“喝了就好”，走了。\n\n后来听说他好了。\n\n他没来找过你。你也没再想起这件事。\n\n业障 −2　人情 +2　修为 +'+a.gain(35,'mid'); } }
+  ]
+},
+
+{
+  id:'ev13_flag', tier:1, title:'旧旗', cat:'人事',
+  when:s=>s.flags.includes('old_flag') && flagAge('old_flag') >= 16,
+  text:()=>'你收起来的那面旧旗，最近有人来问。\n\n' +
+    '来的是个老人，说是当年绣这面旗的人的后人。\n\n' +
+    '他想把它请回去。',
+  flavor:()=>causeLine('old_flag'),
+  choices:[
+    { label:'还给他', eff:(s,a)=>{ a.karma(-4); a.favor(4); a.sectContrib(14);
+        return '你把旗取出来，抖了抖灰，交到他手里。\n\n他捧着旗站了很久，然后朝你鞠了一躬。\n\n“我爷爷绣的。”他说，“绣了三个月。”\n\n业障 −4　人情 +4　宗门贡献 +14'; } },
+    { label:'留着，但让他看一眼', eff:(s,a)=>{ a.favor(1); a.cult(45,'mid'); a.clue('clue_date');
+        return '你把旗挂在墙上，让他看。\n\n他看了很久，指着一处说：“这里少了一根线。”\n\n“本来是什么颜色？”\n\n“不知道。我爷爷没说过。”\n\n人情 +1　修为 +'+a.gain(45,'mid')+'　线索 +1'; } }
+  ]
+},
+
+{
+  id:'ev13_talent', tier:2, title:'那个孩子的灵根', cat:'人事',
+  when:s=>s.flags.includes('found_talent') && flagAge('found_talent') >= 16,
+  text:()=>'你帮他测出来的那个灵根，是很好的那种。\n\n' +
+    '好到宗门里有人注意到了。\n\n' +
+    '今天有两个长老同时来找你问这件事。',
+  flavor:()=>causeLine('found_talent'),
+  choices:[
+    { label:'说不知道', eff:(s,a)=>{ a.karma(-2); a.favor(2); a.life(14);
+        return '“我就是随手一测，记不清了。”\n\n他们对视了一眼，走了。\n\n那天晚上你去看那个孩子，他还在伙房劈柴。\n\n没人来找过他。\n\n业障 −2　人情 +2　寿元 +14'; } },
+    { label:'如实说，并且替他要一个名额', eff:(s,a)=>{ a.favor(5); a.sectContrib(16); a.karma(-2); a.cult(60,'high');
+        return '你把测出来的结果原原本本说了，然后加了一句：\n\n“他该进内门。”\n\n两个长老互相看了一眼。其中一个点了点头。\n\n人情 +5　宗门贡献 +16　业障 −2　修为 +'+a.gain(60,'high'); } }
+  ]
+},
+
+{
+  id:'ev13_ward', tier:2, title:'门口的阵', cat:'世界',
+  when:s=>s.flags.includes('own_ward') && flagAge('own_ward') >= 16,
+  text:()=>'你布在洞府门口的那个阵，最近响过一次。\n\n' +
+    '响的时候你不在。\n\n' +
+    '回来只看见地上有半个脚印，脚尖朝外。',
+  flavor:()=>causeLine('own_ward'),
+  choices:[
+    { label:'顺着脚印找', eff:(s,a)=>{ a.clue('clue_erased'); a.cult(65,'high'); a.life(-10);
+        return '脚印只留下半个，然后就没了。\n\n你找了半里，最后在一棵树上看见了刻痕——\n一个记号，你没见过。\n\n线索 +1　修为 +'+a.gain(65,'high')+'　寿元 −10'; } },
+    { label:'把阵加固一遍', eff:(s,a)=>{ a.life(16); a.cult(45,'mid'); a.karma(-1);
+        return '你花了半天把阵重新描了一遍，又加了两道。\n\n描完你退后看看，觉得踏实。\n\n之后再没响过。\n\n寿元 +16　修为 +'+a.gain(45,'mid')+'　业障 −1'; } }
+  ]
+},
+
+{
+  id:'ev13_name', tier:2, title:'石头上的名字', cat:'世界',
+  when:s=>s.flags.includes('home_named') && flagAge('home_named') >= 16,
+  text:()=>'你刻在石头上的那个名字，被人描过一遍。\n\n' +
+    '描得很浅，用的是**红色**。\n\n' +
+    '你不知道红的是什么。',
+  flavor:()=>causeLine('home_named'),
+  choices:[
+    { label:'照原样再刻深一点', eff:(s,a)=>{ a.life(-8); a.cult(50,'mid'); a.karma(1);
+        return '你把那三个字重新刻深了。\n\n刻的时候红色的粉末飞起来，有一股铁味。\n\n刻完你退后看了看，那三个字比原来正。\n\n寿元 −8　修为 +'+a.gain(50,'mid')+'　业障 +1'; } },
+    { label:'把整块石头推倒', eff:(s,a)=>{ a.karma(-2); a.life(12); a.clue('clue_erased');
+        return '你把石头推倒了。\n\n推倒之后你想了想，又把它扶起来，靠着墙。\n\n字朝着墙，外面看不见了。\n\n业障 −2　寿元 +12　线索 +1'; } }
+  ]
+},
+
+{
+  id:'ev13_domain', tier:3, title:'你圈的那片地方', cat:'世界',
+  when:s=>s.flags.includes('domain') && flagAge('domain') >= 16,
+  text:()=>'你圈起来的那片地方，最近有人在你画的界外面盖了间屋子。\n\n' +
+    '盖得很规矩，离界正好三尺。\n\n' +
+    '住进去的是个年轻人。',
+  flavor:()=>causeLine('domain'),
+  choices:[
+    { label:'过去打个招呼', eff:(s,a)=>{ a.favor(3); a.cult(70,'high'); a.sectContrib(10);
+        return '你过去敲了门。\n\n他开门的时候有点紧张，看清是你之后更紧张了。\n\n“我知道这儿是你的地，”他说，“我就挨着住，不进去。”\n\n“没事。”你说，“界画得太大了。”\n\n人情 +3　修为 +'+a.gain(70,'high')+'　宗门贡献 +10'; } },
+    { label:'把界往外挪，把他圈进来', eff:(s,a)=>{ a.karma(-2); a.favor(4); a.cult(55,'high'); a.life(-8);
+        return '你把界石往外搬了三尺，正好把他那间屋子圈进来。\n\n他第二天看见界石动了，站在门口愣了很久。\n\n后来他成了你这片地方的第一个人。\n\n业障 −2　人情 +4　修为 +'+a.gain(55,'high')+'　寿元 −8'; } }
+  ]
+},
+
+{
+  id:'ev13_array_words', tier:5, title:'那句话的下半句', cat:'线索',
+  when:s=>s.flags.includes('array_words') && flagAge('array_words') >= 18,
+  text:()=>'你记下来的那句话，只有上半句。\n\n' +
+    '你一直觉得它应该还有下半句。\n\n' +
+    '今天你在别的地方，听见了下半句。',
+  flavor:()=>causeLine('array_words'),
+  choices:[
+    { label:'把两句对着念一遍', eff:(s,a)=>{ a.clue('clue_page'); a.cult(130,'high'); a.life(-18); a.karma(2);
+        return '你把两句对着念了一遍。\n\n念完中间空了一段——\n两句之间应该还有一句，但那一句谁也不记得了。\n\n线索 +1　修为 +'+a.gain(130,'high')+'　寿元 −18　业障 +2'; } },
+    { label:'只记下半句，不往一起凑', eff:(s,a)=>{ a.clue('clue_erased'); a.cult(70,'high'); a.karma(-1);
+        return '你把下半句单独记在另一张纸上。\n\n两张纸分开放。\n\n有些话凑齐了会出事，你大概知道。\n\n线索 +1　修为 +'+a.gain(70,'high')+'　业障 −1'; } }
+  ]
+},
+
+{
+  id:'ev13_moon', tier:0, title:'画下来的月亮', cat:'线索',
+  when:s=>s.flags.includes('moon_drawn') && flagAge('moon_drawn') >= 16,
+  text:()=>'你画下来的那两个月亮，最近自己变了一点。\n\n' +
+    '不是你改的。\n\n' +
+    '是墨**扩散**了——两个圈各自往外晕开，边缘碰在了一起。',
+  flavor:()=>causeLine('moon_drawn'),
+  choices:[
+    { label:'拿到外面跟真的对一对', eff:(s,a)=>{ a.clue('clue_date'); a.cult(60,'mid'); a.life(-6);
+        return '你把画举起来对着天。\n\n天上只有一个。\n\n但画上那两个圈晕开的地方，形状和天上那个一模一样。\n\n线索 +1　修为 +'+a.gain(60,'mid')+'　寿元 −6'; } },
+    { label:'把画收起来，不再看', eff:(s,a)=>{ a.life(14); a.cult(30,'low'); a.karma(-1);
+        return '你把画卷起来，塞进箱底。\n\n塞进去之前你又看了一眼，那两圈已经连成一个了。\n\n寿元 +14　修为 +'+a.gain(30,'low')+'　业障 −1'; } }
+  ]
+},
+
+{
+  id:'ev13_map', tier:3, title:'那个节点上有什么', cat:'世界',
+  when:s=>s.flags.includes('map_read') && flagAge('map_read') >= 16,
+  text:()=>'你按阵图找到的那个节点，现在被人围起来了。\n\n' +
+    '围的是木栏，很新。\n\n' +
+    '栏上挂着一块牌子，写着四个字：\n「此处无用」。',
+  flavor:()=>causeLine('map_read'),
+  choices:[
+    { label:'翻进去看看', eff:(s,a)=>{ a.clue('clue_erased'); a.cult(110,'high'); a.life(-16); a.karma(2);
+        return '你翻了进去。\n\n节点还在，但被人用石头压住了。\n\n你把石头搬开，底下的东西已经不见了——\n只剩一个很圆的坑。\n\n线索 +1　修为 +'+a.gain(110,'high')+'　寿元 −16　业障 +2'; } },
+    { label:'去问是谁围的', eff:(s,a)=>{ a.clue('clue_world'); a.favor(2); a.cult(70,'high');
+        return '你问了附近的人。\n\n他们都说不知道，只说围起来很久了。\n\n有一个小孩说：“是我爹围的。他说围起来就没人掉下去了。”\n\n线索 +1　人情 +2　修为 +'+a.gain(70,'high'); } }
+  ]
+},
+
+{
+  id:'ev13_yuan', tier:4, title:'借走的元婴', cat:'修行',
+  when:s=>s.flags.includes('yuan_lent') && flagAge('yuan_lent') >= 18,
+  text:()=>'你借出去的元婴，还回来的时候小了一圈。\n\n' +
+    '不是被用了——是**被养过**。\n\n' +
+    '它现在比你自己养的那部分熟。',
+  flavor:()=>causeLine('yuan_lent'),
+  choices:[
+    { label:'把它收回去，重新养熟', eff:(s,a)=>{ a.cult(160,'high'); a.life(-20); a.attr({lingli:10});
+        return '你把它收回来了。\n\n收回来那几天，你总觉得丹田里有两个东西在转，\n转的方向不一样。\n\n一个月之后它们同步了。\n\n修为 +'+a.gain(160,'high')+'　寿元 −20　灵力 +10'; } },
+    { label:'再借出去一次', eff:(s,a)=>{ a.stone(300); a.cult(90,'high'); a.karma(1);
+        return '你又借了一次。\n\n这次换回来的是灵石，很多。\n\n你把灵石收起来，忽然想：\n再借几次，它还是不是我的。\n\n灵石 +300　修为 +'+a.gain(90,'high')+'　业障 +1'; } }
+  ]
+},
+
+{
+  id:'ev13_line', tier:5, title:'掐断之后', cat:'世界',
+  when:s=>s.flags.includes('line_cut') && flagAge('line_cut') >= 18,
+  text:()=>'你掐断那根线之后，有一头**没接回去**。\n\n' +
+    '平时没感觉。\n\n' +
+    '但每次有人在你背后叫你名字，你都要愣一下才回头。',
+  flavor:()=>causeLine('line_cut'),
+  choices:[
+    { label:'练习听见自己的名字就回头', eff:(s,a)=>{ a.cult(120,'high'); a.life(-16); a.clue('clue_name');
+        return '你找人每天叫你十遍。\n\n练了半个月，你终于不用愣那一下了。\n\n但你也分不清哪一声是在叫你。\n\n修为 +'+a.gain(120,'high')+'　寿元 −16　线索 +1'; } },
+    { label:'把那一头找回来接上', eff:(s,a)=>{ a.clue('clue_world'); a.cult(140,'high'); a.life(-26); a.karma(-2);
+        return '你顺着掐断的地方往回找。\n\n找了很久，找到一头飘在半空的线头。\n\n你把它接回去了。\n\n接上去的一瞬间，你听见很多人同时叫了你的名字。\n\n线索 +1　修为 +'+a.gain(140,'high')+'　寿元 −26　业障 −2'; } }
+  ]
+},
+
+{
+  id:'ev13_master_date', tier:5, title:'师父被问住之后', cat:'线索',
+  when:s=>s.flags.includes('asked_master_date') && flagAge('asked_master_date') >= 18,
+  text:()=>'你问师父记不记得三月初七之后，他很久没说话。\n\n' +
+    '今天他来找你了。\n\n' +
+    '手里拿着一样东西，用布包着。',
+  flavor:()=>causeLine('asked_master_date'),
+  choices:[
+    { label:'接过来打开', eff:(s,a)=>{ a.clue('clue_date'); a.clue('clue_master'); a.cult(150,'high'); a.life(-18);
+        return '布里面是一块木牌。\n\n上面刻着一个名字，被刀划过很多遍，' +
+        '划到笔画都快没了。\n\n“这是谁？”\n\n“我师兄。”师父说，“我每天划一遍。”\n\n线索 +2　修为 +'+a.gain(150,'high')+'　寿元 −18'; } },
+    { label:'不接，让他自己留着', eff:(s,a)=>{ a.favor(3); a.karma(-3); a.life(20);
+        return '“您留着吧。”\n\n他看了你一会儿，把布重新包好，收进袖子里。\n\n“也好。”他说，“我还没划完。”\n\n人情 +3　业障 −3　寿元 +20'; } }
+  ]
+},
+
+{
+  id:'ev13_flatland', tier:5, title:'那片平地上', cat:'世界',
+  when:s=>s.flags.includes('flatland') && flagAge('flatland') >= 18,
+  text:()=>'你去过的那片平地，最近开始长东西了。\n\n' +
+    '长的不是草。\n\n' +
+    '是一排一排的、很矮的石桩，' +
+    '间距一模一样。',
+  flavor:()=>causeLine('flatland'),
+  choices:[
+    { label:'数一数有多少根', eff:(s,a)=>{ a.clue('clue_page'); a.cult(140,'high'); a.life(-14);
+        return '你数了两遍。\n\n第一遍数出四十九根，第二遍也是四十九根。\n\n但你数的时候明明看见有五十根。\n\n线索 +1　修为 +'+a.gain(140,'high')+'　寿元 −14'; } },
+    { label:'拔一根带走', eff:(s,a)=>{ a.clue('clue_erased'); a.cult(100,'high'); a.karma(2); a.life(-10);
+        return '你拔了一根。\n\n拔出来才发现，桩子下面连着很长的一截，\n长到你把整条手臂伸进去都没到底。\n\n你松了手。它自己缩回去了。\n\n线索 +1　修为 +'+a.gain(100,'high')+'　业障 +2　寿元 −10'; } }
+  ]
+},
+
+{
+  id:'ev13_remerge', tier:7, title:'重新合出来的', cat:'修行',
+  when:s=>s.flags.includes('remerge') && flagAge('remerge') >= 18,
+  text:()=>'你重新合出来的那个东西，比原来那两个都小。\n\n' +
+    '但它是**完整**的。\n\n' +
+    '小，完整，而且很安静。',
+  flavor:()=>causeLine('remerge'),
+  choices:[
+    { label:'让它就这样', eff:(s,a)=>{ a.cult(180,'high'); a.life(28); a.karma(-4);
+        return '你什么都没做。\n\n它就在那儿，安安静静地待着。\n\n有时候你几乎忘了它在。\n\n那段时间是你这些年里最安稳的一段。\n\n修为 +'+a.gain(180,'high')+'　寿元 +28　业障 −4'; } },
+    { label:'再打散一次，试着合得大一点', eff:(s,a)=>{ a.cult(230,'high'); a.life(-34); a.karma(3); a.attr({wuxing:10});
+        return '你又打散了一次。\n\n这次合出来大了一些，但不如上一个安静。\n\n它在你里面动的时候，你会听见细小的声音。\n\n修为 +'+a.gain(230,'high')+'　寿元 −34　业障 +3　悟性 +10'; } }
+  ]
+},
+
+{
+  id:'ev13_own_trib', tier:9, title:'自己造的雷，落了很久', cat:'修行',
+  when:s=>s.flags.includes('made_own_tribulation') && flagAge('made_own_tribulation') >= 18,
+  text:()=>'你自己造的那场雷，一直没有停。\n\n' +
+    '它不去别处，只在你头顶那一小块地方。\n\n' +
+    '走到哪儿跟到哪儿。',
+  flavor:()=>causeLine('made_own_tribulation'),
+  choices:[
+    { label:'站到雷底下去', eff:(s,a)=>{ a.cult(260,'high'); a.life(-40); a.karma(-3); a.attr({tipo:12,gengu:12});
+        return '你站进去了。\n\n雷落在你身上的时候，你觉得很吵。\n\n吵了很久之后，忽然安静了——\n\n不是雷停了，是你听得见了。\n\n修为 +'+a.gain(260,'high')+'　寿元 −40　业障 −3　体魄 +12　根骨 +12'; } },
+    { label:'把它送走', eff:(s,a)=>{ a.karma(-5); a.life(36); a.cult(120,'high');
+        return '你找了个没人的地方，把雷「请」了过去。\n\n你不知道自己怎么会这个动作，但你会。\n\n雷落在那儿了。\n\n你走的时候，身后一直在响。\n\n业障 −5　寿元 +36　修为 +'+a.gain(120,'high'); } }
+  ]
+},
+
+{
+  id:'ev13_asked_other', tier:9, title:'顶替你的那个东西的回答', cat:'线索',
+  when:s=>s.flags.includes('asked_other') && flagAge('asked_other') >= 18,
+  text:()=>'你问它「你顶替我之后，我去哪」的时候，它没回答。\n\n' +
+    '现在它回了。\n\n' +
+    '回的方式是——它**让开了一点**。\n\n' +
+    '你看见它身后的地方，是你自己的屋子。',
+  flavor:()=>causeLine('asked_other'),
+  choices:[
+    { label:'从它让开的那点地方看进去', eff:(s,a)=>{ a.clue('clue_name'); a.clue('clue_xinmo'); a.cult(240,'high'); a.life(-32); a.karma(2);
+        return '你看进去了。\n\n屋里有人坐在你的位置上，在喝你的茶。\n\n那个人抬起头，朝你笑了一下。\n\n那张脸是你的。\n\n线索 +2　修为 +'+a.gain(240,'high')+'　寿元 −32　业障 +2'; } },
+    { label:'不看，让它让回去', eff:(s,a)=>{ a.karma(-4); a.life(34); a.cult(110,'high');
+        return '“你让回去。”你说。\n\n它让回去了。\n\n你们两个站在那儿，谁都没再动。\n\n业障 −4　寿元 +34　修为 +'+a.gain(110,'high'); } }
+  ]
+},
+
+{
+  id:'ev13_gave_back', tier:9, title:'还了七成之后', cat:'世界',
+  when:s=>s.flags.includes('gave_back') && flagAge('gave_back') >= 18,
+  text:()=>'你还了七成之后，剩下的三成一直在响。\n\n' +
+    '像有人在很远的地方敲一样很小的东西。\n\n' +
+    '今天你听清了：是三下，停一停，再三下。',
+  flavor:()=>causeLine('gave_back'),
+  choices:[
+    { label:'把剩下三成也还了', eff:(s,a)=>{ a.karma(-6); a.life(40); a.cult(160,'high'); a.attr({gengu:10});
+        return '你把最后三成也还了。\n\n还完的那一瞬间，你身上轻得几乎站不稳。\n\n你坐下来，坐了整整一天。\n\n第二天早上起来，你觉得自己是新的。\n\n业障 −6　寿元 +40　修为 +'+a.gain(160,'high')+'　根骨 +10'; } },
+    { label:'留着这三成', eff:(s,a)=>{ a.karma(3); a.cult(220,'high'); a.life(-26); a.attr({lingli:12});
+        return '你决定留着。\n\n那声音从此没停过，但你习惯了。\n\n习惯之后你发现，它能告诉你一些事——\n比如谁快要消失了。\n\n修为 +'+a.gain(220,'high')+'　寿元 −26　业障 +3　灵力 +12'; } }
+  ]
+},
+
+{
+  id:'ev13_fruit', tier:0, title:'留在树上的那一半', cat:'世界',
+  when:s=>s.flags.includes('left_fruit') && flagAge('left_fruit') >= 16,
+  text:()=>'你留在树上的那一半果子，熟透了。\n\n' +
+    '没有人摘。\n\n' +
+    '但树下有一圈很整齐的果核——' +
+    '有人在这儿坐着吃完了一整季。',
+  flavor:()=>causeLine('left_fruit'),
+  choices:[
+    { label:'坐下来等', eff:(s,a)=>{ a.clue('clue_erased'); a.cult(45,'mid'); a.life(-6);
+        return '你坐在果核中间，等了一下午。\n\n没人来。\n\n天快黑的时候你站起来，在树干上看见一道刻痕——\n是新刻的，很短。\n\n线索 +1　修为 +'+a.gain(45,'mid')+'　寿元 −6'; } },
+    { label:'明年照旧留一半', eff:(s,a)=>{ a.karma(-3); a.life(18); a.cult(30,'low');
+        return '你决定明年也这么干。\n\n果子是树上长的，本来也不是你的。\n\n业障 −3　寿元 +18　修为 +'+a.gain(30,'low'); } }
+  ]
+},
+
+{
+  id:'ev13_roof', tier:0, title:'老人家的屋顶', cat:'人事',
+  when:s=>s.flags.includes('oldman_roof') && flagAge('oldman_roof') >= 16,
+  text:()=>'你帮山里的老人修过屋顶。\n\n' +
+    '今天你路过，屋子还在，门锁着。\n\n' +
+    '屋顶是新的——比上次修的还新。',
+  flavor:()=>causeLine('oldman_roof'),
+  choices:[
+    { label:'在门口留点东西', eff:(s,a)=>{ a.karma(-3); a.stone(-40); a.life(16);
+        return '你把身上带的干粮和一小袋灵石放在门槛上，用石头压住。\n\n走的时候你回头看了一眼。\n\n新屋顶修得很好。\n\n业障 −3　灵石 −40　寿元 +16'; } },
+    { label:'上去看看是谁修的', eff:(s,a)=>{ a.clue('clue_erased'); a.cult(40,'mid');
+        return '你爬上屋顶看了。\n\n新换的瓦上有一个记号——和你在树上看见的那个一样。\n\n线索 +1　修为 +'+a.gain(40,'mid'); } }
+  ]
+},
+
+{
+  id:'ev13_snow', tier:0, title:'雪里拖回来的木头', cat:'世界',
+  when:s=>s.flags.includes('snow_wood') && flagAge('snow_wood') >= 16,
+  text:()=>'你从雪里拖回来的那些木头，堆在院子里。\n\n' +
+    '最近你发现少了一根。\n\n' +
+    '雪地上没有脚印——只有一道拖痕，' +
+    '从木头堆一直拖到墙根，然后**往上**去了。',
+  flavor:()=>causeLine('snow_wood'),
+  choices:[
+    { label:'顺着拖痕找上去', eff:(s,a)=>{ a.clue('clue_page'); a.cult(50,'mid'); a.life(-8);
+        return '你爬上墙头。\n\n拖痕到墙头就断了。\n\n墙外的雪地上，那根木头立着，插在雪里，\n一头朝上，一头朝下。\n\n线索 +1　修为 +'+a.gain(50,'mid')+'　寿元 −8'; } },
+    { label:'把剩下的木头搬进屋里', eff:(s,a)=>{ a.life(14); a.cult(25,'low');
+        return '你把剩下的全搬进了灶间。\n\n一根都没再少。\n\n那年冬天你烧得很暖和。\n\n寿元 +14　修为 +'+a.gain(25,'low'); } }
+  ]
+},
+
+{
+  id:'ev13_bridge', tier:0, title:'那座桥', cat:'人事',
+  when:s=>s.flags.includes('built_bridge') && flagAge('built_bridge') >= 18,
+  text:()=>'你干了三天的那座桥，塌过一次。\n\n' +
+    '塌了之后村里又修了一遍，修得比原来结实。\n\n' +
+    '桥头立了块碑，上面刻着出钱出工的人名。',
+  flavor:()=>causeLine('built_bridge'),
+  choices:[
+    { label:'去看看碑上有没有你', eff:(s,a)=>{ a.clue('clue_erased'); a.life(16); a.favor(2);
+        return '你找了半天，没找到。\n\n碑上刻了十九个名字，都是村里的。\n\n你正要走，看见碑背面还有一行小字：\n\n「另有不知名者一，出力三日。」\n\n线索 +1　寿元 +16　人情 +2'; } },
+    { label:'在碑上把自己的名字刻上去', eff:(s,a)=>{ a.karma(1); a.favor(1); a.cult(35,'mid');
+        return '你找了块尖石头，把名字刻在了那一行小字下面。\n\n刻得很小。\n\n刻完你看了看，觉得这样也行。\n\n业障 +1　人情 +1　修为 +'+a.gain(35,'mid'); } }
+  ]
+},
+
+{
+  id:'ev13_marked_herb', tier:0, title:'崖上那株药', cat:'修行',
+  when:s=>s.flags.includes('marked_herb') && flagAge('marked_herb') >= 16,
+  text:()=>'你记下位置的那株药，还在崖上。\n\n' +
+    '而且旁边多了一株。\n\n' +
+    '两株长得一模一样，连朝向都一样。',
+  flavor:()=>causeLine('marked_herb'),
+  choices:[
+    { label:'两株都采了', eff:(s,a)=>{ a.cult(65,'high'); a.stone(80); a.karma(1);
+        return '你爬上去把两株都采了。\n\n拿到手里才发现，两株是**连着的**——\n底下是一条根。\n\n你把它掰断了。\n\n修为 +'+a.gain(65,'high')+'　灵石 +80　业障 +1'; } },
+    { label:'只采一株，另一株留着', eff:(s,a)=>{ a.karma(-2); a.life(14); a.cult(45,'mid');
+        return '你只采了原来那株。\n\n另一株留在那儿。\n\n第二年你来看，它旁边又长出一株。\n\n业障 −2　寿元 +14　修为 +'+a.gain(45,'mid'); } }
+  ]
+}
+
+]);
+
+
 /* ===== mijing.js ===== */
 /* ============================================================
    秘境（第 27 轮新增）
@@ -10758,6 +11504,30 @@ function chapterAllows(e, chapter){
   return ec === 'any' || ec === chapter;
 }
 
+/* 「回响优先级」：哪些事件是某条因果的**兑现**。
+   第 31 轮实测的问题：内容 336 个事件、可抽 291 个，
+   而一局只抽得到 45~66 次事件 —— 于是「你当初那一步的回响」
+   平均每局只出现 0.3 次。因果写了，玩家感觉不到，等于没写。
+
+   所以给「已经埋下、还没兑现」的因果一个**优先抽中的机会**：
+   每次抽事件时，先掷一次 CALLBACK_CHANCE，中了就只在
+   「当前池子里、且是玩家已埋因果的兑现」这些事件里抽。
+   pending 为空时（没埋因果 / 都兑现完了）老老实实退回普通池子，
+   不会凭空造事件，也不会挤掉别的内容的手感。
+
+   数值可以用 G.CALLBACK_CHANCE 覆盖（dev/dbg-callback.js 用它量对比表）。 */
+function callbackChance(){
+  return (typeof G.CALLBACK_CHANCE === 'number') ? G.CALLBACK_CHANCE : 0.34;
+}
+let _causeTargets = null;          // event id -> true，懒建一次
+function causeTargets(){
+  if (_causeTargets) return _causeTargets;
+  _causeTargets = {};
+  const C = G.CAUSE || {};
+  Object.keys(C).forEach(function(f){ if (C[f] && C[f].event) _causeTargets[C[f].event] = true; });
+  return _causeTargets;
+}
+
 function pickEvent(){
   const myMajor = (G.REALMS[s.realmIdx] || {major:1}).major;
   const myChapter = s.chapter || 'zongmen';
@@ -10773,7 +11543,15 @@ function pickEvent(){
     return true;
   });
   if (!pool.length) return null;
-  const e = pool[Math.floor(s.rng()*pool.length)];
+
+  /* ④ 回响优先：因果的兑现，比新内容更该被看见 */
+  let pick = pool;
+  if (s.rng() < callbackChance()){
+    const tgt = causeTargets();
+    const pending = pool.filter(function(e){ return tgt[e.id]; });
+    if (pending.length) pick = pending;
+  }
+  const e = pick[Math.floor(s.rng()*pick.length)];
   s.seenEvents.push(e.id);
   return e;
 }

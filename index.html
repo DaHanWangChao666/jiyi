@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta name="build" content="2026/9/25 21:40:49">
-<!-- build: 2026/9/25 21:40:49 -->
+<meta name="build" content="2026/10/1 19:08:45">
+<!-- build: 2026/10/1 19:08:45 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#0d0b0a">
@@ -3501,7 +3501,7 @@ G.clueById = function(id){
 
 
 /* ===== events.js ===== */
-﻿/* ============================================================
+/* ============================================================
    《记忆修复局》事件数据
    ------------------------------------------------------------
    事件结构：
@@ -3629,8 +3629,13 @@ G.EVENTS = [
   when:s=>s.realmIdx>=2,
   choices:[
     { label:'带人去搜', hint:'要打架', eff:(s,a)=>{ a.challenge({ name:'山魈', tier:'weak',
-        win:()=>{ a.stone(28); a.cult(35); },
-        lose:()=>{ a.life(-30); } }); return '你带着三个人进了后山。'; } },
+        /* ⚠️ 第 32 轮：战果必须是**纯数据**（outcome），不能写成 win/lose 函数。
+           serializableChallenge() 会把函数剔掉，于是「打到一半关掉页面」
+           再读回来时回调是 undefined —— 战果静默不结算，
+           而且这一世再也拿不到那个标记（场景是 once:true）。
+           dev/verify-challenge-saveable.js 会守住这一条。 */
+        outcome:{ win:{ stone:28, cult:35 },
+                  lose:{ lifePct:-0.30 } } }); return '你带着三个人进了后山。'; } },
     { label:'关闭后山', eff:(s,a)=>{ a.sectQi(-8); a.favor(2); return '你封了后山的路。少了一条采药的道，但没再死人。宗门气运 −8，人情 +2'; } },
     { label:'自己一个人去', eff:(s,a)=>{ if(a.chance(0.45)){ a.cult(40); a.stone(20); a.clue('clue_disciple'); return '你一个人去了。回来的时候，你手里多了一只鞋。\n但是——失踪的那个弟子，今天早上回来了。他说他昨天一直在伙房。'; } a.life(-38); return '你一个人去了。回来的时候是爬着回来的。寿元 −38'; } }
   ]
@@ -3650,8 +3655,8 @@ G.EVENTS = [
   when:s=>s.realmIdx>=3,
   choices:[
     { label:'打', hint:'要打架', eff:(s,a)=>{ a.challenge({ name:'青云观弟子', tier:'normal',
-        win:()=>{ a.stone(40); a.karma(2); a.favor(2); },
-        lose:()=>{ a.life(-34); a.stone(-25); a.sectQi(-10); } }); return '你走到了他面前。'; } },
+        outcome:{ win:{ stone:40, karma:2, favor:2 },
+                  lose:{ lifePct:-0.34, stone:-25, sectQi:-10 } } }); return '你走到了他面前。'; } },
     { label:'谈', eff:(s,a)=>{ if(s.favor>=4){ a.stone(-15); a.favor(-3); a.sectQi(4); return '你摆了一桌酒。他喝了，签了个不好不坏的约。灵石 −15，人情 −3，宗门气运 +4'; } a.sectQi(-12); a.stone(-20); return '你谈了。他不认。灵脉还是被切走了一段。灵石 −20，宗门气运 −12'; } },
     { label:'报官（禀报上宗）', eff:(s,a)=>{ a.favor(1); a.sectQi(-4); a.life(-10); return '你写了三封信。半年后有回音：上宗说“自行处置”。人情 +1，宗门气运 −4，寿元 −10'; } }
   ]
@@ -3737,8 +3742,8 @@ G.EVENTS = [
     { label:'听他说完', eff:(s,a)=>{ a.stone(45); a.karma(5); a.life(-15); return '他给了你一笔灵石，只要你答应一件事：以后不要问他是谁。\n灵石 +45，业障 +5，寿元 −15'; } },
     { label:'关门', eff:(s,a)=>{ a.life(6); return '你关了门。门外站了很久才走。寿元 +6'; } },
     { label:'拔剑', hint:'要打架', eff:(s,a)=>{ a.challenge({ name:'斗篷人', tier:'elite',
-        win:()=>{ a.stone(60); a.karma(3); a.clue('clue_page'); },
-        lose:()=>{ a.life(-45); a.stone(-30); } }); return '你拔了剑。'; } }
+        outcome:{ win:{ stone:60, karma:3, clue:'clue_page' },
+                  lose:{ lifePct:-0.45, stone:-30 } } }); return '你拔了剑。'; } }
   ]
 },
 {
@@ -5145,8 +5150,10 @@ G.EVENTS_NEW = (G.EVENTS_NEW || []).concat([
   choices:[
     { label:'比', eff:function(s,a){
         a.challenge({ name:'同门', tier:'normal',
-          win:function(){ a.gainStone(70); a.favor(1); a.flag('won_duel'); },
-          lose:function(){ a.lifeBy(-0.10); a.favor(-1); } });
+          /* 第 32 轮：win/lose 函数 → 纯数据 outcome，否则读档后战果丢失。
+             won_duel 是 ev11_won_duel 的唯一来源，丢了就是整条链死掉。 */
+          outcome:{ win:{ stone:70, favor:1, flag:'won_duel' },
+                    lose:{ lifePct:-0.10, favor:-1 } } });
         return '你站到了场地上。'; } },
     { label:'不下场，只在旁边看', eff:function(s,a){
         a.cult(32,'mid'); a.clue('clue_duel');
@@ -5585,8 +5592,9 @@ G.EVENTS_NEW = (G.EVENTS_NEW || []).concat([
   choices:[
     { label:'动手', hint:'打一场', eff:function(s,a){
         a.challenge({ name:'另一个你', tier:'elite',
-          win:function(){ a.lifeBy(-0.12); a.cult(60,'high'); a.clue('clue_erased'); },
-          lose:function(){ a.lifeBy(-0.30); a.karma(4); } });
+          /* 第 32 轮：win/lose 函数 → 纯数据 outcome（读档后战果不再丢失） */
+          outcome:{ win:{ lifePct:-0.12, cult:60, tier:'high', clue:'clue_erased' },
+                    lose:{ lifePct:-0.30, karma:4 } } });
         return '你没说话，直接出手。'; } },
     { label:'跟他谈', eff:function(s,a){
         a.lifeBy(-0.10); a.cult(40,'high'); a.clue('clue_array'); a.clue('clue_erased');
@@ -5638,8 +5646,8 @@ G.EVENTS_NEW = (G.EVENTS_NEW || []).concat([
         return '“不借。”\n\n他点点头，把青光收了回去，一点都不勉强。\n\n“那位置我还是告诉你。”他说，“因为告诉你也没用——\n那个位置，现在已经没有人了。”\n\n他把手指点在你眉心，你脑子里多了一个方向。\n\n修为 +' + a.gain(36,'high'); } },
     { label:'出手把他留下', hint:'打一场', eff:function(s,a){
         a.challenge({ name:'无纹道袍人', tier:'boss',
-          win:function(){ a.cult(70,'high'); a.clue('clue_array'); a.clue('clue_erased'); a.karma(5); },
-          lose:function(){ a.lifeBy(-0.34); a.stone(-80); } });
+          outcome:{ win:{ cult:70, tier:'high', clue:['clue_array','clue_erased'], karma:5 },
+                    lose:{ lifePct:-0.34, stone:-80 } } });
         return '你没有回答他，直接动手。'; } }
   ]
 },
@@ -5859,8 +5867,11 @@ G.EVENTS_NEW = (G.EVENTS_NEW || []).concat([
         return '你在旁边的石头上坐下。\n\n他跟你聊了几句家常——今年雨多不多，山下的米涨了没有。\n\n然后他说：“这个位置，我要用几年。你先去别处。”\n\n“凭什么？”\n\n“凭你答应过。”他说，“你不记得了，但我这儿有。”\n\n他从袖子里抽出一张纸，摊在案上。上面是你的手印。\n\n寿元 −' + a.lifePct(0.20) + '　修为 +' + a.gain(84,'high'); } },
     { label:'动手', hint:'打一场', eff:function(s,a){
         a.challenge({ name:'坐在你位置上的人', tier:'boss',
-          win:function(){ a.cult(110,'high'); a.clue('clue_erased'); a.karma(6); a.flag('seat_won'); },
-          lose:function(){ a.lifeBy(-0.40); a.stone(-120); a.karma(4); } });
+          /* 第 32 轮：这里原来是 win:function(){...flag('seat_won')}——
+             读档后函数没了，seat_won 永远拿不到，
+             ev11_seat_won 那一整条回响链死掉。 */
+          outcome:{ win:{ cult:110, tier:'high', clue:'clue_erased', karma:6, flag:'seat_won' },
+                    lose:{ lifePct:-0.40, stone:-120, karma:4 } } });
         return '你没答话，直接出手。'; } },
     { label:'转身就走，洞府让给他', eff:function(s,a){
         a.lifeBy(0.10); a.cult(60,'high'); a.karma(-6); a.flag('gave_seat');
@@ -6019,8 +6030,10 @@ G.EVENTS_NEW = (G.EVENTS_NEW || []).concat([
   choices:[
     { label:'动手', hint:'打一场', eff:function(s,a){
         a.challenge({ name:'顶替者', tier:'terror',
-          win:function(){ a.cult(90,'high'); a.clue('clue_erased'); a.clue('clue_world'); a.karma(8); a.flag('other_won'); },
-          lose:function(){ a.lifeBy(-0.45); a.stone(-200); a.flag('other_lost'); } });
+          /* 第 32 轮：win/lose 函数 → 纯数据。other_won / other_lost
+             是 ev11_other_won / ev11_other_lost 的唯一来源。 */
+          outcome:{ win:{ cult:90, tier:'high', clue:['clue_erased','clue_world'], karma:8, flag:'other_won' },
+                    lose:{ lifePct:-0.45, stone:-200, flag:'other_lost' } } });
         return '你抬起手。他也抬起手。两只手在空中对上了。'; } },
     { label:'“那你拿去。”', eff:function(s,a){
         a.lifeBy(0.12); a.cult(60,'high'); a.karma(-8); a.flag('gave_self');
@@ -9435,6 +9448,1190 @@ G.EVENTS = (G.EVENTS || []).concat([
 ]);
 
 
+/* ===== events14.js ===== */
+/* ============================================================
+   《记忆修复局》事件数据 · 第十四批（第 32 轮）
+   「见证者」—— 让一个选择扩散到很多个事件
+   ------------------------------------------------------------
+   玩家原话：
+   > 「很多事件完全没有发挥真正的作用，事件缺乏『串联』的能力，
+   >  例如事件 A 你选择了 1，就有可能导致后续的某事件也会因为这个
+   >  选项而改变内容。」
+
+   第 32 轮审计量出来的现状（这一批就是来改它的）：
+
+     · 被写过的标记 76 个，**每个都只被恰好 1 个事件读取**
+     · 扇出 ≥3 的标记：**0 个**
+     · **正文会因标记而改变的事件：0 个**
+
+   也就是说之前全是「A 选 1 → B 出现」的孤立两点直线，而且 B 的内容是死的。
+   flag 的表达力只够做到这里 —— 它只记得「这件事发生过」。
+
+   所以这一批用的是新的**选择记录（deed）**：
+     a.deed('thief','let_go')       记下「你放走了那个贼」
+     deeds:['thief']                声明「这个事件见证那件事」
+   引擎按声明记账、优先抽「你还挂着、而且还没被讲完」的记录，
+   于是同一个选择可以扩散到四五个事件，而且每个事件看到的
+   都是**你当时到底选了哪一支**（deedPick），不是一句笼统的「你做过」。
+
+   这一批四条线，每条线一个开头 + 四个见证 + 汇聚：
+     贼（放走 / 交出去）　荒年（开仓 / 闭门）
+     树（种门前 / 种溪边）　神像（拜 / 不拜）
+   四个记录各有两种走向 → 一共 8 种记录，每种 4 个见证事件。
+
+   ⚠️ 写法约定（和 events9~13 一致，dev 里的脚本会逐条对账）：
+     · 收益一律 a.cult(base, tier) / a.lifeBy(pct)，文案用返回值拼
+     · 门槛用相对判断（evPeer）或 deedAge，不写死属性数字
+     · 打架一律 outcome:{win,lose}，**不许写 win:/lose: 函数**
+       （函数存不进存档，读档后战果会静默丢失 —— 见 verify-challenge-saveable）
+     · deeds:[...] 必须与正文里真正读的那个记录一致，
+       dev/verify-linkage.js 第 10 节按它数扇出
+   ============================================================ */
+
+G.EVENTS = (G.EVENTS || []).concat([
+
+/* ============================================================
+   线一 · 那个贼
+   ============================================================ */
+{
+  id:'ev14_thief', tier:1, stage:1, once:true, title:'墙根下的人', cat:'人事',
+  text:'你半夜回山门，在墙根下撞见一个人。\n\n他抱着一只袋子，袋子是伙房的。里面只有半袋米。\n\n他很小，十四五岁，瘦得看不出年纪。\n\n他没有跑。他把袋子放在地上，两只手垂在身侧，\n像是早就想好了要挨这一顿。',
+  flavor:'他一句求饶的话都没有说。这一点让你停了一下。',
+  choices:[
+    { label:'放他走，米也给他', hint:'他真的很瘦',
+      eff:(s,a)=>{
+        a.deed('thief','let_go');
+        a.karma(-3); a.favor(1);
+        const g = a.cult(40,'mid');
+        return '你侧了侧身，让开路。\n\n他看了你很久，久到你以为他要说什么。\n结果他只是把袋子提起来，走了。\n\n走了十几步，他回头，朝你弯了一下腰。\n弯得很别扭，像是从来没做过这个动作。\n\n业障 −3　人情 +1　修为 +'+g; } },
+    { label:'交到执事堂去', hint:'规矩就是规矩',
+      eff:(s,a)=>{
+        a.deed('thief','handed_in');
+        a.contrib(8); a.favor(-1); a.karma(2);
+        const g = a.cult(50,'mid');
+        return '你把人和袋子一起带到了执事堂。\n\n执事看了一眼，说：「又是他。」\n\n第二天你听说他在柴房跪了一夜，天亮才放。\n\n第三天，伙房又少了一袋米。\n\n贡献 +8　人情 −1　业障 +2　修为 +'+g; } },
+    { label:'问他为什么偷', hint:'先听他说',
+      eff:(s,a)=>{
+        a.deed('thief','asked');
+        a.karma(-1); a.clue('clue_grain');
+        const g = a.cult(60,'high');
+        return '「为什么偷？」\n\n他抬头看你，像是没料到有人会问。\n\n「我妹妹在下面村子里。」他说，「她三天没吃东西了。」\n\n「那你呢？」\n\n「我吃过。」他说，「前天吃的。」\n\n你后来才知道，前天他在山上啃树皮。\n\n业障 −1　线索 +1　修为 +'+g; } }
+  ]
+},
+
+/* ---- 贼 · 见证一：集市（炼气中期） ---- */
+{
+  id:'ev14_thief_market', tier:1, stage:2, deeds:['thief'],
+  title:'集市上那个卖鱼的', cat:'人事',
+  when:s=>deedHas('thief') && deedAge('thief') >= 10,
+  text:()=>{
+    const p = deedPick('thief');
+    if (p === 'let_go')
+      return '你下山买盐，路过鱼摊。\n\n摊子后面站着一个少年，正在刮鳞。\n他刮得很认真，鱼摊很干净。\n\n他抬头看见你，手里的刀停了一下。\n\n然后他低下头，继续刮。';
+    if (p === 'handed_in')
+      return '你下山买盐，路过鱼摊。\n\n摊子后面站着一个少年。他看了你一眼，\n把手里那条鱼往砧板上一放，转身进了后屋。\n\n卖鱼的老头出来招呼你，什么也没说。\n\n你买完盐，回头看了一眼：后屋的帘子动了一下。';
+    return '你下山买盐，路过鱼摊。\n\n摊子后面站着两个人：一个少年在刮鳞，\n一个更小的女孩坐在小凳上择菜。\n\n少年抬头看见你，点了点头——像是认得你，\n又像是不确定该不该认得。';
+  },
+  flavor:()=>deedPick('thief')==='asked'
+    ? '你想起来他提过的那个妹妹。'
+    : '',
+  choices:[
+    { label:'买两条鱼', eff:(s,a)=>{
+        const p = deedPick('thief');
+        a.stone(-12);
+        const g = a.cult(30,'mid');
+        if (p === 'let_go'){
+          a.karma(-2); a.favor(2);
+          return '你挑了两条。他称得很足，还多添了半条。\n\n「多了。」你说。\n\n「没多。」他说，「鱼是我自己捞的。」\n\n他把鱼包好递给你，手上有鳞，很凉。\n\n灵石 −12　业障 −2　人情 +2　修为 +'+g;
+        }
+        if (p === 'handed_in'){
+          a.karma(1);
+          return '你在摊前站了一会儿。后屋没有动静。\n\n老头称了两条给你，多收了三个铜板。\n\n你提着鱼走的时候，听见后屋有人低声说了句什么，\n听不清。\n\n灵石 −12　业障 +1　修为 +'+g;
+        }
+        a.favor(1);
+        return '你挑了两条。少年帮你包好，动作很熟。\n\n「你妹妹？」你问。\n\n他愣了一下，点头。\n\n「她好了。」他说，「谢谢。」\n\n他说得很轻，但说得很清楚。\n\n灵石 −12　人情 +1　修为 +'+g; } },
+    { label:'什么都不买，走开', eff:(s,a)=>{
+        a.karma(1);
+        const g = a.cult(12,'low');
+        return '你从摊子前面走过去。\n\n走出去十几步，你听见身后刮鳞的声音停了一下，\n又响起来。\n\n业障 +1　修为 +'+g; } }
+  ]
+},
+
+/* ---- 贼 · 见证二：落雨（炼气后期） ---- */
+{
+  id:'ev14_thief_rain', tier:1, stage:3, deeds:['thief'],
+  title:'他记得你怕什么', cat:'人事',
+  when:s=>deedHas('thief') && deedAge('thief') >= 22,
+  text:()=>{
+    const p = deedPick('thief');
+    if (p === 'let_go')
+      return '连着下了四天雨。\n\n第五天早上，你门口多了一双草鞋。\n编得很粗，一只比另一只大一点。\n\n鞋底下压着一张纸，字歪歪扭扭：\n\n「上次你走那条路，我看见你鞋破了。」\n「我不会写别的字。」';
+    if (p === 'handed_in')
+      return '连着下了四天雨。\n\n第五天早上，你的门闩被人动过——\n插得好好的，但方向反了。\n\n门槛上有一个很浅的脚印，是赤脚的。\n\n你没有丢东西。你查了两遍。\n什么都还在。';
+    return '连着下了四天雨。\n\n第五天早上，你门口放着一小包药，用油纸裹着。\n\n纸上没有字。但你认得这种裹法——\n药铺包药就是这么包的，四角折进去，压一道。\n\n药是治咳的。你确实咳了半个月。';
+  },
+  flavor:()=>'「他记得。」你想。',
+  choices:[
+    { label:'收下', eff:(s,a)=>{
+        a.lifeBy(0.04); a.karma(-2);
+        const g = a.cult(35,'mid');
+        return '你把它收下了，放在案上。\n\n你没打算用，但也没扔掉。\n\n后来那东西一直在那儿，你每天看得见。\n\n寿元 +'+a.lifePct(0.04)+'　业障 −2　修为 +'+g; } },
+    { label:'想办法还回去', eff:(s,a)=>{
+        a.stone(-20); a.favor(3); a.karma(-3);
+        const g = a.cult(45,'high');
+        return '你托人往山下村子送了二十块灵石，\n没写是谁送的，只说「有人托」。\n\n过了一阵子，那二十块灵石又回来了，\n一起回来的还有一包晒干的鱼。\n\n送东西的人说：「他说他不缺钱了。」\n\n灵石 −20　人情 +3　业障 −3　修为 +'+g; } },
+    { label:'当作没看见', eff:(s,a)=>{
+        a.karma(1);
+        const g = a.cult(15,'low');
+        return '你把那东西扫到了墙根。\n\n过了几天，它不见了。\n你不知道是被人收走了，还是被风吹走了。\n\n业障 +1　修为 +'+g; } }
+  ]
+},
+
+/* ---- 贼 · 见证三：山门口（筑基） ---- */
+{
+  id:'ev14_thief_gate', tier:2, deeds:['thief'],
+  title:'山门外跪着一个人', cat:'人事',
+  when:s=>deedHas('thief') && deedAge('thief') >= 30,
+  text:()=>{
+    const p = deedPick('thief');
+    if (p === 'handed_in')
+      return '山门外跪着一个人。\n\n是那个少年，长大了些，还是瘦。\n\n他跪得很直，额头碰着石阶。\n旁边站着两个护山弟子，不知道该怎么办。\n\n「他要见当年抓他的那个人。」一个弟子说。';
+    return '山门外跪着一个人。\n\n是那个少年，长大了些，还是瘦。\n\n他跪得很直，额头碰着石阶。\n旁边站着两个护山弟子，不知道该怎么办。\n\n「他说他要入山门。」一个弟子说，「他说有人替他说过话。」';
+  },
+  flavor:()=>{
+    const p = deedPick('thief');
+    return p === 'handed_in'
+      ? '「抓他的人。」你想。那说的是你。'
+      : '「替他说过话的人。」你想。那说的也是你。';
+  },
+  choices:[
+    { label:'收他入门', eff:(s,a)=>{
+        a.deed('thief','took_in');
+        a.sectQi(6); a.favor(3); a.contrib(12);
+        const g = a.cult(90,'high');
+        return '你把他扶起来。\n\n他站直了，比你矮半个头。\n\n「你叫什么？」\n\n他说了名字。你后来发现，那个名字是他自己起的——\n他原来没有名字。\n\n宗门气运 +6　人情 +3　贡献 +12　修为 +'+g; } },
+    { label:'给他一笔钱，让他下山', eff:(s,a)=>{
+        a.stone(-80); a.karma(-1);
+        const g = a.cult(70,'mid');
+        return '你给了他八十块灵石，还有一封荐书。\n\n他接过去，看了很久那封荐书——\n他大概不识字，但他看得很认真。\n\n「我记住了。」他说。\n\n然后他下山了，没有再回头。\n\n灵石 −80　业障 −1　修为 +'+g; } },
+    { label:'不见他', eff:(s,a)=>{
+        a.karma(3);
+        const g = a.cult(30,'low');
+        return '你让人告诉他，你不在。\n\n他跪到天黑，自己走了。\n\n第二天早上，石阶上留着一小块磨平的痕迹，\n是额头压出来的。\n\n业障 +3　修为 +'+g; } }
+  ]
+},
+
+/* ---- 贼 · 见证四：很久以后（筑基后期） ---- */
+{
+  id:'ev14_thief_late', tier:2, deeds:['thief'],
+  title:'那块磨平的石头', cat:'线索', once:true,
+  when:s=>deedHas('thief') && deedAge('thief') >= 45,
+  text:()=>{
+    /* ⚠️ 这里**不能**引用 s —— 事件的 text 是在全局作用域求值的，
+       拿不到那个状态对象。第一版写了 `s.deeds.thief.choice`，
+       求值直接 ReferenceError，整个事件面板是一片空白
+       （被 dev/verify-eventstruct.js 第 6 节抓到）。
+       要看「你当初选了哪一支」就用 deedPick()。 */
+    const p = deedPick('thief');
+    if (p === 'took_in')
+      return '你路过山门，看见一个弟子在扫石阶。\n\n他扫得很仔细，连缝里的土都抠出来。\n\n你看了他一会儿才认出来。\n\n他抬头朝你笑了一下，继续扫。';
+    if (p === 'handed_in')
+      return '你路过山门，看见石阶上那块磨平的痕迹还在。\n\n有人在那块石头旁边摆了一小把野花。\n\n花是新的。摆的人已经走了。';
+    return '你路过山门，看见石阶上那块磨平的痕迹还在。\n\n痕迹旁边有人用刀刻了两个很小的字，\n刻得很浅，不蹲下来看不见。\n\n那两个字是一个名字。不是你的。';
+  },
+  flavor:()=>'你想了很久，才想起这件事是从哪一天开始的。',
+  choices:[
+    { label:'蹲下来看清楚', eff:(s,a)=>{
+        a.clue('clue_name');
+        const g = a.cult(80,'mid');
+        return '你蹲下来。\n\n那两个字你认得。\n\n你站起来的时候，膝盖有点响。\n你站在那里，把这件事从头到尾想了一遍——\n从墙根下的那只袋子开始。\n\n线索 +1　修为 +'+g; } },
+    { label:'不看了，走', eff:(s,a)=>{
+        a.lifeBy(0.03);
+        const g = a.cult(40,'low');
+        return '你没有蹲下去。\n\n有些事你知道开头就够了，不必知道结尾。\n\n你往前走，脚步没有停。\n\n寿元 +'+a.lifePct(0.03)+'　修为 +'+g; } }
+  ]
+},
+
+/* ============================================================
+   线二 · 那个荒年
+   ============================================================ */
+{
+  id:'ev14_famine_choice', chapter:'zongmen', tier:1, stage:1, once:true, title:'仓里的米', cat:'世界',
+  text:'山下遭了灾。\n\n村长带着十几个人跪在山门外，跪了一天。\n\n仓里的米够宗门吃三个月。够山下那个村子吃二十天。\n\n管仓的老执事把钥匙放在桌上，然后退到墙边站着。\n他不说话。他在等你说。',
+  flavor:'钥匙是铜的，磨得很亮。这些年它大概被摸过很多次。',
+  choices:[
+    { label:'开仓，全给他们', hint:'三个月之后的事，三个月之后再说',
+      eff:(s,a)=>{
+        a.deed('village','fed');
+        a.stone(-60); a.karma(-6); a.sectQi(-8); a.favor(4);
+        const g = a.cult(55,'mid');
+        return '你把钥匙推给老执事，说：「开。」\n\n他愣了一下，然后去了。\n\n那天下午，山下的路上排起了一条很长的队，\n一直排到天黑。\n\n有人跪下来磕头，你去扶，扶不过来。\n\n灵石 −60　业障 −6　宗门气运 −8　人情 +4　修为 +'+g; } },
+    { label:'给一半', hint:'都不至于死',
+      eff:(s,a)=>{
+        a.deed('village','halved');
+        a.stone(-30); a.karma(-2); a.sectQi(-2); a.favor(2);
+        const g = a.cult(45,'mid');
+        return '「给一半。」你说。\n\n老执事点点头，像是早就知道你会这么说。\n\n那天晚上你听见他在仓里算账，\n算了很久，算盘珠子响到后半夜。\n\n灵石 −30　业障 −2　宗门气运 −2　人情 +2　修为 +'+g; } },
+    { label:'关山门', hint:'宗门的人也要吃饭',
+      eff:(s,a)=>{
+        a.deed('village','refused');
+        a.karma(6); a.sectQi(-4); a.favor(-3);
+        const g = a.cult(35,'low');
+        return '你让人把山门关上。\n\n门轴很响。关到一半的时候，外面有人在喊，\n喊的什么听不清。\n\n门关严之后，外面安静了一会儿，然后就散了。\n\n那天夜里你睡得很不好。\n\n业障 +6　宗门气运 −4　人情 −3　修为 +'+g; } }
+  ]
+},
+
+/* ---- 荒年 · 见证一：那条路 ---- */
+{
+  id:'ev14_famine_road', tier:1, stage:2, deeds:['village'],
+  title:'那条路修好了', cat:'世界',
+  when:s=>deedHas('village') && deedAge('village') >= 14,
+  text:()=>{
+    const p = deedPick('village');
+    if (p === 'fed')
+      return '从山门到山下村子那条路，以前是土路，一下雨就烂。\n\n今天你走的时候，它是石子路了。\n\n铺得不算好，石头大小不一，但走上去很稳。\n\n路边的界石上刻了三个字，是你的名字。\n刻得很用力，笔画都崩了边。';
+    if (p === 'refused')
+      return '从山门到山下村子那条路，以前是土路。\n\n今天你走的时候，路上很干净——\n干净得像很久没有人走。\n\n村子还在。但比去年小了。\n\n有几间屋子的门是开着的，里面没有东西。';
+    return '从山门到山下村子那条路，修了一半。\n\n半条是石子路，半条还是土路。\n\n修路的人说，石头只够铺到这里，\n再往前就没有了。\n\n「够了。」他说，「我们本来也没指望全铺上。」';
+  },
+  flavor:()=>'你在这条路上走过很多次。这是第一次你认真看它。',
+  choices:[
+    { label:'走到村子里去看看', eff:(s,a)=>{
+        const p = deedPick('village');
+        a.lifeBy(-0.05);
+        const g = a.cult(50,'mid');
+        if (p === 'refused'){
+          a.karma(3);
+          return '你进了村。\n\n有人在院子里劈柴，看见你，把斧子放下了。\n\n他认识你。他也认得你的山门。\n\n「那年冬天，」他说，「我们埋了十九个。」\n\n他没有说别的。你也没有问。\n\n寿元 −'+a.lifePct(0.05)+'　业障 +3　修为 +'+g;
+        }
+        a.karma(-3); a.favor(3);
+        return '你进了村。\n\n有人在院子里劈柴，看见你，把斧子放下了。\n\n「来了？」他说，像是你常来。\n\n他给你倒了碗水。水是凉的，碗是干净的。\n\n你走的时候他送到村口，什么话都没说。\n\n寿元 −'+a.lifePct(0.05)+'　业障 −3　人情 +3　修为 +'+g; } },
+    { label:'只是路过，不回村', eff:(s,a)=>{
+        const g = a.cult(25,'low');
+        return '你从岔路口走了另一条。\n\n那条路通向山里，走得远，但看不见村子。\n\n修为 +'+g; } }
+  ]
+},
+
+/* ---- 荒年 · 见证二：谁记得 ---- */
+{
+  id:'ev14_famine_token', tier:1, stage:3, deeds:['village'],
+  title:'门神', cat:'世界', once:true,
+  when:s=>deedHas('village') && deedAge('village') >= 26,
+  text:()=>{
+    const p = deedPick('village');
+    if (p === 'refused')
+      return '你路过山下的一处废屋。\n\n门框上贴着一张纸，是门神。\n纸已经褪色了，但画得很清楚。\n\n门神的脸上被人用炭画了一道。\n\n你凑近看，那道炭是谁都能画的一笔——\n只是刚好把那张脸划成了两半。';
+    return '你路过山下一户人家。\n\n门框上贴着一张纸，是门神。\n线画得很粗，一看就不是画匠画的。\n\n但你认出来了：那张脸的轮廓，是按你的样子画的。\n\n画的人大概只见过你一次。';
+  },
+  flavor:'他们不知道你叫什么。他们只知道你长什么样。',
+  choices:[
+    { label:'把那张纸收下来', eff:(s,a)=>{
+        const p = deedPick('village');
+        a.stone(-5);
+        const g = a.cult(45,'mid');
+        if (p === 'refused'){ a.karma(2); return '你把纸揭下来，叠好，收进怀里。\n\n门框上留下一块干净的地方，比周围浅一个色。\n\n业障 +2　修为 +'+g; }
+        a.karma(-2); a.favor(2);
+        return '你把纸揭下来，叠好，收进怀里。\n\n揭的时候你发现，这张纸下面还压着一张，\n更旧，也画着同一张脸。\n\n他们贴过不止一次。\n\n业障 −2　人情 +2　修为 +'+g; } },
+    { label:'让它贴在那儿', eff:(s,a)=>{
+        a.lifeBy(0.03); a.karma(-1);
+        const g = a.cult(30,'mid');
+        return '你没有动它。\n\n走出很远你才回头看了一眼——\n那户人家很小，门也很小，\n那张纸在风里贴着门框，边角卷了起来。\n\n寿元 +'+a.lifePct(0.03)+'　业障 −1　修为 +'+g; } }
+  ]
+},
+
+/* ---- 荒年 · 见证三：老执事（筑基） ---- */
+{
+  id:'ev14_famine_keeper', tier:2, deeds:['village'],
+  title:'管仓的那个人', cat:'人事',
+  when:s=>deedHas('village') && deedAge('village') >= 34,
+  text:()=>{
+    const p = deedPick('village');
+    if (p === 'fed')
+      return '管仓的老执事病了。\n\n你去看他。他躺在床上，认了半天才认出你。\n\n「仓里的米，」他说，「后来补上了。」\n\n「谁补的？」\n\n「山下的人。」他说，「他们第二年还回来的。还多了三成。」\n\n他笑了一下，然后就睡着了。';
+    if (p === 'refused')
+      return '管仓的老执事病了。\n\n你去看他。他躺在床上，认了半天才认出你。\n\n「钥匙，」他说，「我交出去了。」\n\n「交给谁？」\n\n「不知道。」他说，「反正不在我这儿了。」\n\n他翻了个身，面朝墙，不再说话。';
+    return '管仓的老执事病了。\n\n你去看他。他躺在床上，认了半天才认出你。\n\n「那本账，」他说，「我烧了。」\n\n「为什么？」\n\n「因为上面有数。」他说，「有数，就有人要问。」\n\n他闭上眼睛，很累的样子。';
+  },
+  flavor:()=>'他管了三十年仓。这是他第一次跟你说仓里的事。',
+  choices:[
+    { label:'替他管一段时间仓', eff:(s,a)=>{
+        a.contrib(20); a.favor(2); a.karma(-2);
+        const g = a.cult(100,'high');
+        return '你接了钥匙。\n\n那串钥匙很沉，一共十九把，有几把已经不知道开哪扇门了。\n\n你每天去仓里转一圈，什么都不动，只是看。\n\n老执事好起来之后，你把钥匙还给他，\n他说：「你是我见过看得最细的一个。」\n\n贡献 +20　人情 +2　业障 −2　修为 +'+g; } },
+    { label:'问他还有什么没交代的', eff:(s,a)=>{
+        a.clue('clue_ledger');
+        const g = a.cult(80,'mid');
+        return '「还有什么没交代的？」\n\n他想了很久。\n\n「有一年，」他说，「支了三百块灵石，用途那一栏是空的。」\n\n「哪一年？」\n\n他张了张嘴，然后说：「不记得了。」\n\n他说得很慢，慢得不像是在想，像是在**绕**。\n\n线索 +1　修为 +'+g; } },
+    { label:'坐一会儿就走', eff:(s,a)=>{
+        a.lifeBy(0.04);
+        const g = a.cult(40,'low');
+        return '你在床边坐了一会儿。\n\n他睡着了，呼吸很轻。\n\n你走的时候把门带上了，很轻。\n\n寿元 +'+a.lifePct(0.04)+'　修为 +'+g; } }
+  ]
+},
+
+/* ---- 荒年 · 见证四：第二个荒年（筑基后期） ---- */
+{
+  id:'ev14_famine_again', tier:2, deeds:['village'], once:true,
+  title:'又是荒年', cat:'世界',
+  when:s=>deedHas('village') && deedAge('village') >= 50,
+  text:()=>{
+    const p = deedPick('village');
+    if (p === 'fed')
+      return '又遭灾了。\n\n这一次，山门外没有跪着的人。\n\n因为在灾来的第七天，山下的村子自己送来了粮——\n三车，是他们存下来的。\n\n送粮的人说：「上次你们开过仓。这次轮到我们。」';
+    if (p === 'refused')
+      return '又遭灾了。\n\n这一次，山门外也没有跪着的人。\n\n路过的货郎说，山下的村子去年就空了，\n人都往南边去了。\n\n「走的时候没人拦。」他说，「也没人送。」';
+    return '又遭灾了。\n\n这一次，山门外来了五个人，不是十几个。\n\n他们站在门外，没有跪，只是站着。\n\n领头的那个人说：「我们不是来讨的。我们是来借的。\n借了会还。」';
+  },
+  flavor:()=>'同一件事，第二次来的时候，样子不一样了。',
+  choices:[
+    { label:'还是开仓', eff:(s,a)=>{
+        a.deed('village','fed_again');
+        a.stone(-40); a.karma(-4); a.favor(3);
+        const g = a.cult(120,'high');
+        return '你又一次把钥匙推了出去。\n\n老执事已经换了人。新执事接钥匙的时候手抖了一下。\n\n「这次也全给？」他问。\n\n「全给。」\n\n他去了。这一次排队的人比上次短，\n但每一个都抬着头。\n\n灵石 −40　业障 −4　人情 +3　修为 +'+g; } },
+    { label:'按借条来，写清楚', eff:(s,a)=>{
+        a.deed('village','loaned');
+        a.contrib(15); a.favor(2);
+        const g = a.cult(110,'high');
+        return '你让人拿纸笔来，一笔一笔记清楚：\n谁家、几口人、借多少、什么时候还。\n\n写到一半，领头的那个说：\n「不用记那么细。」\n\n「要记。」你说，「记了才是借。」\n\n他看了你一会儿，然后点了头。\n\n贡献 +15　人情 +2　修为 +'+g; } },
+    { label:'这次不开', eff:(s,a)=>{
+        a.karma(4);
+        const g = a.cult(60,'mid');
+        return '你让人告诉他们，仓里也空了。\n\n这是假话。他们大概也知道。\n\n他们站了一会儿，走了。\n\n走得很整齐，五个人排成一列。\n\n业障 +4　修为 +'+g; } }
+  ]
+},
+
+/* ============================================================
+   线三 · 那棵树（放走 / 交出去、种哪儿）
+   ============================================================ */
+{
+  id:'ev14_tree_choice', chapter:'zongmen', tier:1, stage:1, once:true, title:'一棵树苗', cat:'世界',
+  text:'后山挖药的时候，你在崖缝里看见一棵树苗。\n\n它长在两块石头中间，根扎得很浅，风一大就要倒。\n\n不挖的话，它今年大概活不过去。\n\n你把它挖出来，根上带了半把土。',
+  flavor:'很小的东西。你一只手就能握住。',
+  choices:[
+    { label:'种在门前', hint:'天天看得见',
+      eff:(s,a)=>{
+        a.deed('tree','front');
+        a.lifeBy(0.03);
+        const g = a.cult(30,'mid');
+        return '你把它种在门口，靠东边，早上能晒到太阳。\n\n浇了水，压了土，又在旁边插了根竹签做记号。\n\n第二天早上你出门，它还在。\n\n寿元 +'+a.lifePct(0.03)+'　修为 +'+g; } },
+    { label:'种在屋后靠溪那边', hint:'水近，长得快',
+      eff:(s,a)=>{
+        a.deed('tree','stream');
+        a.lifeBy(0.02);
+        const g = a.cult(35,'mid');
+        return '你把它种在屋后，离溪水三步远。\n\n土是湿的，挖下去的时候有蚯蚓。\n\n种完你蹲着看了一会儿，\n溪水的声音一直响，听久了有点像有人在远处说话。\n\n寿元 +'+a.lifePct(0.02)+'　修为 +'+g; } },
+    { label:'还是放回原处', hint:'它本来就长在那儿',
+      eff:(s,a)=>{
+        a.deed('tree','left');
+        a.karma(-1);
+        const g = a.cult(20,'low');
+        return '你把它放回了崖缝里，土也填回去了。\n\n做完这件事你觉得有点傻。\n\n第二年春天你再路过那儿，崖缝里那棵树还在，\n而且比去年高了一截。\n\n业障 −1　修为 +'+g; } }
+  ]
+},
+
+/* ---- 树 · 见证一 ---- */
+{
+  id:'ev14_tree_grow', tier:1, stage:2, deeds:['tree'],
+  title:'它长得太快了', cat:'世界',
+  when:s=>deedHas('tree') && deedAge('tree') >= 12,
+  text:()=>{
+    const p = deedPick('tree');
+    if (p === 'front')
+      return '门口那棵树长得太快了。\n\n才一年多，它已经高过屋檐，把门口挡了一半。\n\n你每天进出都要侧一下身。\n\n奇怪的是，树荫底下从来不热，也不冷。';
+    if (p === 'stream')
+      return '屋后那棵树把溪水改了道。\n\n水从树根那边绕过去，绕出一个很浅的弯。\n\n弯里积了一层细沙，沙上有一串脚印，\n不是你的，也不是人的。';
+    return '崖缝里那棵树，你没有再管过。\n\n但它长出来了——根从石头缝里撑开，\n把那两块石头顶得往两边挪了半寸。\n\n石头挪开的地方，露出一小片很平的黑土。';
+  },
+  flavor:()=>'你种下去的时候，它只有你一只手那么高。',
+  choices:[
+    { label:'把它挪开', eff:(s,a)=>{
+        const p = deedPick('tree');
+        a.stone(-10);
+        const g = a.cult(45,'mid');
+        if (p === 'tree' || p === 'left'){ a.karma(2); }
+        a.karma(-1);
+        return '你叫了两个人来，把它连根挖起来，挪到后山去了。\n\n挖的时候你发现根比你想的深得多，\n主根一直往下扎到你手臂够不到的地方。\n\n洞填回去之后，那块地空着。\n\n灵石 −10　业障 −1　修为 +'+g; } },
+    { label:'留着，看它能长多高', eff:(s,a)=>{
+        a.lifeBy(-0.02); a.clue('clue_forest');
+        const g = a.cult(55,'high');
+        return '你不管它了。\n\n又过了几个月，它第二次高过屋檐。\n\n有一天你在树下站着，忽然意识到一件事：\n它长得这么快，是因为**这地方本来就该有一棵树**。\n\n它只是回到了原来的位置。\n\n线索 +1　修为 +'+g; } },
+    { label:'在树底下埋点东西', eff:(s,a)=>{
+        a.deed('tree','buried');
+        a.stone(-30); a.clue('clue_stone');
+        const g = a.cult(50,'mid');
+        return '你在树底下挖了个坑，埋了一样东西进去。\n\n不是什么值钱的东西，只是一件旧物。\n\n填土的时候你想：等它长成大树的时候，\n大概没有人知道底下有这个东西。\n\n那正好。\n\n灵石 −30　线索 +1　修为 +'+g; } }
+  ]
+},
+
+/* ---- 树 · 见证二：别人认出来了（筑基） ---- */
+{
+  id:'ev14_tree_known', tier:2, deeds:['tree'],
+  title:'有人认得这棵树', cat:'世界',
+  when:s=>deedHas('tree') && deedAge('tree') >= 28,
+  text:()=>{
+    const p = deedPick('tree');
+    if (p === 'stream')
+      return '一个过路的老人站在你屋后，看了那棵树很久。\n\n「这棵是什么时候种的？」他问。\n\n「几年前。」\n\n他摇头：「不止。」他说，「这种树长得慢，\n五年才长这么高。你看它现在多高。」';
+    if (p === 'buried')
+      return '一个过路的老人站在树下，没有看树，看的是地。\n\n「底下埋了东西。」他说。不是问句。\n\n「你怎么知道？」\n\n「土不对。」他说，「填回去的土和原来的土，颜色不一样。」';
+    return '一个过路的老人从你门口过，停下来看那棵树。\n\n「这棵树，」他说，「我见过。」\n\n「你见过？」\n\n「嗯。」他说，「在别的地方。也是这个位置。」';
+  },
+  flavor:()=>'这个老人你不认识。他也没有说他是谁。',
+  choices:[
+    { label:'请他进屋坐坐', eff:(s,a)=>{
+        a.favor(3); a.clue('clue_elder');
+        const g = a.cult(110,'high');
+        return '你请他进来，倒了茶。\n\n他喝了一口，把杯子放下，说：\n\n「你们这一带，这些年换过几次样子。」\n\n「几次？」\n\n他没有答。他站起来，走到门口，\n回头看了一眼那棵树，然后走了。\n\n人情 +3　线索 +1　修为 +'+g; } },
+    { label:'问他是在哪儿见过的', when:()=>deedPick('tree') !== 'buried', eff:(s,a)=>{
+        a.clue('clue_home');
+        const g = a.cult(95,'high');
+        return '「在别的地方。」他说，「也是这个位置。」\n\n「哪个别的地方？」\n\n他想了一会儿，然后笑了：\n\n「想不起来了。」他说，「奇怪吧。我连树都记得，\n就是记不得地方。」\n\n线索 +1　修为 +'+g; } },
+    { label:'把他埋的东西挖出来', when:()=>deedPick('tree') === 'buried', eff:(s,a)=>{
+        a.clue('clue_old');
+        const g = a.cult(100,'high');
+        return '等他走了，你把那个坑挖开。\n\n你埋下去的那件旧物还在，但上面多了一样东西：\n一块很小的木牌，是新的。\n\n牌上刻着一行字，笔画很生，像是小孩刻的。\n\n你没有把那行字念出来。你把它埋回去了。\n\n线索 +1　修为 +'+g; } },
+    { label:'不请他，让他走', eff:(s,a)=>{
+        a.karma(2);
+        const g = a.cult(30,'low');
+        return '你说你还有事。\n\n他点点头，走了。走了几步，他回头说了一句：\n\n「树是好树。」\n\n然后他就走远了。\n\n业障 +2　修为 +'+g; } }
+  ]
+},
+
+/* ---- 树 · 见证三：树下的东西 ---- */
+{
+  id:'ev14_tree_root', tier:2, deeds:['tree'], once:true,
+  title:'树根底下', cat:'线索',
+  when:s=>deedHas('tree') && deedAge('tree') >= 40,
+  text:()=>{
+    const p = deedPick('tree');
+    if (p === 'left')
+      return '崖缝那棵树把整块崖都撑裂了。\n\n裂缝里露出一间很小的石室——\n小到只够一个人盘腿坐下。\n\n里面是空的。但地上有一个坐痕，\n很深，边缘磨得很圆。';
+    return '树根拱起来了，把地面顶开一道缝。\n\n裂缝里露出一样东西的一角，是石头的。\n\n你把它挖出来：是一块碑，很小，\n上面刻着一行字，字被树根缠住了一半。';
+  },
+  flavor:()=>'树根长了很多年才长到这里。它不是在破坏什么，它是在**指**给你看。',
+  choices:[
+    { label:'把树根挖开，看清那行字', eff:(s,a)=>{
+        const p = deedPick('tree');
+        if (p === 'left'){
+          a.clue('clue_grave');
+          const g = a.cult(120,'high');
+          return '你把石室里的土清了一遍。\n\n坐痕的正前方，墙上刻着两个字，\n刻得很浅，是坐着的人用手一遍一遍摸出来的。\n\n那两个字是「等我」。\n\n线索 +1　修为 +'+g;
+        }
+        a.lifeBy(-0.08);
+        a.clue('clue_grave');
+        const g = a.cult(140,'high');
+        return '你挖了整整一天。\n\n树根很韧，砍断了还会从别的地方绕过来。\n\n天黑的时候，那行字终于看清了：\n\n「此处曾有一人，种树一株，去时不告。」\n\n下面没有落款。\n\n寿元 −'+a.lifePct(0.08)+'　线索 +1　修为 +'+g; } },
+    { label:'把土填回去', eff:(s,a)=>{
+        a.karma(-3); a.lifeBy(0.05);
+        const g = a.cult(60,'mid');
+        return '你把挖出来的土一捧一捧填回去，\n填完还踩实了，怕下雨塌下去。\n\n做完这些你站在树下。风从树叶里过去，\n声音很像有人在很远的地方说话，\n但听不出说的是什么。\n\n业障 −3　寿元 +'+a.lifePct(0.05)+'　修为 +'+g; } }
+  ]
+},
+
+/* ============================================================
+   线四 · 那尊神像
+   ============================================================ */
+{
+  id:'ev14_shrine_choice', chapter:'zongmen', tier:1, stage:1, once:true, title:'路边的神像', cat:'世界',
+  text:'山道旁边有一尊神像，半人高，石头刻的。\n\n刻得很粗糙，看不出是谁。脸被人摸得发亮。\n\n神像前面有个石头台子，台上是空的——\n以前应该放过东西，现在没有了。\n\n你路过的时候，天正在暗下来。',
+  flavor:'它在这里大概很久了。久到没有人记得它是谁。',
+  choices:[
+    { label:'拜一拜', hint:'只是路过，拜一下不亏',
+      eff:(s,a)=>{
+        a.deed('shrine','prayed');
+        a.lifeBy(0.03); a.karma(-2);
+        const g = a.cult(35,'mid');
+        return '你在神像前面站了一会儿，然后弯下腰。\n\n你不知道你在拜什么。\n\n直起身的时候，天比刚才亮了一点——\n其实没有，是你眼睛适应了。\n\n寿元 +'+a.lifePct(0.03)+'　业障 −2　修为 +'+g; } },
+    { label:'把台子上的灰扫干净', hint:'顺手的事',
+      eff:(s,a)=>{
+        a.deed('shrine','cleaned');
+        a.karma(-3);
+        const g = a.cult(40,'mid');
+        return '你用袖子把石台扫了一遍。\n\n灰很厚，扫完袖子黑了一大片。\n\n台面上有一圈很浅的印子，是圆的——\n以前放在这儿的东西是圆的。\n\n你不知道那是什么。\n\n业障 −3　修为 +'+g; } },
+    { label:'踢它一脚', hint:'一块石头而已',
+      eff:(s,a)=>{
+        a.deed('shrine','kicked');
+        a.karma(3); a.lifeBy(-0.02);
+        const g = a.cult(25,'low');
+        return '你抬脚踢了一下。\n\n它是实心的，很沉，只挪了半寸。\n\n你的脚趾疼了一路。\n\n走到山门口的时候你回头看了一眼——\n从这个角度看，它还是原来的样子。\n\n业障 +3　寿元 −'+a.lifePct(0.02)+'　修为 +'+g; } }
+  ]
+},
+
+/* ---- 神像 · 见证一：台上多了东西 ---- */
+{
+  id:'ev14_shrine_offer', tier:1, stage:2, deeds:['shrine'],
+  title:'台上多了东西', cat:'世界',
+  when:s=>deedHas('shrine') && deedAge('shrine') >= 13,
+  text:()=>{
+    const p = deedPick('shrine');
+    if (p === 'kicked')
+      return '你又路过那尊神像。\n\n台上多了一样东西：一块石头，\n摆得端端正正，就在正中间。\n\n石头上有一道很新的裂口。\n\n和你那天踢的位置，是同一个地方。';
+    if (p === 'cleaned')
+      return '你又路过那尊神像。\n\n台上多了一样东西：一个圆形的凹痕里，\n放着一只碗。\n\n碗是空的，洗得很干净。\n\n碗底朝上放着。';
+    return '你又路过那尊神像。\n\n台上多了一样东西：三支香，插在土里。\n\n香已经烧完了，但灰是新的。\n\n烧香的人不在了。';
+  },
+  flavor:()=>'有人在你之后来过这里。',
+  choices:[
+    { label:'看看周围有没有人', eff:(s,a)=>{
+        const p = deedPick('shrine');
+        a.lifeBy(-0.02);
+        const g = a.cult(40,'mid');
+        if (p === 'kicked'){ a.karma(2); }
+        a.clue('clue_crowd');
+        return '你绕着神像走了一圈，又往两边的林子里看了看。\n\n没有人。\n\n但地上有脚印，是赤脚的，\n朝山上去了，走到石头路上就没了。\n\n线索 +1　修为 +'+g; } },
+    { label:'也放点东西上去', eff:(s,a)=>{
+        a.deed('shrine','offered');
+        a.stone(-15); a.karma(-2);
+        const g = a.cult(45,'mid');
+        return '你在身上摸了摸，摸出十五块灵石，放在台上。\n\n放完你自己都觉得奇怪——\n你不知道在跟谁做这笔交易。\n\n第二天你再路过，灵石不见了。\n台上多了一把野果。\n\n灵石 −15　业障 −2　修为 +'+g; } },
+    { label:'把上面的东西拿走', eff:(s,a)=>{
+        const p = deedPick('shrine');
+        a.stone(20); a.karma(4);
+        const g = a.cult(30,'mid');
+        return '你把台上的东西收了起来。\n\n拿去山下卖了二十块灵石。\n\n买你东西的那个人看了很久，问：「哪儿来的？」\n\n「捡的。」你说。\n\n他没有再问，把钱给了你。\n\n灵石 +20　业障 +4　修为 +'+g; } }
+  ]
+},
+
+/* ---- 神像 · 见证二：神像换了脸（筑基） ---- */
+{
+  id:'ev14_shrine_face', tier:2, deeds:['shrine'], once:true,
+  title:'它的脸变了', cat:'线索',
+  when:s=>deedHas('shrine') && deedAge('shrine') >= 30,
+  text:()=>{
+    const p = deedPick('shrine');
+    if (p === 'offered' || p === 'prayed' || p === 'cleaned')
+      return '你路过那尊神像，停了一下。\n\n它的脸变了。\n\n不是被重新刻过——石头没有新痕。\n是**磨损的位置**变了：\n以前被摸亮的是额头，现在亮的是嘴角。\n\n它像在笑。';
+    return '你路过那尊神像，停了一下。\n\n它的脸变了。\n\n不是被重新刻过——石头没有新痕。\n是磨损的位置变了：\n以前被摸亮的是额头，现在整张脸都是暗的。\n\n像是很久没有人碰过它了。';
+  },
+  flavor:()=>'石头不会变脸。除非看它的人变了。',
+  choices:[
+    { label:'伸手摸一下那张脸', eff:(s,a)=>{
+        a.lifeBy(-0.06); a.clue('clue_mirror');
+        const g = a.cult(90,'high');
+        return '你伸手摸上去。\n\n石头是温的。\n\n这个季节，太阳落山两个时辰之后，\n石头不该是温的。\n\n你把手收回来，手心有一层很细的灰。\n\n线索 +1　寿元 −'+a.lifePct(0.06)+'　修为 +'+g; } },
+    { label:'退后一步，看清整体', eff:(s,a)=>{
+        a.clue('clue_world');
+        const g = a.cult(80,'mid');
+        return '你退了几步。\n\n退到十步开外的时候，你终于看出来了：\n\n它不是一尊神像。\n它是**一排**神像的第一个。\n\n后面的被树和草盖住了，一直排到山上去。\n\n线索 +1　修为 +'+g; } },
+    { label:'不再看它', eff:(s,a)=>{
+        a.karma(1); a.lifeBy(0.02);
+        const g = a.cult(30,'low');
+        return '你把眼睛移开，往前走。\n\n走出很远你都觉得背后有东西。\n\n但你没有回头。\n\n业障 +1　寿元 +'+a.lifePct(0.02)+'　修为 +'+g; } }
+  ]
+},
+
+/* ---- 神像 · 见证三：山上那一排 ---- */
+{
+  id:'ev14_shrine_row', tier:2, deeds:['shrine'],
+  title:'一直排到山上', cat:'线索',
+  when:s=>deedHas('shrine') && deedAge('shrine') >= 44,
+  text:'你沿着那一排神像往山上走。\n\n一共十九尊。\n\n每一尊的脸都不一样，但都被摸得发亮。\n\n走到第十九尊的时候，路没有了。\n\n第十九尊神像转了个方向——\n前面十八尊都朝着山下，只有它朝着山上。',
+  flavor:()=>'前面十八尊在看着来的人。最后一尊在看别的地方。',
+  choices:[
+    { label:'看它朝着的是什么', eff:(s,a)=>{
+        a.clue('clue_world'); a.clue('clue_array');
+        const g = a.cult(130,'high');
+        return '你顺着它朝的方向看过去。\n\n那边什么都没有——只有一面很陡的山壁。\n\n你走近那面山壁，才看见上面有刻痕，\n很大，大到要退开三十步才看得出是什么。\n\n那是一座阵的一角。\n\n线索 +2　修为 +'+g; } },
+    { label:'把它转回来，和前面一样', eff:(s,a)=>{
+        a.karma(-4); a.lifeBy(-0.10);
+        const g = a.cult(100,'high');
+        return '你抱住它的头，用力扳。\n\n石头很沉。扳到一半的时候，\n你听见里面有东西裂了。\n\n它转回来了，朝着山下。\n\n你退后看，十九尊排得很整齐，方向一致。\n\n你松了一口气，但你说不清为什么。\n\n业障 −4　寿元 −'+a.lifePct(0.10)+'　修为 +'+g; } },
+    { label:'给它磕个头', eff:(s,a)=>{
+        a.deed('shrine','knelt');
+        a.karma(-5); a.lifeBy(0.04);
+        const g = a.cult(90,'mid');
+        return '你在它前面跪下来，磕了三个头。\n\n磕完你抬起头，看见它的脸——\n从下面往上看，那张脸和你刚才看到的不一样。\n\n它像是在看很远的地方，又像是在看你身后。\n\n业障 −5　寿元 +'+a.lifePct(0.04)+'　修为 +'+g; } }
+  ]
+},
+
+/* ============================================================
+   汇聚 · 多个前置共同决定一个场面
+   ============================================================ */
+{
+  id:'ev14_conv_gate3', tier:2, title:'山门外的三个人', cat:'人事', once:true,
+  deeds:['thief','village','tree','shrine','road','gate','ledger'],
+  when:s=>{
+    const n = ['thief','village','tree','shrine','road','gate'].filter(id=>deedHas(id)).length;
+    return n >= 2 && s.actions >= 40;
+  },
+  text:()=>{
+    const has = id => deedHas(id);
+    const head = '同一天早上，山门外站着三个人。\n\n';
+    const parts = [];
+    if (has('thief'))   parts.push('第一个是个年轻人。他手里什么都没有，只是站着。');
+    if (has('village')) parts.push('第二个是个老的。他背着一只空筐。');
+    if (has('tree'))    parts.push('第三个最奇怪——他没有站在路中间，\n他站在路边那棵树下，手扶着树干。');
+    if (has('shrine'))  parts.push('还有一个人离得很远，在坡上，\n背对着这边，像是在看那一排神像。');
+    if (has('road'))    parts.push(deedPick('road') === 'misled'
+      ? '坡下那条岔路口，有一个人一直没走上来。\n他只是站在那儿看着你。'
+      : '坡下那条岔路口，有一个人朝你点了点头。');
+    if (has('gate'))    parts.push(deedPick('gate') === 'ignored'
+      ? '最后一个人站在最外面。他没有靠近，\n也没有要进门的意思——他只是来确认一件事。'
+      : '最后一个人站在最外面，手里提着一只布包。');
+    return head + parts.join('\n\n') +
+      '\n\n护山的弟子问你：「开哪一个？」\n\n你只有一次机会先见一个人。';
+  },
+  flavor:()=>{
+    const n = ['thief','village','tree','shrine','road','gate'].filter(id=>deedHas(id)).length;
+    return n >= 3 ? '他们都说是来找你的。他们互相不认识。'
+                  : '你认得其中至少一个。';
+  },
+  choices:[
+    { label:'先见那个年轻人', when:s=>deedHas('thief'), eff:(s,a)=>{
+        const p = deedPick('thief');
+        const g = a.cult(130,'high');
+        if (p === 'handed_in'){
+          a.karma(2);
+          return '你走到他面前。\n\n他抬起头，你才认出他来——当年那个贼。\n\n「我不是来讨说法的。」他说，\n「我是来告诉你，我妹妹去年没了。」\n\n「……节哀。」\n\n「不用。」他说，「我来就是告诉你一声。」\n\n他转身走了。业障 +2　修为 +'+g;
+        }
+        a.karma(-2); a.favor(2);
+        return '你走到他面前。\n\n他抬起头，你才认出他来——当年那个贼。\n\n他从怀里掏出一样东西，放在你手上：\n一块很旧的布，包着几块碎银子。\n\n「还你的。」他说，「连本带利。」\n\n业障 −2　人情 +2　修为 +'+g; } },
+    { label:'先见那个老人', when:s=>deedHas('village'), eff:(s,a)=>{
+        const p = deedPick('village');
+        const g = a.cult(130,'high');
+        if (p === 'refused'){
+          a.karma(3);
+          return '你走到他面前。\n\n他把空筐举起来给你看。\n\n「空的。」他说，「我不是来讨粮的。\n我就是想让你看看这只筐。」\n\n「为什么？」\n\n「那年冬天，」他说，「这只筐装过十九个人的骨灰。」\n\n他没有再说别的，背着筐走了。业障 +3　修为 +'+g;
+        }
+        a.karma(-3); a.favor(3);
+        return '你走到他面前。\n\n他把筐放下来，从里面拿出一样东西：\n一本很旧的手抄册子。\n\n「村里人记的。」他说，「谁家借了多少，\n谁家什么时候还的。都在这儿。」\n\n「给我看这个做什么？」\n\n「让你知道，我们记着。」\n\n业障 −3　人情 +3　修为 +'+g; } },
+    { label:'先见树下那个人', when:s=>deedHas('tree'), eff:(s,a)=>{
+        const p = deedPick('tree');
+        const g = a.cult(140,'high');
+        a.clue('clue_name');
+        if (p === 'front')
+          return '你走到树下。\n\n他松开扶着树干的手，转过身来。\n\n他的脸你见过——在你门口那棵树的树皮上。\n\n「这棵树，」他说，「是我种的。」\n\n「我在这种的。」\n\n「不。」他说，「你种的是这一棵。\n我说的是**上一棵**。」\n\n线索 +1　修为 +'+g;
+        return '你走到树下。\n\n他没有转身，只是说：\n\n「这棵树长得很好。」\n\n「是我种的。」\n\n「我知道。」他说，「我看得出来。」\n\n他终于转过身。你后来想了很久，\n也想不起他的脸是什么样子。\n\n线索 +1　修为 +'+g; } },
+    /* ⚠️ 兜底选项**无条件可点**。前面三个各自带 deedHas 条件，
+       而玩家身上可能一条线都没有 —— 那时若兜底也带条件，
+       事件会一个选项都不剩，玩家看到一张空面板。
+       所以这里承担两件事：没线时的「不见」，和有线时的「提布包那个人」。 */
+    { label:'看谁先开口', eff:(s,a)=>{
+        const g = a.cult(110,'high');
+        if (deedHas('gate')){
+          const p = deedPick('gate');
+          if (p === 'ignored'){
+            a.karma(-4); a.favor(2);
+            return '你没有先叫人，只是站在门里看着。\n\n提布包的那个人先开了口。\n\n「那天晚上我在你门外跪到天亮。」他说。\n\n「我知道。」\n\n「你不欠我什么。」他说，「但我想让你看看，\n我一直带着它。」\n\n他打开布包：里面是一本空册子，一页都没写。\n\n「我没敢写。」他说。\n\n业障 −4　人情 +2　修为 +'+g;
+          }
+          a.favor(3); a.karma(-2); a.clue('clue_book');
+          return '你没有先叫人，只是站在门里看着。\n\n提布包的那个人先开了口。\n\n「你那天收下的东西，」他说，「我一直想问一句——\n你想不想知道该写什么。」\n\n「该写什么？」\n\n「写你那天晚上为什么开门。」他说。\n\n线索 +1　人情 +3　业障 −2　修为 +'+g;
+        }
+        a.karma(1); a.favor(-2);
+        return '你让弟子告诉他们：一个一个来，谁先来的谁先进。\n\n结果是三个人一起走了。\n\n走到坡下的时候，他们三个走成了一个三角形，\n中间空着一个人的位置。\n\n你站在山门上看他们走远。\n\n业障 +1　人情 −2　修为 +'+g; } }
+  ]
+},
+
+{
+  id:'ev14_conv_ledger', tier:2, title:'你这一世的账', cat:'世界', once:true,
+  deeds:['thief','village','tree','shrine'],
+  when:s=>{
+    const n = ['thief','village','tree','shrine'].filter(id=>deedHas(id)).length;
+    return n >= 3 && s.actions >= 60;
+  },
+  text:()=>{
+    const lines = [];
+    const pick3 = (id, a1, a2, a3) => {
+      const p = deedPick(id);
+      return p === a1 ? a1 : (p === a2 ? a2 : a3);
+    };
+    lines.push('执事堂要重新抄一遍宗门的记档。\n');
+    lines.push('管记档的人问你：「你入山这些年的行止，要不要记？」\n');
+    lines.push('他说，记档只记两种：**施** 和 **取**。\n');
+    if (deedHas('village')) lines.push(deedPick('village') === 'refused'
+      ? '「有一年山下遭灾，山门未开。」' : '「有一年山下遭灾，山门开过。」');
+    if (deedHas('thief'))   lines.push(deedPick('thief') === 'handed_in'
+      ? '「有一夜伙房失窃，人已送执事堂。」' : '「有一夜伙房失窃，事未上报。」');
+    if (deedHas('tree'))    lines.push('「你种过一棵树。」');
+    if (deedHas('shrine'))  lines.push(deedPick('shrine') === 'kicked'
+      ? '「路边那尊神像，你踢过。」' : '「路边那尊神像，你拜过。」');
+    lines.push('\n他把笔搁下，等你说话。');
+    return lines.join('\n');
+  },
+  flavor:()=>'记档记下来，就不止你一个人记得了。',
+  choices:[
+    { label:'照实记', eff:(s,a)=>{
+        a.deed('ledger','truth');
+        a.contrib(25); a.clue('clue_ledger');
+        const g = a.cult(160,'high');
+        return '「照实记。」你说。\n\n他写了一下午。写完念给你听，\n一件一件，一条一条，中间没有任何评价。\n\n念到最后，他问：「就这样？」\n\n「就这样。」\n\n贡献 +25　线索 +1　修为 +'+g; } },
+    { label:'只记施，不记取', eff:(s,a)=>{
+        a.deed('ledger','half');
+        a.contrib(15); a.karma(2);
+        const g = a.cult(120,'high');
+        return '「只记施。」你说。\n\n他抬头看了你一眼，没有问为什么，\n把「取」那几条划掉了。\n\n划得很干净，看不出原来写过什么。\n\n「这样好看。」他说。\n\n贡献 +15　业障 +2　修为 +'+g; } },
+    { label:'什么都不记', eff:(s,a)=>{
+        a.deed('ledger','none');
+        a.karma(-2); a.lifeBy(0.03);
+        const g = a.cult(90,'mid');
+        return '「不用记。」你说。\n\n「一样都不记？」\n\n「一样都不记。」\n\n他把笔搁下，把纸收起来，\n在你那一页上留了空白。\n\n业障 −2　寿元 +'+a.lifePct(0.03)+'　修为 +'+g; } }
+  ]
+},
+
+{
+  id:'ev14_conv_echo', tier:2, title:'有人在替你还', cat:'线索', once:true,
+  deeds:['thief','village','tree','shrine','road','gate','ledger'],
+  when:s=>{
+    const n = ['thief','village','tree','shrine','road','gate','ledger'].filter(id=>deedHas(id)).length;
+    return n >= 3 && s.actions >= 80;
+  },
+  text:()=>{
+    const p1 = deedPick('thief'), p2 = deedPick('village'), p3 = deedPick('shrine');
+    const p4 = deedPick('road'), p5 = deedPick('gate');
+    const bits = [];
+    bits.push('你最近总觉得有人在替你做你没做完的事。\n');
+    if (p2 === 'refused') bits.push('· 你当年关过的那个村子，今年有人替他们开了仓——\n  开的不是你的山门。');
+    else if (p2) bits.push('· 你当年开过仓的那个村子，今年有人替他们修了桥。');
+    if (p1 === 'handed_in') bits.push('· 你当年送去执事堂的那个孩子，今年有人替他说了话。');
+    else if (p1) bits.push('· 你当年放走的那个孩子，今年有人替他落了户。');
+    if (p3 === 'kicked') bits.push('· 你踢过的那尊神像，今年有人替它把脸补上了。');
+    else if (p3) bits.push('· 你拜过的那尊神像，今年有人替它换了一身新的。');
+    if (p4 === 'misled') bits.push('· 你指错的那条路，今年有人替你在路口立了石头。');
+    else if (p4) bits.push('· 你指对的那条路，今年有人替你守在那个岔口。');
+    if (p5 === 'ignored') bits.push('· 你那天没开的门，今年有人替你开了——\n  开给的是另一个人。');
+    else if (p5) bits.push('· 你那天开过的门，今年有人替你关上了。');
+    if (deedHas('ledger')) bits.push('· 你那一页记档，今年有人替你补了后半段。');
+    bits.push('\n每一件都不是你做的。每一件都做在你没做完的地方。');
+    bits.push('\n你去找，找不到人。你只找到一件事：\n做这些事的人，留下的字迹和你很像。');
+    return bits.join('\n');
+  },
+  flavor:()=>{
+    const p = deedPick('ledger');
+    return p === 'none'
+      ? '你那一页是空白的。但空白也会被人看见。'
+      : '你认得那种字迹。那是你自己的。';
+  },
+  choices:[
+    { label:'去找那个字迹', eff:(s,a)=>{
+        a.clue('clue_erased'); a.clue('clue_name');
+        a.lifeBy(-0.12);
+        const g = a.cult(200,'high');
+        return '你照着字迹找了很久。\n\n最后在一处废宅的墙上，你找到了它——\n一整面墙的字，全都是同一个人写的，\n从墙根一直写到你要仰头才看得见的地方。\n\n写的是一件事，被反复重写了无数遍。\n\n最后一行的字迹还很新。\n\n线索 +2　寿元 −'+a.lifePct(0.12)+'　修为 +'+g; } },
+    { label:'不找了', eff:(s,a)=>{
+        a.karma(-2); a.lifeBy(0.06);
+        const g = a.cult(80,'mid');
+        return '你没有去找。\n\n有些事情有人替你做，你该高兴才对。\n\n那天晚上你睡得很安稳，一觉到天亮。\n\n醒来的时候门口放着一双草鞋，\n尺码正好。\n\n业障 −2　寿元 +'+a.lifePct(0.06)+'　修为 +'+g; } }
+  ]
+}
+
+]);
+
+
+/* ===== events15.js ===== */
+/* ============================================================
+   《记忆修复局》事件数据 · 第十五批（第 32 轮）
+   「见证者 · 后两条线」—— 道途 与 叩门人
+   ------------------------------------------------------------
+   events14.js 立了四条线的开头（贼 / 荒年 / 树 / 神像），
+   但其中两条线的记录扇出不够：每条线的开头只打**一个**记录，
+   而「扩散式串联」要的是同一个记录被很多个事件见证。
+
+   这一批把剩下两条线补齐，让八个记录各有至少三个见证者：
+     道途（问路 / 不告诉）       → road
+     叩门人（开门 / 不开）        → gate
+
+   写法与 events14.js 完全一致：
+     · deeds:[...] 声明这个事件见证哪些记录（verify-linkage §10 按它数扇出）
+     · 正文用 deedPick/deedAge/deedTimes 分支
+     · text/flavor 里**绝不能引用 s** —— 它们在全局作用域求值，拿不到状态
+     · 打架一律 outcome:{win,lose}
+   ============================================================ */
+
+G.EVENTS = (G.EVENTS || []).concat([
+
+/* ============================================================
+   线五 · 迷路的人（你告诉了他，还是没告诉）
+   ============================================================ */
+{
+  id:'ev15_road_choice', chapter:'zongmen', tier:1, stage:2, once:true,
+  title:'下山怎么走', cat:'人事',
+  text:'你在山口遇到一个人。\n\n他背着一只很沉的包，站在岔路口，来回看。\n\n「请问，」他说，「下山怎么走？」\n\n他问的那条路，是往深处去的。真正下山的路在他背后。\n\n他看起来很累。累到你已经能猜到他是从哪儿来的。',
+  flavor:'他背上那只包很沉。沉得不像赶路的人该背的东西。',
+  choices:[
+    { label:'告诉他真正下山的路', eff:(s,a)=>{
+        a.deed('road','told');
+        a.karma(-2); a.favor(2);
+        const g = a.cult(38,'mid');
+        return '你指了指他背后。\n\n他愣了一下，回头看了看，然后笑了。\n\n「我走了两天，」他说，「一直在往山里走。」\n\n他把包卸下来，坐在地上，笑了很久。\n\n业障 −2　人情 +2　修为 +'+g; } },
+    { label:'照他问的指——往深处', eff:(s,a)=>{
+        a.deed('road','misled');
+        a.karma(4); a.stone(30);
+        const g = a.cult(50,'mid');
+        return '你往深处指了指。\n\n「顺这条路走，走到头就是。」\n\n他道了谢，背起包走了。\n\n走了几步他回头看了你一眼，\n那一眼里什么都有，又什么都没说。\n\n当天下午有人在那条路上捡到了他的包。\n包里是三十块灵石。\n\n业障 +4　灵石 +30　修为 +'+g; } },
+    { label:'说不知道', eff:(s,a)=>{
+        a.deed('road','silent');
+        a.karma(1);
+        const g = a.cult(20,'low');
+        return '「不知道。」你说。\n\n他点点头，说了声谢谢，\n然后自己在岔路口站了很久。\n\n你走远了回头看，他还站在那儿。\n\n业障 +1　修为 +'+g; } }
+  ]
+},
+
+{
+  id:'ev15_road_again', chapter:'zongmen', tier:1, stage:3, deeds:['road'],
+  title:'又是那个岔路口', cat:'世界',
+  when:s=>deedHas('road') && deedAge('road') >= 16,
+  text:()=>{
+    const p = deedPick('road');
+    if (p === 'misled')
+      return '你又走到那个岔路口。\n\n路口多了一块石头，石头是新的，上面刻着一个箭头，\n指着真正下山的方向。\n\n刻得很深。刻的人大概刻了很久。\n\n石头底下压着一张纸，已经烂了一半。';
+    if (p === 'told')
+      return '你又走到那个岔路口。\n\n路口多了一块石头，上面刻着两个箭头：\n一个指着山下，一个指着深处。\n\n深处那个箭头被人用刀划掉了，划了很多遍。';
+    return '你又走到那个岔路口。\n\n路口什么都没有变。\n\n但你站了一会儿才想起来：\n你上次在这里站着的时候，还有一个人。';
+  },
+  flavor:()=>'有些路口你会走很多次。每一次都记得上一次。',
+  choices:[
+    { label:'把石头搬开', eff:(s,a)=>{
+        const p = deedPick('road');
+        const g = a.cult(60,'high');
+        if (p === 'misled'){ a.karma(-3); a.lifeBy(-0.04); return '你把那块石头抱起来，挪到了路边。\n\n石头下面压着的东西也都清了。\n\n做完这些你站在路口看了一会儿——\n路口很干净，干净得像什么都没发生过。\n\n业障 −3　寿元 −'+a.lifePct(0.04)+'　修为 +'+g; }
+        a.karma(1);
+        return '石头很沉。你推了一下，没推动。\n\n你蹲下来看那两个箭头，看了很久，\n最后还是把它留在了那儿。\n\n业障 +1　修为 +'+g; } },
+    { label:'在旁边再刻一块', eff:(s,a)=>{
+        a.deed('road','marked');
+        a.contrib(8); a.karma(-2);
+        const g = a.cult(70,'high');
+        return '你找了一块平一点的石头，用刀在上面刻。\n\n刻了三个字：**问清楚**。\n\n刻完你把它立在岔路口正中间，\n让两边来的人都得先看见它。\n\n贡献 +8　业障 −2　修为 +'+g; } },
+    { label:'什么都不做', eff:(s,a)=>{
+        const g = a.cult(25,'low');
+        return '你看了一会儿，走了。\n\n路口还是那个路口。\n\n修为 +'+g; } }
+  ]
+},
+
+{
+  id:'ev15_road_pack', chapter:'zongmen', tier:2, deeds:['road'],
+  title:'那只包的主人', cat:'线索',
+  when:s=>deedHas('road') && deedAge('road') >= 30,
+  text:()=>{
+    const p = deedPick('road');
+    if (p === 'misled')
+      return '你在山下村镇里听说一件事：\n\n三年前有个人在山上迷了路，走了七天，\n最后是从一道崖上被人抬下来的。\n\n他没有死。但他不太说话了。\n\n据说他一直在等一个人给他一个说法。';
+    if (p === 'told')
+      return '你在山下村镇里听说一件事：\n\n有个外乡人在镇上住了三年，逢人就说\n「山上那位指了路」。\n\n他每年往山上送一次东西，\n放下就走，从来不留名字。';
+    return '你在山下村镇里听说一件事：\n\n三年前有个人在岔路口站了一整天，\n最后自己找对了路。\n\n他后来跟人说：「那天有个人跟我说他不知道。\n但他说的时候，是看着我的。」';
+  },
+  flavor:()=>'你在这件事里。你只是不知道自己是哪一部分。',
+  choices:[
+    { label:'去见他', eff:(s,a)=>{
+        const p = deedPick('road');
+        a.lifeBy(-0.06);
+        if (p === 'misled'){
+          a.karma(4); a.clue('clue_fugitive');
+          const g = a.cult(110,'high');
+          return '你找到了他。\n\n他坐在院子里，正在削一根木头。\n\n你说了你是谁。\n\n他削木头的动作停了一下，然后继续削。\n\n「我知道。」他说，「我等了三年，就是想说一句：\n那天我没怪你。」\n\n他把削好的东西递给你，是一只很小的木鸟。\n\n业障 +4　线索 +1　修为 +'+g;
+        }
+        a.karma(-2); a.favor(3); a.clue('clue_friend');
+        const g = a.cult(110,'high');
+        return '你找到了他。\n\n他认出你的时候，站起来，又坐下了，\n不知道该怎么办才好。\n\n最后他说：「那天，谢谢你。」\n\n就这么一句。他说完就低头喝茶了。\n\n业障 −2　人情 +3　线索 +1　修为 +'+g; } },
+    { label:'不去，托人送点东西', eff:(s,a)=>{
+        const p = deedPick('road');
+        a.stone(-40);
+        if (p === 'misled') a.karma(2);
+        const g = a.cult(60,'mid');
+        return '你托人送了四十块灵石过去，没有留名。\n\n过了半个月，灵石被退回来了，\n一起退回来的还有一张纸，\n上面只有四个字：「我不要钱。」\n\n灵石 −40　修为 +'+g; } }
+  ]
+},
+
+{
+  id:'ev15_road_late', tier:2, deeds:['road'], once:true,
+  title:'那条路自己长了', cat:'世界',
+  when:s=>deedHas('road') && deedAge('road') >= 48,
+  text:()=>{
+    const p = deedPick('road');
+    if (p === 'marked')
+      return '你刻的那块石头还在岔路口正中间。\n\n但路变了——往深处去的那条路，\n现在被草盖住了大半，走的人少了。\n\n下山那条路上踩出了很宽的一条印子。\n\n石头上的三个字被人描过一遍，描的是红色。';
+    return '那个岔路口没有了。\n\n两条路合成了一条。\n\n你在原地站了一会儿才认出来——\n就是这里。只是现在无论往哪边走，都是下山。';
+  },
+  flavor:()=>'路会变。你只是碰巧在它变的时候路过。',
+  choices:[
+    { label:'顺着新路走一段', eff:(s,a)=>{
+        a.lifeBy(0.05); a.clue('clue_road');
+        const g = a.cult(120,'high');
+        return '你顺着那条新路走。\n\n走了半个时辰，路边的树开始变成你认得的样子。\n\n再走一会儿，你看见了自己山门的后墙。\n\n原来这两条路是通的。一直都是。\n\n寿元 +'+a.lifePct(0.05)+'　线索 +1　修为 +'+g; } },
+    { label:'往回走', eff:(s,a)=>{
+        a.karma(-1);
+        const g = a.cult(50,'mid');
+        return '你转身往回走。\n\n身后没有风，也没有声音。\n\n业障 −1　修为 +'+g; } }
+  ]
+},
+
+/* ============================================================
+   线六 · 半夜敲门的人（你开了门，还是没开）
+   ============================================================ */
+{
+  id:'ev15_gate_choice', chapter:'zongmen', tier:1, stage:2, once:true,
+  title:'半夜有人敲门', cat:'人事',
+  text:'半夜，有人敲你的门。\n\n敲得很轻，三下，停一停，再三下。\n\n不是宗门的人——宗门的人敲门是两下，很重。\n\n外面在下雨。\n\n你没有点灯，坐在床上听。\n敲门声一直很有耐心。',
+  flavor:'三下，停一停，再三下。像是怕吵醒你，又怕你听不见。',
+  choices:[
+    { label:'开门', eff:(s,a)=>{
+        a.deed('gate','opened');
+        a.favor(2); a.karma(-2); a.lifeBy(-0.03);
+        const g = a.cult(40,'mid');
+        return '你把门打开了。\n\n门外站着一个人，浑身湿透，怀里抱着一个布包。\n\n他抬头看你，嘴唇动了动，没说出话。\n\n你把他让进来，给他烧了一碗热水。\n\n他喝完，把布包放在桌上，说了声谢谢，就走了。\n布包你没有打开。\n\n人情 +2　业障 −2　寿元 −'+a.lifePct(0.03)+'　修为 +'+g; } },
+    { label:'隔着门问他是谁', eff:(s,a)=>{
+        a.deed('gate','asked');
+        a.clue('clue_child');
+        const g = a.cult(45,'mid');
+        return '「谁？」\n\n外面停了很久。\n\n「……走错门了。」他说。\n\n脚步声往雨里去了。\n\n第二天早上，你门口的台阶上有一小滩水，\n水没有干，周围一圈是干的。\n\n线索 +1　修为 +'+g; } },
+    { label:'装作睡着了', eff:(s,a)=>{
+        a.deed('gate','ignored');
+        a.karma(2);
+        const g = a.cult(18,'low');
+        return '你没有动。\n\n敲门声又响了两轮，然后停了。\n\n雨下了一整夜。\n\n第二天早上你开门，门槛外面的泥地上\n有一双跪出来的印子。\n\n业障 +2　修为 +'+g; } }
+  ]
+},
+
+{
+  id:'ev15_gate_parcel', chapter:'zongmen', tier:1, stage:3, deeds:['gate'],
+  title:'那只布包', cat:'线索',
+  when:s=>deedHas('gate') && deedAge('gate') >= 15,
+  text:()=>{
+    const p = deedPick('gate');
+    if (p === 'opened')
+      return '你终于把那天晚上的布包打开了。\n\n里面是一本册子，很薄。\n\n第一页写着一行字：\n「给开门的人。」\n\n后面的页是空的。整整一本，全是空的。';
+    if (p === 'asked')
+      return '你在门口那滩水的下面，发现了一样东西。\n\n是一块很小的木牌，被泥埋了一半。\n\n木牌上刻着一个字。\n\n那个字是「等」。';
+    return '你门槛外面那双跪出来的印子，这几天一直没有消。\n\n下了两场雨，别处的泥都平了，\n只有那一块还是凹的。\n\n有一天早上，印子里多了一样东西：\n一小截烧过的香。';
+  },
+  flavor:()=>'那天晚上你做了一个选择。它现在回来找你了。',
+  choices:[
+    { label:'把册子收好', when:()=>deedPick('gate') === 'opened', eff:(s,a)=>{
+        a.clue('clue_book');
+        const g = a.cult(80,'high');
+        return '你把那本空册子收进了柜子最里面。\n\n后来有几次你想起来，去翻，\n它还是空的。\n\n但每一次你翻开的那一页，\n折痕的位置都和上次不一样。\n\n线索 +1　修为 +'+g; } },
+    { label:'去查那晚的人是谁', eff:(s,a)=>{
+        a.lifeBy(-0.05); a.contrib(10);
+        const g = a.cult(85,'high');
+        return '你拿着木牌（或者那块空的布包）去问了很多人。\n\n问到第七个人的时候，那个人看了你一眼，说：\n\n「你问这个做什么。人都没了。」\n\n「谁没了？」\n\n他摇头，把门关上了。\n\n贡献 +10　寿元 −'+a.lifePct(0.05)+'　修为 +'+g; } },
+    { label:'把那块地填平', eff:(s,a)=>{
+        a.karma(-2); a.lifeBy(0.03);
+        const g = a.cult(45,'mid');
+        return '你找了土，把门口那块凹下去的地方填平了，\n还踩实了。\n\n填完你站在门口看了一会儿。\n\n第二天早上，那块土和别处一样了。\n\n业障 −2　寿元 +'+a.lifePct(0.03)+'　修为 +'+g; } }
+  ]
+},
+
+{
+  id:'ev15_gate_second', chapter:'zongmen', tier:2, deeds:['gate'],
+  title:'又来敲门了', cat:'人事',
+  when:s=>deedHas('gate') && deedAge('gate') >= 26,
+  text:()=>{
+    const p = deedPick('gate');
+    if (p === 'opened')
+      return '又有人在半夜敲门。\n\n一样的节奏：三下，停一停，再三下。\n\n这一次外面没有下雨。';
+    if (p === 'ignored')
+      return '又有人在半夜敲门。\n\n一样的节奏：三下，停一停，再三下。\n\n你坐着没有动。\n敲门声响了三轮，停了。\n\n然后你听见一个很轻的声音，像是在门外坐下了。';
+    return '又有人在半夜敲门。\n\n一样的节奏：三下，停一停，再三下。\n\n这一次你没有问是谁。\n\n你直接开了门。\n\n门外没有人。\n台阶上放着一只碗，碗里是满的。';
+  },
+  flavor:()=>'同一个节奏。同一个人。或者是同一件东西。',
+  choices:[
+    { label:'开门', eff:(s,a)=>{
+        const p = deedPick('gate');
+        const g = a.cult(120,'high');
+        if (p === 'ignored'){
+          a.karma(-4); a.favor(3);
+          return '你把门打开。\n\n门外坐着一个人，背靠着门框，睡着了。\n\n是那天晚上那个人。他等了三年。\n\n你把他扶起来的时候，他醒了，\n第一句话是：「这次你开了。」\n\n业障 −4　人情 +3　修为 +'+g;
+        }
+        a.favor(2); a.karma(-2);
+        return '你把门打开。\n\n门外站着一个人。他比你矮，很瘦。\n\n「上次那只包，」他说，「你打开了吗？」\n\n「打开了。」\n\n「那就好。」他说，然后就走了。\n\n人情 +2　业障 −2　修为 +'+g; } },
+    { label:'这次不开', eff:(s,a)=>{
+        const p = deedPick('gate');
+        a.karma(3);
+        const g = a.cult(40,'mid');
+        if (p === 'opened'){ a.clue('clue_leave'); }
+        return '你没有开门。\n\n敲门声响了很久，久到你以为它会一直响下去。\n\n天亮的时候，门外什么都没有。\n\n连脚印都没有。\n\n业障 +3　修为 +'+g; } }
+  ]
+},
+
+{
+  id:'ev15_gate_late', tier:2, deeds:['gate'], once:true,
+  title:'你门上多了个东西', cat:'线索',
+  when:s=>deedHas('gate') && deedAge('gate') >= 44,
+  text:()=>{
+    const p = deedPick('gate');
+    if (p === 'opened')
+      return '你门上多了一道刻痕，很浅，横着。\n\n过了几天，又多了一道。\n\n再过几天，是第三道。\n\n三道刻痕一样长，间距一样。';
+    if (p === 'asked')
+      return '你门上多了一道刻痕。\n\n只有一道，刻得很深，像是用了很大的力气。\n\n你把它磨平了一次。\n\n第二天它又出现了，还是在原来的位置。';
+    return '你门上什么都没有。\n\n但你晚上回来的时候，门是虚掩着的。\n\n屋里的东西一样没少。\n\n桌上多了一杯水。水还是温的。';
+  },
+  flavor:()=>'有人在数你开过几次门。',
+  choices:[
+    { label:'在门上刻回一道', eff:(s,a)=>{
+        a.karma(-2); a.clue('clue_name2');
+        const g = a.cult(130,'high');
+        return '你拿刀在门上刻了一道，横着，\n和那些刻痕一样长。\n\n刻完你退后两步看。\n\n现在门上多了一道。\n\n第二天早上，那些刻痕全都不见了，\n只剩你刻的那一道。\n\n业障 −2　线索 +1　修为 +'+g; } },
+    { label:'把门换掉', eff:(s,a)=>{
+        a.stone(-60); a.karma(1);
+        const g = a.cult(90,'mid');
+        return '你找木匠换了一扇新门。\n\n新门很平整，什么痕迹都没有。\n\n那天晚上你睡得很踏实。\n\n第三天早上，新门上出现了第一道刻痕。\n\n灵石 −60　业障 +1　修为 +'+g; } },
+    { label:'就这么留着', eff:(s,a)=>{
+        a.lifeBy(0.04);
+        const g = a.cult(60,'mid');
+        return '你没有动它。\n\n一道也好，三道也好，\n它们只是刻在门上。\n\n门照样能关，照样能开。\n\n寿元 +'+a.lifePct(0.04)+'　修为 +'+g; } }
+  ]
+},
+
+/* ============================================================
+   线七 · 你门前那盏灯（你给谁留着）
+   ------------------------------------------------------------
+   这一条线和「道途」「叩门人」是同一片夜色里的东西：
+   你在夜里为别人留没留一盏灯，别人走夜路的时候就看得见 / 看不见。
+   ============================================================ */
+{
+  id:'ev15_lamp_choice', chapter:'zongmen', tier:1, stage:3, once:true,
+  title:'门口那盏灯', cat:'人事',
+  text:'宗门给每个弟子发一盏灯油。一个月一壶，不多。\n\n够你夜里打坐的时候点着，\n也够你把它挂在门口，点一整夜。\n\n管发油的老执事说：「挂在门外的，下个月就没了。」\n\n他说这话的时候没有看你，像是在说一件很平常的事。',
+  flavor:'一个月一壶。点在自己屋里，还是点在外面，只有你自己知道。',
+  choices:[
+    { label:'挂在门口，点一整夜', eff:(s,a)=>{
+        a.deed('lamp','outside');
+        a.lifeBy(-0.03); a.karma(-3); a.favor(2);
+        const g = a.cult(40,'mid');
+        return '你把灯挂在了门外的钉子上。\n\n头几夜你总醒，醒来看见窗外那团光是自己的。\n\n后来你习惯了。有时候你半夜起来，\n会看见路上有别人提着的灯——\n走到你这盏灯底下，他们都会慢一点。\n\n寿元 −'+a.lifePct(0.03)+'　业障 −3　人情 +2　修为 +'+g; } },
+    { label:'点在自己屋里', eff:(s,a)=>{
+        a.deed('lamp','inside');
+        a.lifeBy(0.02);
+        const g = a.cult(35,'mid');
+        return '你把灯放在案上，照着自己。\n\n窗外什么都看不见。\n\n有一回你听见外面有人走过，\n脚步声在门口停了一下，又走了。\n\n你没有起身。\n\n寿元 +'+a.lifePct(0.02)+'　修为 +'+g; } },
+    { label:'不点，省下来', eff:(s,a)=>{
+        a.deed('lamp','saved');
+        a.stone(0); a.karma(1);
+        const g = a.cult(25,'low');
+        return '你把油省了下来。\n\n一个月下来，攒了小半壶。\n\n那天夜里你摸黑坐着，\n听见外面有人在路上叫了另一个人一声，\n然后两个人都不说话了。\n\n你猜他们是在找路。\n\n业障 +1　（省下小半壶灯油）　修为 +'+g; } }
+  ]
+},
+
+{
+  id:'ev15_lamp_walker', chapter:'zongmen', tier:1, deeds:['lamp'],
+  title:'灯底下那个人', cat:'人事',
+  when:s=>deedHas('lamp') && deedAge('lamp') >= 12,
+  text:()=>{
+    const p = deedPick('lamp');
+    if (p === 'outside')
+      return '你半夜起来，看见灯底下站着一个人。\n\n他没有敲门，也没有走。\n他就站在那团光里，仰着头看灯。\n\n看见你，他有点慌，退了一步。\n\n「我歇一下。」他说，「马上走。」';
+    if (p === 'inside')
+      return '你半夜起来，听见窗外有人在摸你的墙。\n\n摸到窗台，停了一下，然后走了。\n\n第二天早上你出去看，\n窗台上有一个手印，是泥的。\n\n那个人大概是走夜路的。';
+    return '你半夜起来，听见外面有人在骂。\n\n骂得很低声，是骂路。\n\n骂了一会儿，声音远了。\n\n第二天早上你出门，看见路边有一串脚印，\n绕着你的屋子转了半圈，然后又绕回去了。';
+  },
+  flavor:()=>'夜里走路的人，靠的就是别人门口那一点光。',
+  choices:[
+    { label:'请他进来坐一会儿', when:()=>deedPick('lamp') === 'outside', eff:(s,a)=>{
+        a.favor(3); a.karma(-2);
+        const g = a.cult(70,'high');
+        return '你把他让进来，给他倒了碗热水。\n\n他捧着碗，手很粗，指甲缝里全是泥。\n\n「你是走哪条路的？」你问。\n\n「不知道。」他说，「我跟着灯走的。」\n\n他喝完水，道了谢，走了。\n\n人情 +3　业障 −2　修为 +'+g; } },
+    { label:'把灯摘下来，给他照路', eff:(s,a)=>{
+        const g = a.cult(80,'high');
+        const p = deedPick('lamp');
+        a.karma(-3); a.favor(2);
+        if (p === 'inside'){ a.stone(-10); }
+        return '你把灯摘下来递给他。\n\n他愣了一下：「那你呢？」\n\n「我认得路。」你说。\n\n他提着灯走了。走了一段，\n你看见那团光慢慢变小，最后拐过山嘴，没了。\n\n人这一路会好走一点。\n\n业障 −3　人情 +2　修为 +'+g; } },
+    { label:'吹灭灯，回去睡', eff:(s,a)=>{
+        a.karma(2);
+        const g = a.cult(30,'mid');
+        return '你把灯吹了。\n\n屋里屋外一起黑下来。\n\n躺下之后你听见外面静了一会儿，\n然后有脚步声，很轻，往山下去了。\n\n业障 +2　修为 +'+g; } }
+  ]
+},
+
+{
+  id:'ev15_lamp_habit', chapter:'zongmen', tier:2, deeds:['lamp'],
+  title:'那盏灯成了一处路标', cat:'世界',
+  when:s=>deedHas('lamp') && deedAge('lamp') >= 26,
+  text:()=>{
+    const p = deedPick('lamp');
+    if (p === 'outside')
+      return '有人跟你提起一件小事：\n\n「从山下上来，走到半山腰，会看见一盏灯。\n看见那盏灯，就知道走对了。」\n\n说这话的是个不认识的货郎。\n\n「那盏灯是谁挂的？」你问。\n\n「不知道。」他说，「反正一直在。」';
+    if (p === 'saved')
+      return '有人在路上问你：「听说这一片，半山腰有盏灯？」\n\n「没有。」你说。\n\n他有点失望：「那我看错了。\n上次我走夜路，看见那边有一点亮。」\n\n「可能是月亮。」你说。\n\n他想了想，点点头，走了。';
+    return '有人跟你提起一件小事：\n\n「从山下上来，走到半山腰，就得自己找路。」\n\n说这话的是个不认识的货郎。\n\n「为什么？」\n\n「那一段没有灯。」他说，「别的山都有。」';
+  },
+  flavor:()=>'路标不是立起来的，是有人一天一天点出来的。',
+  choices:[
+    { label:'从此每夜都点', eff:(s,a)=>{
+        a.deed('lamp','kept');
+        a.lifeBy(-0.05); a.karma(-4); a.contrib(10);
+        const g = a.cult(110,'high');
+        return '你开始每夜都点。\n\n油不够就自己拿灵石去换。\n\n一年之后，那条路上多了好几盏灯——\n有人说，是山下的人自己凑钱挂的。\n\n贡献 +10　业障 −4　寿元 −'+a.lifePct(0.05)+'　修为 +'+g; } },
+    { label:'随缘，想起来就点', eff:(s,a)=>{
+        a.karma(-1);
+        const g = a.cult(60,'mid');
+        return '你没有把它当成一件事。\n\n想起来就点，忘了就算了。\n\n那条路上有时候有灯，有时候没有。\n\n业障 −1　修为 +'+g; } },
+    { label:'把灯收起来', eff:(s,a)=>{
+        a.stone(5); a.karma(2);
+        const g = a.cult(35,'low');
+        return '你把灯收进了柜子。\n\n之后你走那条路夜路，会习惯性地往半山腰看一眼。\n\n那边是黑的。\n\n业障 +2　修为 +'+g; } }
+  ]
+},
+
+{
+  id:'ev15_lamp_return', chapter:'zongmen', tier:2, deeds:['lamp'], once:true,
+  title:'有人把灯还回来了', cat:'人事',
+  when:s=>deedHas('lamp') && deedAge('lamp') >= 40,
+  text:()=>{
+    const p = deedPick('lamp');
+    if (p === 'outside' || p === 'kept')
+      return '门口放着一盏灯。\n\n不是你那一盏——你那一盏还挂在钉子上。\n\n这一盏小一些，铜的，擦得很亮。\n\n底下压着一张纸，字很生：\n\n「走了三年夜路，看你的灯看了三年。\n这盏是我自己打的。不用还。」';
+    if (p === 'saved')
+      return '门口放着一盏灯。\n\n铜的，很旧，像是用了很多年。\n\n底下压着一张纸，字很生：\n\n「这一路我走了三年。\n要是当年半山腰有盏灯，我能少走两年。\n这盏给你，你以后走夜路用。」';
+    return '门口放着一盏灯。\n\n铜的，不大，灯芯是新的。\n\n底下压着一张纸，字很生：\n\n「那天晚上我在你窗外站了一会儿。\n你没有点灯。我后来想，\n也许你有你的缘故。」';
+  },
+  flavor:()=>'一盏灯走出去了，另一盏回来了。',
+  choices:[
+    { label:'挂在原来的钉子上', eff:(s,a)=>{
+        a.deed('lamp','two');
+        a.karma(-3); a.favor(2);
+        const g = a.cult(120,'high');
+        return '你把那盏小灯挂在了旁边。\n\n现在门口有两盏。\n\n一盏是你自己的，一盏是别人打的。\n\n半夜起来看，两团光挨在一起，\n看起来像一盏很宽的灯。\n\n业障 −3　人情 +2　修为 +'+g; } },
+    { label:'收起来，带回屋里', eff:(s,a)=>{
+        a.karma(-1); a.lifeBy(0.03);
+        const g = a.cult(70,'mid');
+        return '你把那盏灯收进屋里，放在案头。\n\n它比你自己那盏亮一点。\n\n你后来一直用它。\n\n寿元 +'+a.lifePct(0.03)+'　业障 −1　修为 +'+g; } },
+    { label:'把纸烧了，灯扔掉', eff:(s,a)=>{
+        a.karma(3);
+        const g = a.cult(40,'low');
+        return '你把纸在灯上烧了。\n\n火烧完，灯还是好的。\n\n你把它扔进了山沟。\n\n扔下去的时候没有声音——\n大概是挂在树上了。\n\n业障 +3　修为 +'+g; } }
+  ]
+},
+
+{
+  id:'ev15_ledger_circle', tier:2, title:'册子回到了你手上', cat:'线索', once:true,
+  deeds:['ledger'],
+  when:s=>deedHas('ledger') && deedAge('ledger') >= 36,
+  text:()=>{
+    const p = deedPick('ledger');
+    if (p === 'none')
+      return '管记档的人换了一个。\n\n新来的是个年轻人，他抱着一摞册子来找你，\n说：「有一页是空的，我不知道该不该补。」\n\n那一页是你的。\n\n「补吧。」你说。\n\n他拿起笔，又放下：「写什么？」';
+    if (p === 'half')
+      return '管记档的人换了一个。\n\n新来的是个年轻人，他抱着一摞册子来找你，\n说：「有一页被人划掉了，划得很干净，\n但纸背面有印子。要不要照着背面补回来？」\n\n那一页是你的。';
+    return '管记档的人换了一个。\n\n新来的是个年轻人，他抱着一摞册子来找你，\n说：「这一页记得最全。我想问一句——\n上面写的都是真的吗？」';
+  },
+  flavor:()=>'记档会换人。你那一页不会。',
+  choices:[
+    { label:'照着背面补回来', when:()=>deedPick('ledger') === 'half', eff:(s,a)=>{
+        a.contrib(20); a.karma(-3); a.clue('clue_ledger');
+        const g = a.cult(150,'high');
+        return '你把册子翻过来，对着光看那一页的背面。\n\n印子还在。你一个字一个字念出来，\n他在正面一笔一笔写回去。\n\n写完他念了一遍。念到「取」那几条的时候，\n他停了一下，然后接着念完了。\n\n贡献 +20　业障 −3　线索 +1　修为 +'+g; } },
+    { label:'「都是真的。」', when:()=>deedPick('ledger') === 'truth', eff:(s,a)=>{
+        a.contrib(25); a.karma(-4); a.clue('clue_name2');
+        const g = a.cult(160,'high');
+        return '「都是真的。」你说。\n\n他点点头，把册子合上，抱走了。\n\n走到门口他回过头，说了一句：\n\n「我师父教我的时候说，记档最要紧的不是记得全，\n是记得住。」\n\n贡献 +25　业障 −4　线索 +1　修为 +'+g; } },
+    { label:'「写我的名字。」', when:()=>deedPick('ledger') === 'none', eff:(s,a)=>{
+        a.contrib(30); a.karma(-5); a.clue('clue_name');
+        const g = a.cult(170,'high');
+        return '「写我的名字。」你说。\n\n他愣了一下，然后低头写。\n\n写完他抬起头：「就这些？」\n\n「就这些。」\n\n他把册子合上，抱着走了。\n\n那一页上从此只有三个字，但没有一处空白。\n\n贡献 +30　业障 −5　线索 +1　修为 +'+g; } },
+    /* ⚠️ 兜底选项**不能**再写 when：前面三个各自带 deedPick 条件，
+       恰好命中一个；如果兜底也带条件，就有些局面一个选项都不剩，
+       玩家会看到一张空的事件面板。这一条必须无条件可点。 */
+    { label:'把册子拿过来，自己写', eff:(s,a)=>{
+        a.karma(2); a.stone(40);
+        const g = a.cult(90,'mid');
+        return '你把册子拿过来，翻到你那一页。\n\n然后你没有写，把它撕了下来，收进怀里。\n\n他张了张嘴，什么都没有说。\n\n那一页在你怀里，过了很久还是凉的。\n\n业障 +2　灵石 +40　修为 +'+g; } }
+  ]
+},
+
+]);
+
+
 /* ===== mijing.js ===== */
 /* ============================================================
    秘境（第 27 轮新增）
@@ -10066,7 +11263,7 @@ function daoJiMaxed(){ return daoJiLevel() >= daoJiDef().max; }
 /* 下一层要多少修为。没有任何可养的目标时返回 null。
    ⚠️ 基数是 breakNeed() —— 也就是「这一层的突破门票」。
    用它做基数有两个好处：
-     · 自动随境界缩放，不用给 73 档各写一个数
+     · 自动随境界缩放，不用给 38 档各写一个数
      · 「养一层丹 ≈ 0.06~0.15 次突破」这个比例在任何境界都成立，
        所以取舍的份量不会走样（实测：养满 5 层 = 5.1 次修行，各境界一致） */
 function daoJiCost(){
@@ -10237,6 +11434,21 @@ function newRun(lots, seed){
 
     // 标记
     flags: (lots.bonus.flags||[]).slice(),
+    /* 第 32 轮：**选择记录**（deed）—— 串联的地基。
+       ------------------------------------------------------------
+       flags 只记得「这件事发生过」（一个布尔 + 时间戳）。
+       串联需要更厚的东西：**你当时选了哪一支、做过几次、被几个事件见证过**。
+       A→B→C 这种多步因果、以及「同一个事件在不同人眼里是不同的故事」，
+       都要靠这三个额外维度。
+
+         s.deeds[id] = {
+           choice : 当时选的那一支（'a' / 'burn' / 任意字符串）
+           at     : 第几次行动做的
+           n      : 一共做过几次（叠加强度用，例如「你第三次应它」）
+           seen   : 已经被哪些事件见证过（防止同一个记录被反复消费）
+         }
+       老存档没有这个字段 → loadRun 里补 {}（与 s.flagAt 同一套做法）。 */
+    deeds: {},
     clues: [],          // 已发现线索 id
     seenEvents: [],     // 已触发事件 id
     log: [],            // 记事
@@ -10916,10 +12128,23 @@ function shouldTribulate(fromRealm, toRealm){
   return { yes:true, reason:'major', extreme:false };
 }
 
-/* 属性「理论上限」：抽签可能拿到的最高初始属性 + 全部境界成长 */let _maxAttrCache = null;
-let _maxAttrPerCache = null;
-function maxAttrPossible(){
-  if (_maxAttrCache !== null) return _maxAttrCache;
+/* 属性「理论上限」：抽签可能拿到的最高初始属性 + 全部境界成长
+   ------------------------------------------------------------
+   ⚠️ 第 32 轮：这里原来有**两个模块级缓存**（一个存总和、一个存分项表），
+   **从不清除**。而这个上限里有一项 daoJiPerAttrMax() 是跟着**当前大境界**变的
+   （气海 1 / 道基 3 / 金丹 6 / 元婴 10 ……），于是它被永久冻结在
+   「第一次调用时那个大境界」上。实测：开局在炼气调一次得 4160，
+   同一局修到元婴再算还是 4160，而正确值是 4430。
+
+   影响面目前是**潜伏**的：这个数只被逆天门槛用（ratio vs extremeAttrRatio=0.92），
+   而元婴期实测 ratio 只有 0.25 —— 差值翻不动结论。
+   但它会随 per 一起长大（劫身 per 是 39），且 attrGainBonus()（元层的「根骨」）
+   也被一起冻住了：在同一页面里买完升级再开一局，上限不会跟着动。
+
+   故意**删掉缓存**而不是给它做失效标记：它不是热路径
+   （只有逆天判定与 evAttrRank 用它），而任何"记得去清缓存"的方案
+   都会在下一次有人加新的依赖项时再次失准。 */
+function maxAttrBest(){
   // 每支签里各项属性的最大值之和
   const best = {};
   G.ATTRS.forEach(a=>{ best[a.id] = 0; });
@@ -10943,21 +12168,23 @@ function maxAttrPossible(){
      内景是一条人人都能走的养成线，不算进去的话，
      练满内景反而会被系统当成「异常」而招来更狠的天劫。
      另外六个大境界各养一遍是不可能的（内景会蜕变），
-     所以这里只取**当前大境界**练满的量，与 attrs() 的实际算法一致。 */
+     所以这里只取**当前大境界**练满的量，与 attrs() 的实际算法一致。
+     ⚠️ 正因为这一项跟着当前大境界变，整个上限**不能缓存**。 */
   const djFull = daoJiPerAttrMax();
   if (djFull > 0) G.ATTRS.forEach(a=>{ best[a.id] += djFull; });
-  _maxAttrCache = G.ATTRS.reduce((n,a)=>n + best[a.id], 0);
-  _maxAttrPerCache = best;
-  return _maxAttrCache;
+  return best;
+}
+function maxAttrPossible(){
+  const best = maxAttrBest();
+  return G.ATTRS.reduce((n,a)=>n + best[a.id], 0);
 }
 
 /* 单个属性的理论上限（第 29 轮）。
    ⚠️ maxAttrPossible() 返回的是**六维总和**，不是每个属性的上限。
    第 29 轮写事件助手时第一版把它当成单项上限用了（evAttrRank 全错），
-   所以这里把同一个 best 表也缓存下来，单项上限单独取。 */
+   所以单项上限单独给一个取法。 */
 function maxAttrFor(id){
-  if (_maxAttrPerCache === null) maxAttrPossible();
-  return (_maxAttrPerCache && _maxAttrPerCache[id]) || 0;
+  return maxAttrBest()[id] || 0;
 }
 
 /* ============================================================
@@ -10981,6 +12208,41 @@ function note(kind, text){
   return rec;
 }
 
+/* ---------------- 标记的唯一写入口（第 32 轮补） ----------------
+   ⚠️ 这一轮挖出的最严重的一类 bug 就在这儿，值得写清楚。
+
+   第 31 轮给 `a.flag()` 加了「记下这个标记是第几次行动打上的」（s.flagAt），
+   于是后续事件可以写 `flagAge('node_broken') >= 15` ——「过了一阵子，那件事回来了」。
+   下游 102 个回响事件全都依赖这个功能。
+
+   但当时**只有 a.flag() 那一处**在写 flagAt，另外四条写标记的路都没写：
+     · applyOutcome()      战斗的数据化战果（例如 win:{flag:'seat_won'}）
+     · addCard()           卡牌自带的 flags（page / mirror / ring）
+     · addCard() 的 eff.flag
+     · newRun() 的开局签运（junior / pet / jade / letter / losttime / extraline）
+
+   而 flagAge() 对「没记过时间」的标记返回 -1，`-1 >= 15` 恒为假 ——
+   于是这些标记的下游事件**在这一世里永远不会触发**，而且不报错、不崩溃。
+   实测：8 处只有战斗胜利才能拿到的标记（won_duel / seat_won / other_won 等）
+   全部卡死，其中 ev11_won_duel / ev11_seat_won / ev11_other_won 三整条链是死的。
+
+   修法：所有写标记的地方统一走 raiseFlag()。
+   顺带修掉另一个数据缺口 —— 以前 addCard 直接 push s.flags，
+   既不记时间也不去重。 */
+function raiseFlag(f, opts){
+  if (!f || !s) return;
+  if ((s.flags || (s.flags = [])).indexOf(f) < 0) s.flags.push(f);
+  if (!s.flagAt) s.flagAt = {};
+  if (s.flagAt[f] == null) s.flagAt[f] = s.actions || 0;
+  /* 「有因有果」的选择要写进记事（结算页的「这一世」）。
+     只记 G.CAUSE 里登记过的；战斗/卡牌/签运带来的标记不写 ——
+     它们不是「你做的选择」，写进去会把记事淹掉。
+     opts.note 显式给 false 可以关掉（默认开，保持第 31 轮的行为）。 */
+  if (opts && opts.note === false) return;
+  const cz = (G.CAUSE || {})[f];
+  if (cz && cz.label) note('choice', `你做了这件事：${cz.label}。`);
+}
+
 /* 这一世的统计（称号判定用）。全部从现有状态推出来，不额外存。 */
 function runStats(){
   const sx = (s && s.sanxiu) || {};
@@ -11002,13 +12264,22 @@ function runStats(){
     disciplesLost: (s && s._disciplesLost) || 0,
     peopleSaved: (s && s._peopleSaved) || 0,
     debtsPaid: (s && s._debtsPaid) || 0,
-    storyDone: Math.min((s && s.storyStage) || 0, (G.SECT_STORY.stages||[]).length),
+    /* ⚠️ 第 32 轮：这里原来还有一行
+         storyDone: Math.min((s && s.storyStage) || 0, stages.length),
+      它读的是 s.storyStage —— 而第 31 轮把那个字段从**数字下标**改成了
+      页面 id 字符串（'st2' / 'st4a' / 收束哨兵 STORY_DONE）。
+      Math.min('st4a', 9) 是 NaN，于是这个字段永远是 NaN。
+      它和下面那一行同名，JS 对象字面量里**后面的覆盖前面的**，
+      所以功能没坏 —— 但那一行是死代码，还引用了已经变了类型的字段。
+      下一个人改这一块时很可能改错行，然后发现「怎么改都没反应」。
+      删掉它。真正在数页数的是 s.storyDone（advanceStory 里 +1）。 */
+    storyDone: (s && s.storyDone) || 0,
     sanxiuDays: sx.days || 0,
     skillsMaxed: skillsMaxed,
     bosses: ((s && s.flags) || []).filter(f=>/_done$/.test(f) && /^boss/.test(f)).length,
-    /* 真正在数页数的是 s.storyDone（advanceStory 里 +1）。
-       storyRoute = 当前这条路线一共几页（走完一条路要翻的页数）。 */
-    storyDone: (s && s.storyDone) || 0,
+    /* storyRoute = 当前这条路线一共几页（走完一条路要翻的页数）。
+       ⚠️ 不能用 storyPages 去比 —— 那是整个故事图的页数（9），
+       而一条路线只走 5 页，拿 9 当门槛会让称号永远拿不到。 */
     storyRoute: (function(){ try { return (storyProgress()||{}).total || 0; } catch(e){ return 0; } })(),
     storyPages: (G.SECT_STORY.stages||[]).length
   };
@@ -11139,8 +12410,11 @@ function addCard(name, silent){
       addAttrBonus(c.eff.attr);
     }
   }
-  if (c.flags) c.flags.forEach(function(f){ if (s.flags.indexOf(f)<0) s.flags.push(f); });
-  if (c.eff && c.eff.flag && s.flags.indexOf(c.eff.flag)<0) s.flags.push(c.eff.flag);
+  /* 卡牌自带的标记也走 raiseFlag（第 32 轮）：以前直接 push，
+     既不记 flagAt 也不去重 —— 而 page / mirror / ring 这三个标记
+     是有下游事件在读 flagAge 的。 */
+  if (c.flags) c.flags.forEach(function(f){ raiseFlag(f, { note:false }); });
+  if (c.eff && c.eff.flag) raiseFlag(c.eff.flag, { note:false });
   if (!silent) log('你得到了【' + name + '】。');
   return { added:true, name:name };
 }
@@ -11543,6 +12817,90 @@ function causeLine(flag){
   return c.from ? `你还记得，这是从「${c.from}」那件事上来的。` : '';
 }
 
+/* ============================================================
+   选择记录（deed）· 串联的读侧（第 32 轮新增）
+   ------------------------------------------------------------
+   为什么要有它：实测（第 32 轮审计）——
+     被写过的标记 76 个，**每个都只被恰好 1 个事件读取**，
+     扇出 ≥3 的标记是 **0 个**；而且**没有任何一个事件的正文会因为标记而改变**。
+   也就是说当时全是「A 选 1 → B 出现」的孤立两点直线，
+   玩家感觉不到「这个世界记得我」。flags 的表达力只够做到这里。
+
+   deed 比 flag 厚三个维度，于是能写出三种串联：
+     · **扩散**（A→B/C/D）：同一个记录被 3~5 个不同事件引用，
+       各用 deedAge 错开时间 —— 一个人会以不同身份在不同场合再出现
+     · **汇聚**（A+B+C→D）：一个事件同时读 2~3 个记录，
+       正文与选项数随排列组合变
+     · **正文变形**：deedPick 读出「你当时选的是哪一支」，
+       让同一个事件条目在不同人眼里是**不同的故事**
+
+   写法（给事件作者）：
+     a.deed('thief', 'let_go')                       记一笔（选「放走」）
+     when: s => deedHas('thief') && deedAge('thief') >= 12
+     text: () => deedPick('thief') === 'let_go'
+                  ? '集市上那个卖鱼的看了你一眼，然后把头低下了。'
+                  : '集市上那个卖鱼的朝你笑了一下。'
+     choices:[{ label:'再放他一次', when:s => deedTimes('thief') >= 2, … }]
+
+   ⚠️ 关于「见证」：一个事件只要引用了某个 deed（deedHas/Age/Times/Pick），
+   引擎就算它见证过一次，记进 s.deeds[id].seen。
+   这是为了做两件事：① 防止同一个记录被同一批事件反复消费（那样就不像"记得"，
+   像"卡住了"）；② pickEvent 的串联优先档要知道**哪些记录还没被讲完**。 */
+function deedRec(id){
+  return (s && s.deeds && s.deeds[id]) || null;
+}
+/* 做过没有 */
+function deedHas(id){ return !!deedRec(id); }
+/* 距今几次行动；没做过返回 -1（和 flagAge 同一个约定） */
+function deedAge(id){
+  const d = deedRec(id);
+  if (!d || d.at == null) return -1;
+  return (s.actions||0) - d.at;
+}
+/* 做过几次 */
+function deedTimes(id){
+  const d = deedRec(id);
+  return d ? (d.n || 1) : 0;
+}
+/* 当时选的是哪一支；没做过返回 null */
+function deedPick(id){
+  const d = deedRec(id);
+  return d ? (d.choice == null ? null : d.choice) : null;
+}
+/* 已经被多少个事件见证过 */
+function deedWitness(id){
+  const d = deedRec(id);
+  return d && d.seen ? d.seen.length : 0;
+}
+/* 这个记录「还没被讲完」吗（用于 pickEvent 的串联优先档） */
+function deedPending(id, cap){
+  cap = cap || 4;
+  const d = deedRec(id);
+  if (!d) return false;
+  return (d.seen ? d.seen.length : 0) < cap;
+}
+/* 记一笔见证。eventId 由 pickEvent 在抽中时统一补上。
+   ⚠️ 第一版想"从事件里推导出它引用了哪些 deed"，那需要在求值时埋钩子，
+   又慢又脆。改成**显式声明**：事件上写 deeds:['thief','bridge']，
+   引擎按声明记账。好处有三个：pickEvent 能直接按它筛、
+   dev/verify-linkage.js 能静态数出"每个记录被几个事件见证"、
+   写内容的人一眼看得出这个事件属于哪条线。 */
+function eventDeeds(e){
+  if (!e || !e.deeds) return [];
+  return [].concat(e.deeds).filter(Boolean);
+}
+function markDeedSeen(eventId, deedIds){
+  if (!s || !s.deeds || !eventId) return 0;
+  let n = 0;
+  (deedIds || []).forEach(function(id){
+    const d = s.deeds[id];
+    if (!d) return;                       // 玩家没做过这件事 → 这个事件本来也抽不到
+    if (!d.seen) d.seen = [];
+    if (d.seen.indexOf(eventId) < 0){ d.seen.push(eventId); n++; }
+  });
+  return n;
+}
+
 /* ---------------- 事件动作 API（唯一真源） ----------------
    第 19 轮重构：以前界面、宗门剧情、测试脚本各写了一份 a.cult/a.life……，
    三份慢慢长歪了——测试里少一个 gainStone，就把 events5 里那场决斗的崩溃
@@ -11647,24 +13005,35 @@ function makeActions(hook){
     removeCard(n){ removeCard(n); },
 
     debt(cfg){ addDebt(cfg); },
+    /* 记一笔「选择记录」（第 32 轮）。见文件上方 deedRec 那一段的说明。
+       ------------------------------------------------------------
+       和 a.flag() 的区别：flag 记「这件事发生过」，deed 记
+       「你当时选了哪一支、做过几次、被谁见证过」。
+       两者并存，不互相替代 —— 现有 102 条因果链全部继续走 flag。
+
+       choice 是**自由字符串**（'let_go' / 'burn' / 'a' 都行），
+       事件里用 deedPick(id) 取出来做正文变形。
+       同一个 id 再做一次 → n 累加、at 刷新（"最近一次是第几步"），
+       choice 取最后一次 —— 这样「你又做了一次同样的选择」和
+       「你这次改主意了」都能表达。 */
+    deed(id, choice){
+      if (!id) return null;
+      if (!s.deeds) s.deeds = {};
+      const d = s.deeds[id] || (s.deeds[id] = { choice:null, at:0, n:0, seen:[] });
+      d.choice = (choice == null) ? d.choice : choice;
+      d.at = s.actions || 0;
+      d.n = (d.n || 0) + 1;
+      /* 记一笔记事：只有第一次做的时候写，免得反复做把编年刷满 */
+      if (d.n === 1) note('choice', G.deedNote ? G.deedNote(id, d.choice) : `你做了一个选择：${id}。`);
+      return d;
+    },
     chance(p){ return Math.random() < p; },
     clue(id){ addClue(id); },
     flag(f){
-      if (s.flags.indexOf(f) < 0) s.flags.push(f);
-      /* ⚠️ 第 31 轮：顺便记下这个标记是**第几次行动**打上的。
-         以前只存一个布尔（在不在数组里），于是后续事件只能说
-         「你做过 X」，没法说「X 之后过了多久」——
-         而「过了一阵子，那件事回来了」正是因果链最需要的节奏。
-         写成对象之后，事件可以写 when:s => flagAge(s,'node_broken') >= 15。 */
-      if (!s.flagAt) s.flagAt = {};
-      if (s.flagAt[f] == null) s.flagAt[f] = s.actions || 0;
-      /* 第 31 轮补：**有因果的**选择要写进记事。
-         这一轮做了 103 条因果链，但结算页的「道途 · 大事记」里
-         一条都看不到 —— 而本作叫《记忆修复局》，主题就是记忆：
-         你当初那一步，凭什么不该被记下来。
-         只记 G.CAUSE 里登记过的（有下文的），不把每个内部标记都倒出来。 */
-      const cz = (G.CAUSE || {})[f];
-      if (cz && cz.label) note('choice', `你做了这件事：${cz.label}。`);
+      /* ⚠️ 第 32 轮：这一段（直接 push + 记 flagAt + 写记事）已经收进
+         raiseFlag()，因为以前只有这里在写 s.flagAt，另外四条写标记的路
+         都没写，导致它们的下游事件永远触发不了。见 raiseFlag 的说明。 */
+      raiseFlag(f);
     },
     /* 第 22 轮：在事件里碰到「天骄榜」上的人。
        事件只需要写 a.tianjiao()，引擎挑一个当前大境界、
@@ -11734,9 +13103,37 @@ function causeTargets(){
   return _causeTargets;
 }
 
+/* 事件在大境界内的分段（第 32 轮新增，可选字段）。
+   ------------------------------------------------------------
+   玩家要求「每一个大境界有其对应的事件集」。tier 只做到「哪个大境界」，
+   还想更细的话 —— 同一个大境界的前期和后期该是不同的事件 ——
+   就给事件加一个可选的 stage。
+
+   语义：
+     · 不写 stage          → 全段可抽（244 个老事件一行都不用改）
+     · stage = 1..N        → 只在第 N 段可抽
+   段数：
+     · 炼气 9 档（一层~九层）→ 按 3 档一组折成 3 段，够用且不用改表
+     · 筑基起 4 档（前期/中期/后期/巅峰）→ 就是那 4 段，一一对应
+   ⚠️ 段数是**算出来的**，不写死 —— 改境界表不会再让这个静默失准。 */
+function stageOf(realm){
+  if (!realm) return 1;
+  const subs = (G.subsOfMajor ? G.subsOfMajor(realm.major) : 4) || 4;
+  const sub = realm.sub || 1;
+  if (subs <= 4) return Math.min(4, Math.max(1, sub));
+  /* 9 档的炼气：3 档一段 → 1,2,3 / 4,5,6 / 7,8,9 */
+  return Math.min(3, Math.floor((sub - 1) / 3) + 1);
+}
+function stageAllows(e, realm){
+  if (e.stage == null) return true;
+  const want = [].concat(e.stage);
+  return want.indexOf(stageOf(realm)) >= 0;
+}
+
 function pickEvent(){
   const myMajor = (G.REALMS[s.realmIdx] || {major:1}).major;
   const myChapter = s.chapter || 'zongmen';
+  const myRealm = G.REALMS[s.realmIdx];
   const pool = G.EVENTS.filter(function(e){
     if (e.once && s.seenEvents.indexOf(e.id) >= 0) return false;
     if (e.when && !e.when(s)) return false;
@@ -11744,6 +13141,8 @@ function pickEvent(){
        这样筑基期就不会再碰到炼气期的事件。 */
     const et = e.tier || 0;
     if (et !== 0 && et !== myMajor) return false;
+    /* ②b 段内分层（可选）：同一个大境界的前期/后期各是不同的事件集 */
+    if (!stageAllows(e, myRealm)) return false;
     /* ③ 篇章分层：散修篇不再抽到宗门事件 */
     if (!chapterAllows(e, myChapter)) return false;
     return true;
@@ -11757,8 +13156,32 @@ function pickEvent(){
     const pending = pool.filter(function(e){ return tgt[e.id]; });
     if (pending.length) pick = pending;
   }
+
+  /* ⑤ 串联优先：你的选择要**有下文**（第 32 轮新增）
+     ------------------------------------------------------------
+     第 31 轮只给 G.CAUSE 登记的 102 条因果开了优先档。但实测发现
+     每个标记只被 1 个事件读取（扇出恒为 1），所以「这一档优先」最多
+     只能把一条两点直线提前，串不成网。
+
+     现在给**选择记录（deed）**同样开一档：抽事件时，只要池子里有
+     「引用了你还挂着、而且还没被讲完的记录」的事件，就优先从它们里抽。
+     于是 A→B→C 这种多步因果真的走得完，而不是靠运气。
+     池子里没有这类事件时老老实实退回普通池子，不会凭空造事件。 */
+  if (s.rng() < callbackChance()){
+    const chained = pool.filter(function(e){
+      const ds = eventDeeds(e);
+      if (!ds.length) return false;
+      return ds.some(function(id){ return deedPending(id, 4); });
+    });
+    if (chained.length) pick = chained;
+  }
+
   const e = pick[Math.floor(s.rng()*pick.length)];
   s.seenEvents.push(e.id);
+  /* 第 32 轮：记下这个事件见证过哪些选择记录。
+     记完它就不再算「还没被讲完」，于是同一件事不会被同一批事件反复上演
+     （配合 deeds:[...] 的显式声明，verify-linkage 能静态数出扇出）。 */
+  markDeedSeen(e.id, eventDeeds(e));
   /* 第 31 轮：这一抽如果是某条因果的**兑现**，就写进记事。
      和 a.flag() 里那条「你做了这件事」配对 ——
      结算页上读起来就是：你当初种了一棵树 → 多年之后，它有了下文。
@@ -12050,7 +13473,13 @@ function applyOutcome(o){
   if (o.lifePct != null) gainLife(o.lifePct > 0 ? pct(o.lifePct) : -pct(-o.lifePct));
   if (o.contrib != null) gainContrib(o.contrib);
   if (o.clue) [].concat(o.clue).forEach(c=>addClue(c));
-  if (o.flag) [].concat(o.flag).forEach(f=>{ if (s.flags.indexOf(f) < 0) s.flags.push(f); });
+  /* ⚠️ 第 32 轮：这里以前是直接 push s.flags —— 不记 flagAt。
+     于是所有「只有打赢才拿得到」的标记（won_duel / seat_won / other_won /
+     mj_*_win …）在 flagAge() 眼里永远返回 -1，
+     它们那些 `flagAge(...) >= N` 的下游回响事件整条链都是死的。
+     现在统一走 raiseFlag（note:false —— 打架赢来的不算「你做的选择」，
+     写进记事会把那一栏淹掉）。 */
+  if (o.flag) [].concat(o.flag).forEach(f=>raiseFlag(f, { note:false }));
   if (o.card) [].concat(o.card).forEach(c=>addCard(c));
 }
 
@@ -13013,7 +14442,7 @@ G.FRAG = {
 };
 function fragBreakdown(reason){
   const F = G.FRAG;
-  /* ⚠️ 境界分要按「玩家这一世能走多远」归一化，不能按完整 73 档。
+  /* ⚠️ 境界分要按「玩家这一世能走多远」归一化，不能按完整 38 档。
      否则上限锁在元婴时，玩家最多只拿得到 26/72 ≈ 36% 的境界分，
      等于把局外成长悄悄砍掉六成 —— 玩家只会觉得「碎片怎么变少了」。 */
   const span = Math.max(1, (G.realmCapIndex ? G.realmCapIndex() : G.REALMS.length - 1));
@@ -13617,6 +15046,11 @@ function loadRun(){
     /* 第 26 轮：老存档里没有内景字段（它是这一轮才有的）。
        对齐一次，免得玩家读回旧档之后看到「元婴期挂着气海」。 */
     normalizeDaoJi();
+    /* 第 32 轮：s.deeds 是这一轮才有的字段，老存档里没有。
+       不补的话 deedHas/flagAge 那一套会在 undefined 上取属性。
+       与 s.flagAt（第 31 轮）同一套做法：缺就补空，不做表版本作废。 */
+    if (!s.deeds) s.deeds = {};
+    if (!s.flagAt) s.flagAt = {};
     /* 把没打完的那场战斗接回来。
        stats 不存盘（它由 attrs/agg 派生），这里按当前局面重算，
        所以读档后的战斗数值永远和当前 build 一致。 */
@@ -14982,6 +16416,43 @@ function availableActions(){
     });
   }
 
+  /* ============================================================
+     第 32 轮修：**雷池边上「坐下」之后的死路**
+     ------------------------------------------------------------
+     玩家在结丹之劫选「在池边坐下」会打上 boss_zhuji_rest，
+     从那一刻起 doBreak() 永远返回 null（这是**设计如此** ——
+     选择坐下的代价就是「这一世就停在筑基」）。
+
+     但界面不知道这件事：availableActions 里 canBreak() 一直是 true，
+     于是主界面上**一直亮着**一个「★ 突破 · 金丹前期」按钮，
+     点下去什么都不会发生 —— 修为够、按钮亮着、点了没反应。
+
+     实测：筑基巅峰 + 11325 修为（需求 3775），连点三次 doBreak()
+     全部返回 null，境界不动、修为不扣，只有寿元在烧。
+     玩家看到的就是「这个按钮坏了」，而不是「我当初做了那个选择」。
+
+     修法：把它显式报出来，并且让按钮**如实**说明原因。
+     这一条必须排在 canBreak 之前 —— 否则它永远轮不到。
+     ============================================================ */
+  {
+    const restHere = (s.flags||[]).indexOf('boss_zhuji_rest') >= 0
+                  && (G.REALMS[s.realmIdx]||{}).major === 2;
+    if (restHere){
+      /* ⚠️ 顺序：这一条必须在 canBreak / canAscend / canCapstone **之前**。
+         它们三个在「坐过雷池」之后仍然会返回 true（境界确实够了），
+         所以先问「还能不能走这条路」——不能的话，后面三个都不必问。 */
+      if (st.canBreak){ st.canBreak = false; }
+      if (st.canAscend){ st.canAscend = false; }
+      list.unshift({
+        id:'zhuji_rested', name:'已 在 池 边 坐 下', cost:0, disabled:true,
+        desc:'那一世你没有走进雷池。气早就散了，前面没有路了。\n'
+           + '剩下的日子还在——去做别的事，或者自己选个时辰收束。',
+        meta:'这一世不会再结丹（这是你当初的选择）',
+        special:'zhujiRested'
+      });
+    }
+  }
+
   if (st.canBreak){
     const nextRealm = G.REALMS[st.realmIdx+1];
     /* 第 25 轮：这里必须**如实**告诉玩家会不会挨雷。
@@ -15147,6 +16618,9 @@ G.Engine = {
   // 事件缩放与长期因果
   evScale, evGain, evLifePct, addDebt, checkDebts,
   settleDebts, openThreads, flagAge, causeLine,
+  /* 选择记录 / 串联（第 32 轮） */
+  deedHas, deedAge, deedTimes, deedPick, deedWitness, deedPending,
+  eventDeeds, stageOf, stageAllows,
   // 结局
   endRun, sitDown, checkSectCollapse,
   karmaOverflow, karmaTribulationReady, karmaCooldownLeft, burnKarma, addBoon,
@@ -15186,6 +16660,17 @@ window.evMainAttr = evMainAttr;
    凡是给事件作者用的东西，都必须在这里显式发布。 */
 window.flagAge    = flagAge;
 window.causeLine  = causeLine;
+/* 第 32 轮：选择记录那五个 —— 串联（扩散 / 汇聚 / 正文变形）全靠它们。
+   ⚠️ 这是**第三次**在同一个坑上补东西了（第 29 轮 evAttr、第 31 轮 flagAge）。
+   engine.js 整体包在 IIFE 里，事件文件是另一个文件的普通对象字面量，
+   运行时只看得到全局作用域。凡是给事件作者用的，都必须在这里显式发布，
+   否则 when 一求值就 ReferenceError，整个事件面板是一片空白。
+   dev/verify-eventstruct.js 会遍历所有条件去抓这种错。 */
+window.deedHas    = deedHas;
+window.deedAge    = deedAge;
+window.deedTimes  = deedTimes;
+window.deedPick   = deedPick;
+window.deedWitness= deedWitness;
 /* 「这一局我练的是什么道」——事件里做属性分支时最常用的一句 */
 window.evTopAttr  = function(){
   const A = attrs();
@@ -15347,6 +16832,26 @@ function btn(label, cls, fn, disabled){
   if (disabled) b.disabled = true;
   else b.addEventListener('click', fn);
   return b;
+}
+
+/* 「带符号的百分比」不能把零印成 −0% 或 +0%。
+   ------------------------------------------------------------
+   第 32 轮修：审计把 11 个面板 × 4 种境界全渲染了一遍，
+   抓到属性面板与牌组面板会印出「受到伤害 −0%」，
+   牌组面板还会印出「招式加成 +0%　修为效率 +0%」。
+   数字都是对的（那些量确实是 0），**符号是错的** ——
+   玩家看到「−0%」「+0%」不会当成零，会觉得这游戏算错了。
+
+   两个方向各一个函数（down = 越小越好的减伤，up = 越大越好的加成），
+   零一概印成朴素的「0%」，正数才补符号。 */
+function signedDown(pct){
+  const v = Math.round(pct);
+  return v > 0 ? ('−' + v + '%') : '0%';
+}
+function signedUp(pct){
+  const v = Math.round(pct);
+  if (v === 0) return '0%';
+  return (v > 0 ? '+' : '−') + Math.abs(v) + '%';
 }
 
 /* ============================================================
@@ -17578,8 +19083,8 @@ function showDeck(){
   sum.appendChild(el('div','arc-h','总 计'));
   sum.appendChild(el('div','arc-i',
     `常驻战力 ${Math.round(a.power)}　→　伤害 <b>×${cs2.powerMul.toFixed(2)}</b><br>` +
-    `常驻护体 ${Math.round(a.ward)}　→　受到伤害 <b>−${Math.round(cs2.wardGuard*100)}%</b><br>` +
-    `招式加成 +${Math.round((a.techMul||0)*100)}%　修为效率 +${Math.round(a.cultMul*100)}%<br>` +
+    `常驻护体 ${Math.round(a.ward)}　→　受到伤害 <b>${signedDown(cs2.wardGuard*100)}</b><br>` +
+    `招式加成 ${signedUp((a.techMul||0)*100)}　修为效率 ${signedUp(a.cultMul*100)}<br>` +
     `行动减耗 ${a.costReduce}${a.costReducePct?` + ${Math.round(a.costReducePct*100)}%`:''}　机缘 +${a.findBonus}` +
     (sets.length ? `<br><b style="color:#c9a227">生效套装：${sets.map(x=>x.name).join('、')}</b>` : '')));
   body.appendChild(sum);
@@ -17618,7 +19123,7 @@ function showAttrs(){
     `普通攻击 ${cs.basicAtk}　招式威力 ${cs.techPower}<br>` +
     `重击几率 ${Math.round(cs.critChance*100)}%　闪避 ${Math.round(cs.evade*100)}%<br>` +
     `卡牌战力加成 <b>×${cs.powerMul.toFixed(2)}</b>（来自 ${Math.round(cs.cardPower)} 点常驻战力）<br>` +
-    `常驻护体 <b>−${Math.round(cs.wardGuard*100)}%</b> 受伤（来自 ${Math.round(cs.cardWard)} 点常驻护体）` +
+    `常驻护体 <b>${signedDown(cs.wardGuard*100)}</b> 受伤（来自 ${Math.round(cs.cardWard)} 点常驻护体）` +
     ((cs.techMul||1) > 1 ? `<br>套装招式加成 <b>+${Math.round((cs.techMul-1)*100)}%</b>` : '') +
     (cs.dmgTakenMul < 1 ? `<br>受到伤害 <b>−${Math.round((1-cs.dmgTakenMul)*100)}%</b>` : '')));
 

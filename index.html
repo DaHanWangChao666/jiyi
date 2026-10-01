@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta name="build" content="2026/10/1 19:08:45">
-<!-- build: 2026/10/1 19:08:45 -->
+<meta name="build" content="2026/10/1 21:24:28">
+<!-- build: 2026/10/1 21:24:28 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#0d0b0a">
@@ -154,6 +154,18 @@ button:disabled{opacity:.35;cursor:not-allowed}
 }
 .up-buy:disabled{border-color:var(--line);color:var(--ink3)}
 .up-buy small{display:block;font-size:10px;color:var(--ink3);letter-spacing:.05em}
+
+/* 降级按钮（第 33 轮）：比「修复」小一号，安静地待在它左边。
+   0 级时禁用 —— 那时候没有东西可降。 */
+.up-down{
+  flex:none;width:34px;height:34px;border-radius:8px;
+  border:1px solid var(--line);color:var(--ink3);background:var(--bg2);
+  font-size:19px;line-height:1;display:flex;align-items:center;justify-content:center;
+  transition:.15s;
+}
+.up-down:not(:disabled):active{background:var(--line);color:var(--ink)}
+.up-down:not(:disabled){border-color:var(--line2);color:var(--ink2)}
+.up-down:disabled{opacity:.32}
 
 /* 档案柜 */
 .arc-sec{margin-bottom:18px}
@@ -2282,11 +2294,20 @@ G.BOSSES = {
           return '“那你说说，我入门那天，下雨了吗？”\n它答得比你想得快。';
         } },
       { label:'问它：你是谁',
-        eff:function(s,a){ a.flag('boss_xinmo_done'); a.clue('clue_dream'); a.karma(4); a.cult(60);
-          return '它沉默了很久。\n“我是上一次没修好的那一页。”它说。\n“你念完我，我就没了。”\n业障 +4，修为 +60。你记住了这句话。'; } },
+        /* ⚠️ 第 33 轮：这里原来是 `a.cult(60)` + 文案写死「修为 +60」。
+           a.cult 会按大境界缩放（gain = round(base × evScale × 档位)），
+           所以炼气期文案写 60、实际只给 18；筑基期又给成 246。
+           和「灵石 +undefined」是同一族账目错误。
+           规范写法：把返回值拼进文案，账目按构造相等。 */
+        eff:function(s,a){ a.flag('boss_xinmo_done'); a.clue('clue_dream'); a.karma(4);
+          const g = a.cult(60);
+          return '它沉默了很久。\n“我是上一次没修好的那一页。”它说。\n“你念完我，我就没了。”\n业障 +4，修为 +' + g + '。你记住了这句话。'; } },
       { label:'不看它，继续坐',
-        eff:function(s,a){ a.flag('boss_xinmo_done'); a.life(30); a.cult(40);
-          return '你把眼睛闭上了。\n它一直在说话，你一句也没听。\n天亮的时候，对面是空的。\n寿元 +30，修为 +40'; } }
+        /* 第 33 轮同上：寿元也从写死的 30 改成按上限的百分比（3%），
+           修为用返回值 —— 两条都是项目里已经用了两百多处的规范写法。 */
+        eff:function(s,a){ a.flag('boss_xinmo_done'); a.lifeBy(0.03);
+          const g = a.cult(40);
+          return '你把眼睛闭上了。\n它一直在说话，你一句也没听。\n天亮的时候，对面是空的。\n寿元 +' + a.lifePct(0.03) + '，修为 +' + g; } }
     ]
   },
 
@@ -2340,8 +2361,12 @@ G.BOSSES = {
           return '你把脚放进了池子里。';
         } },
       { label:'在池边坐下', hint:'放弃结丹 —— 这一世就停在筑基',
-        eff:function(s,a){ a.flag('boss_zhuji_rest'); a.life(40); a.cult(120);
-          return '你在池边坐下了。\n坐了很久。久到你确定自己不想进去。\n你站起来，往回走。\n\n身后那个声音说：“也行。”\n\n你没有结丹。气慢慢退了回去。\n这一步你这一世不会再走了。\n寿元 +40，修为 +120'; }
+        /* 第 33 轮：文案原来写死「寿元 +40，修为 +120」，而 a.cult 会按境界缩放
+           （筑基期的 evScale 是 4.1 → 实际给 492）。筑基是**唯一**能走到这一步的
+           大境界，所以这个错差一直是 4 倍，只是没人对账过。 */
+        eff:function(s,a){ a.flag('boss_zhuji_rest'); a.lifeBy(0.04);
+          const g = a.cult(120);
+          return '你在池边坐下了。\n坐了很久。久到你确定自己不想进去。\n你站起来，往回走。\n\n身后那个声音说：“也行。”\n\n你没有结丹。气慢慢退了回去。\n这一步你这一世不会再走了。\n寿元 +' + a.lifePct(0.04) + '，修为 +' + g; }
       }
     ]
   },
@@ -2359,11 +2384,15 @@ G.BOSSES = {
           return '他站起来了。\n“你想知道，就先打得过我。”';
         } },
       { label:'坐下来陪他守着',
-        eff:function(s,a){ a.flag('boss_zhenzhen_done'); a.clue('clue_world'); a.life(20); a.cult(120);
-          return '你在他旁边坐下了。\n你们一句话都没说，坐到了天黑。\n\n走的时候他给了你一块石头。\n“拿着。以后你会知道该放哪儿。”\n寿元 +20　修为 +120'; } },
+        /* 第 33 轮：同上一族账目错误 —— 文案写死「修为 +120」，
+           实际按境界缩放（炼气 36 / 筑基 492…）。现在用返回值拼。 */
+        eff:function(s,a){ a.flag('boss_zhenzhen_done'); a.clue('clue_world'); a.lifeBy(0.02);
+          const g = a.cult(120);
+          return '你在他旁边坐下了。\n你们一句话都没说，坐到了天黑。\n\n走的时候他给了你一块石头。\n“拿着。以后你会知道该放哪儿。”\n寿元 +' + a.lifePct(0.02) + '　修为 +' + g; } },
       { label:'把石头搬开看看', hint:'破坏他的阵',
-        eff:function(s,a){ a.flag('boss_zhenzhen_done'); a.karma(5); a.cult(200);
-          return '你把石头搬开了。\n阵底下什么都没有，只有土。\n\n他看了你很久，然后说：\n“也好。反正我这个是假的。”\n业障 +5　修为 +200'; } }
+        eff:function(s,a){ a.flag('boss_zhenzhen_done'); a.karma(5);
+          const g = a.cult(200);
+          return '你把石头搬开了。\n阵底下什么都没有，只有土。\n\n他看了你很久，然后说：\n“也好。反正我这个是假的。”\n业障 +5　修为 +' + g; } }
     ]
   }
 };
@@ -11238,14 +11267,55 @@ function wipeMeta(){
    界面上写「+8%」，战斗/结算里就必须真的乘 1.08 —— 否则又变成空头支票。
    改一边就回来改另一边。                                              */
 
+/* ---- 元层升级的值：**本局读快照，局外读实时**（第 33 轮） ----------------
+   为什么要这一层：
+
+   界面在降级确认层里向玩家承诺「已经打完的局不受影响，改动从下一局开始生效」。
+   但在这之前那是**假的** —— `combatStats()` / `attrs()` 这些都直接读实时
+   `meta.up`，而局内还能走「菜单 → 回到桌前 → 碎片提升」回到元层面板。
+   实测：正在打的一局里降两级「攻伐」，当场普攻 25 → 23。
+   玩家按界面说的去做，得到的却是另一回事 —— 这一族 bug 正是本项目
+   反复在修的那种（界面在说一件不成立的事）。
+
+   做法：开局时把当时的元层等级拍一张快照存进 s.upSnap。
+   本局所有效果一律读快照；买/降只改 meta，于是：
+     · 一局进行中买或降，都**不影响这一局**
+     · 从下一局起（新快照）生效
+   与玩家早就在用的行为一致（元层升级一直是「给下一局用」的）。
+
+   ⚠️ 老存档没有 upSnap 字段 → loadRun 里用当时的 meta 补一张，
+     行为与旧版完全一致，不会让老档的升级凭空失效。 */
+function upSnapshot(){
+  const o = {};
+  if (meta && meta.up) Object.keys(meta.up).forEach(k => { o[k] = meta.up[k]; });
+  return o;
+}
+/* 本局生效的等级。
+   ------------------------------------------------------------
+   三个状态，三种来源（第 33 轮定的规则）：
+     · 没有局在跑（桌前 / 结算后）      → 读实时 meta（玩家刚买的立刻看得见）
+     · 有局在跑，且局是「活的」          → 读 s.upSnap（本局冻结）
+     · 有局在跑，但已经结束（s.ended）   → 读实时 meta
+                                        （结算页之后玩家会回桌前改元层，
+                                          此时不该再受那一局的快照约束）
+   ⚠️ 不这样分的话，一局打完停在这个界面上，玩家买的「残念」会一直不生效 ——
+     那是比原 bug 更糟的一种坏。 */
+function runIsLive(){ return !!(s && !s.ended); }
+function upLevel(id){
+  const src = runIsLive() ? (s.upSnap || {}) : (meta.up || {});
+  return src[id] || 0;
+}
+/* 只给元层面板/买/降用：**永远读实时值**，不受快照影响 */
+function upLevelLive(id){ return (meta.up && meta.up[id]) || 0; }
+
 /* 境界属性成长倍率（根骨）：放大「每次突破给的属性点」 */
-function attrGainBonus(){ return ((meta.up && meta.up.attrGain) || 0) * 0.03; }
+function attrGainBonus(){ return upLevel('attrGain') * 0.03; }
 /* 寿元上限倍率（根基）：放大「当前境界的基础寿元上限」 */
-function lifeCapBonus(){ return ((meta.up && meta.up.startLife) || 0) * 0.03; }
+function lifeCapBonus(){ return upLevel('startLife') * 0.03; }
 /* 灵石收入倍率（积蓄）：放大**一切进账**（探索 / 宗门 / 事件 / 战利品） */
-function stoneBonus(){ return ((meta.up && meta.up.startStone) || 0) * 0.06; }
+function stoneBonus(){ return upLevel('startStone') * 0.06; }
 /* 静养回复倍率（静养）：放大「静养的基础回复量」 */
-function restBonus(){ return ((meta.up && meta.up.restGain) || 0) * 0.08; }
+function restBonus(){ return upLevel('restGain') * 0.08; }
 
 /* ---------------- 内景 · 境界养成（第 26 轮） ----------------
    见 chars.js 的 G.DAOJI 说明。这里只做四件事：
@@ -11367,6 +11437,9 @@ function newRun(lots, seed){
   const C = G.CONFIG;
   const consti = G.CONSTITUTIONS.find(c=>c.id===lots.constitution) || G.CONSTITUTIONS[0];
   const role = G.ROLES.find(r=>r.id===lots.role) || G.ROLES[0];
+  /* ⚠️ 第 33 轮：newRun **本身**要读实时 meta —— 它就是那个「拍快照」的时刻
+     （s.upSnap = upSnapshot()）。所以这里仍然直接用 meta.up，
+     下面那些「本局效果」才走 upLevel()。 */
   const up = meta.up || {};
 
   const upVal = id => (up[id]||0);
@@ -11487,6 +11560,10 @@ function newRun(lots, seed){
     /* 第 29 轮：天谴冷却。到这一步数之前，天谴不会再来。
        见 data.js 里 CONFIG.tribulation.karmaCooldown 的注释。 */
     karmaCool: 0,
+    /* 第 33 轮：元层升级等级的**本局快照**。
+       本局所有效果都读它（见 upLevel 的说明），所以局内买/降升级
+       都不会改变这一局 —— 从下一局的快照起才生效。 */
+    upSnap: upSnapshot(),
     ended: false
   };
 
@@ -11607,10 +11684,9 @@ function agg(){
   o.ward += b.dazhen * 10;
   o.tribulationDmgMul *= Math.max(0.4, 1 - b.dazhen*0.12);
   o.cultMul += b.zushi * 0.04;
-  // 元层加成
-  const up = meta.up || {};
-  o.cultMul += (up.cultGain||0) * 0.08;
-  o.findBonus += Math.floor((up.findGain||0) * 0.5);
+  // 元层加成（⚠️ 第 33 轮：改走 upLevel()，读本局快照）
+  o.cultMul += upLevel('cultGain') * 0.08;
+  o.findBonus += Math.floor(upLevel('findGain') * 0.5);
   /* ---- 流派套装加成（第 20 轮：这些以前收集完就扔了，从未被读取）----
      现在每一个都有明确的去处：
        techMul      → combatStats().powerMul 之外的招式额外加成（见下）
@@ -11647,7 +11723,7 @@ function actionCost(){
   let cost = base * consti.costMul;
   const a = agg();
   cost = (cost - a.costReduce) * (1 - a.costReducePct);
-  cost *= 1 - Math.min(0.60, (meta.up && meta.up.costCut ? meta.up.costCut*0.02 : 0));
+  cost *= 1 - Math.min(0.60, upLevel('costCut') * 0.02);
   return Math.max(1, Math.round(cost));
 }
 
@@ -11771,7 +11847,8 @@ function doAction(kind){
     msgs.push(`修为 +${cg}`);
   }
   else if (kind==='rest'){
-    const up = meta.up||{};
+    /* ⚠️ 第 33 轮：up 不再从 meta 取，改走 upLevel()（本局快照）——
+       见文件上方 upSnapshot 的说明。原来的 const up 已删。 */
     /* 恢复量刻意低于行动消耗的两倍，确保「刷恢复」不是最优解。
        ⚠️ 第 25 轮：「静养」从固定 +5/级 改成「回复量 ×（1+8%/级）」。
        基础回复量本来就是 maxLife×14%（随境界涨），所以百分比才是对的基。 */
@@ -11831,8 +11908,8 @@ function doAction(kind){
   // 4. 宗门气运流失
   if (!s.sectCollapsed){
     const zushiCut = s.buildings.zushi;
-    const up2 = meta.up || {};
-    let drain = Math.max(0, G.CONFIG.sectQiDrain - Math.floor(zushiCut/2) - (up2.sectDrain||0));
+    /* ⚠️ 第 33 轮：改走 upLevel()（本局快照） */
+    let drain = Math.max(0, G.CONFIG.sectQiDrain - Math.floor(zushiCut/2) - upLevel('sectDrain'));
     /* ⭐ 气运阈值（第 17 轮）：气运高于阈值时，宗门开始给「阵」供能，
        所以额外流失更快。低于阈值时有安全区，玩家可以安心经营宗门。 */
     const qiTh = (G.WORLD && G.WORLD.qiThreshold) || 75;
@@ -11915,8 +11992,8 @@ function doAction(kind){
    reason 由调用方给出，因为「扣成负数」既可能来自行动，也可能来自战斗。 */
 function checkDeath(reason){
   if (s.life > 0) return null;
-  const up = meta.up||{};
-  if (up.guard && !s.guardUsed){
+  /* ⚠️ 第 33 轮：改走 upLevel()（本局快照）—— 元层「残念」免死要在本局内稳定 */
+  if (upLevel('guard') && !s.guardUsed){
     s.guardUsed = true;
     s.life = G.CONFIG.deathGuardHeal;
     log('你倒下去了。有什么东西托了你一把。');
@@ -11937,9 +12014,9 @@ function checkDeath(reason){
 /* ---------------- 突破 ---------------- */
 function breakNeed(){
   const a = agg();
-  const up = meta.up||{};
+  /* ⚠️ 第 33 轮：改走 upLevel()（本局快照） */
   const raw = G.REALMS[s.realmIdx].need;
-  return Math.round(raw * (1 - a.breakReduce - (up.breakCut||0)*0.07));
+  return Math.round(raw * (1 - a.breakReduce - upLevel('breakCut')*0.07));
 }
 
 /* 是否可以突破到下一层。
@@ -12475,8 +12552,8 @@ function offerCards(n, opts){
 
 function rollCardChance(kind){
   const a = agg();
-  const up = meta.up || {};
-  const luck = (up.cardRate||0) * 0.04;
+  /* ⚠️ 第 33 轮：改走 upLevel()（本局快照） */
+  const luck = upLevel('cardRate') * 0.04;
   if (kind==='explore') return Math.min(0.95, 0.72 + a.findBonus*0.04 + luck);
   if (kind==='cultivate') return Math.min(0.8, 0.26 + a.findBonus*0.04 + luck);
   if (kind==='sectwork') return Math.min(0.8, 0.20 + a.findBonus*0.04 + luck);
@@ -12485,7 +12562,7 @@ function rollCardChance(kind){
 
 /* 机缘抽卡时叠加「眼力」升级带来的品质加成 */
 function cardBonus(){
-  return ((meta.up && meta.up.cardLuck) || 0);
+  return upLevel('cardLuck');
 }
 
 /* ---------------- 探索 ----------------
@@ -12501,8 +12578,8 @@ function cardBonus(){
    这里不再自己掷一次，否则探索会变成两次抽卡。 */
 function explore(){
   const a = agg();
-  const up = meta.up||{};
-  const mul = 1 + (up.findGain||0)*0.1;
+  /* ⚠️ 第 33 轮：改走 upLevel()（本局快照） */
+  const mul = 1 + upLevel('findGain')*0.1;
 
   const stoneGain = Math.round((6 + s.realmIdx*3 + s.rng()*8) * mul);
   const cultGain  = Math.round((G.cultBase(s.realmIdx)*0.5 + s.rng()*5) * mul);
@@ -13337,7 +13414,19 @@ function combatStats(){
   const A = attrs();
   const realmMul = 1 + s.realmIdx * 0.16;
   const attrSum = G.ATTRS.reduce((n,a)=>n + (A[a.id]||0), 0);
-  const up = meta.up || {};
+  /* ⚠️ 第 33 轮：这里原来直接读 `meta.up` —— 那就是「局内降级当场变弱」的来源。
+     实测：正在打的一局里降两级「攻伐」，当场普攻 25 → 23。
+     而界面在降级确认层里承诺的是「已经打完的局不受影响，改动从下一局生效」。
+     现在用一个**取值代理**：下面几十处 up.xxx 一行都不用改，
+     但读到的永远是本局快照（s.upSnap），于是那句承诺是真的。 */
+  const up = { get qiRegen(){ return upLevel('qiRegen'); },
+               get atkBase(){ return upLevel('atkBase'); },
+               get techBase(){ return upLevel('techBase'); },
+               get hpBase(){ return upLevel('hpBase'); },
+               get qiBase(){ return upLevel('qiBase'); },
+               get crit(){ return upLevel('crit'); },
+               get evade(){ return upLevel('evade'); },
+               get wardBase(){ return upLevel('wardBase'); } };
   const ag = agg();
 
   /* 卡牌的常驻战力 → 伤害乘数（最高 ×2）。
@@ -14266,7 +14355,7 @@ function wheelSlices(killerBoost){
 
   if (killerBoost){ dt.weight += 90; }
   // 元层「逆天改命」：缩小身死扇区
-  const wheelUp = (meta.up && meta.up.wheelLuck) || 0;
+  const wheelUp = upLevel('wheelLuck');
   if (wheelUp > 0) dt.weight = Math.round(dt.weight * Math.max(0.25, 1 - wheelUp*0.12));
 
   base.forEach(x=>{ x.weight = Math.max(2, Math.round(x.weight)); });
@@ -14294,7 +14383,9 @@ function applyWheelResult(id, opts){
   const killer = !!(opts && opts.killer);
   const deathReason = killer ? 'karma' : 'slay';
   const out = { effect:'', end:null };
-  const up = meta.up || {};
+  /* ⚠️ 第 33 轮：改走 upLevel()（本局快照）—— 转盘里的「逆天改命」
+     和免死都要在本局内稳定，不能因为局外同时降了级就变。 */
+  const wheelUpNow = upLevel('wheelLuck');
 
   switch(id){
     case 'escape':
@@ -14324,7 +14415,7 @@ function applyWheelResult(id, opts){
     }
     case 'death':
       // 元层「残念」：每局第一次身死时留住一线生机
-      if (up.guard && !s.guardUsed){
+      if (upLevel('guard') && !s.guardUsed){
         s.guardUsed = true;
         s.life = G.CONFIG.deathGuardHeal;
         out.saved = true;
@@ -15050,6 +15141,12 @@ function loadRun(){
        不补的话 deedHas/flagAge 那一套会在 undefined 上取属性。
        与 s.flagAt（第 31 轮）同一套做法：缺就补空，不做表版本作废。 */
     if (!s.deeds) s.deeds = {};
+    /* 第 33 轮：s.upSnap 也是这一轮才有的。老存档没有它 →
+       用**当前** meta 补一张，行为与旧版完全一致
+       （旧版就是实时读 meta），不会让老档的升级凭空失效。
+       注意：补的时机是读档那一刻，所以「这一局读档时元层是什么等级」
+       就固定下来了 —— 与「新开一局的快照」是同一条规则。 */
+    if (!s.upSnap) s.upSnap = upSnapshot();
     if (!s.flagAt) s.flagAt = {};
     /* 把没打完的那场战斗接回来。
        stats 不存盘（它由 attrs/agg 派生），这里按当前局面重算，
@@ -15834,7 +15931,7 @@ function storyProgress(){
    ============================================================ */
 function recruitDisciple(){
   const jl = s.buildings.jiangjing;
-  const q = 1 + jl + Math.floor(s.rng()*3) + (((meta.up&&meta.up.discipleQ)||0));
+  const q = 1 + jl + Math.floor(s.rng()*3) + upLevel('discipleQ');
   const names = ['阿石','小满','青禾','无咎','子规','拾一','闻笛','长安','守拙','半山','知白','砚秋'];
   const traits = [
     { n:'勤勉', e:'采药收益 +30%' },
@@ -16074,11 +16171,13 @@ function startKillerTribulation(){
 }
 
 /* ---------------- 元层操作 ---------------- */
-function upLevel(id){ return (meta.up && meta.up[id]) || 0; }
+/* ⚠️ upLevel / upLevelLive 已经搬到文件上方了（第 33 轮：本局要读快照，
+   所以必须在任何调用点之前定义 —— 旧版是函数声明提升所以放在这里也能用，
+   现在它是普通函数，位置就必须在前面）。 */
 function upCost(id){
   const u = G.UPGRADES.find(x=>x.id===id);
   if (!u) return 0;
-  const lv = upLevel(id);
+  const lv = upLevelLive(id);
   if (lv >= u.max) return null;
   return u.cost(lv);
 }
@@ -16086,9 +16185,40 @@ function buyUpgrade(id){
   const cost = upCost(id);
   if (cost===null || meta.frag < cost) return false;
   meta.frag -= cost;
-  meta.up[id] = upLevel(id)+1;
+  meta.up[id] = upLevelLive(id)+1;      // 实时值 —— 买升级改的永远是 meta，本局不受影响
   saveMeta(meta);
   return true;
+}
+
+/* 降一级，并全额退还「这一级当时花掉的碎片」（第 33 轮 · 玩家要求）
+   ------------------------------------------------------------
+   玩家原话：「我希望在碎片提升那里增加一个『降级』选项：
+   玩家可选择在已经升级的属性提升中点击『-』来选择取消这次升级并返还碎片。」
+
+   为什么退 cost(lv-1) 而不是别的数：
+     升级的定义就是「付 cost(当前等级) 换一级」，所以第 N 级的价格
+     永远等于 cost(N-1)。逐级往回剥，累计退还 **恒等于** 累计投入 ——
+     既不会赚也不会亏，数学上不可能刷碎片。
+
+   ★ 前置条件已经逐项验证过：G.UPGRADES 里 26 项的成本函数**全部严格递增**
+     （例如攻伐 22 → 36 → 50 … → 288）。成本若不递增，「从任意级往下剥」
+     虽然仍然恒等，但「先点高再降」会变成套利 —— 所以 dev/verify-upgrade-down.js
+     把「严格递增」也当成一条断言守着。
+
+   ⚠️ 只动 meta.frag 与 meta.up 两个字段，**不改存档结构**：
+     所以不需要动 G.REALM_TABLE_VERSION，老存档照常读。
+     正在进行的局不受影响 —— meta 只在 newRun 时被读一次。 */
+function downUpgrade(id){
+  const u = G.UPGRADES.find(x=>x.id===id);
+  if (!u) return null;
+  const lv = upLevelLive(id);                   // 实时值：降的是 meta 里那一级
+  if (lv <= 0) return null;                     // 已经是 0 级，没得降
+  const refund = u.cost(lv-1);                  // 这一级当时的价格
+  if (typeof refund !== 'number' || !isFinite(refund) || refund < 0) return null;  // 成本函数写坏了就拒绝服务
+  meta.up[id] = lv-1;
+  meta.frag += refund;
+  saveMeta(meta);
+  return { id:id, name:u.name, from:lv, to:lv-1, refund:refund, frag:meta.frag };
 }
 
 /* ---------------- 个人气运（元层「气运」升级） ----------------
@@ -16097,6 +16227,9 @@ function buyUpgrade(id){
      · 个人气运 = 你自己攒的运气，影响**开局抽签**
    效果：① 体质可以重抽 N 次  ② 「变数」签更容易抽到吉签        */
 function luckLevel(){
+  /* ⚠️ 个人气运只在**开局抽签**用（重抽体质、吉签权重），那时还没有局在跑，
+     所以这里读实时值是**对的** —— 玩家在桌前刚买的等级应该立刻影响下一次抽签。
+     这也是 upLevel() 在没有 s.upSnap 时退化成实时值的意义。 */
   return (meta.up && meta.up.luck) || 0;
 }
 function luckRerolls(){ return luckLevel(); }
@@ -16532,7 +16665,11 @@ G.Engine = {
   wipe: ()=>{ wipeMeta(); meta = defaultMeta(); },
   /* 导入存档后把 meta 重新读进内存 */
   reload: ()=>{ meta = loadMeta(); },
-  upLevel, upCost, buyUpgrade,
+  upLevel, upCost, buyUpgrade, downUpgrade,
+  /* 第 33 轮：元层面板必须显示**实时**等级（玩家刚买/刚降的那一级），
+     而 upLevel 在本局进行中返回的是本局快照。所以单独给一个实时入口。
+     规则：局内效果 → upLevel；元层面板 → upLevelLive。 */
+  upLevelLive,
 
   // 抽签 / 开局
   drawLots, rerollConstitution, luckLevel, luckRerolls,
@@ -16956,7 +17093,10 @@ function renderUpgrades(){
 
   // 汇总：总等级 / 总项数
   let totalLv = 0, totalMax = 0;
-  G.UPGRADES.forEach(u=>{ totalLv += G.Engine.upLevel(u.id); totalMax += u.max; });
+  /* ⚠️ 第 33 轮：元层面板一律读 **实时** 等级（upLevelLive），
+     因为 upLevel 在本局进行中返回的是「本局快照」——
+     用它渲染面板的话，玩家刚买的那一级在面板上不会出现，刚降的也降不下去。 */
+  G.UPGRADES.forEach(u=>{ totalLv += G.Engine.upLevelLive(u.id); totalMax += u.max; });
 
   const head = el('div','up-head');
   head.innerHTML =
@@ -16971,12 +17111,12 @@ function renderUpgrades(){
   cats.forEach(cat=>{
     const sec = el('div','up-cat');
     const items = G.UPGRADES.filter(u=>(u.cat||'其他')===cat);
-    const lvSum = items.reduce((n,u)=>n+G.Engine.upLevel(u.id),0);
+    const lvSum = items.reduce((n,u)=>n+G.Engine.upLevelLive(u.id),0);
     const maxSum = items.reduce((n,u)=>n+u.max,0);
     sec.appendChild(el('div','arc-h', `${cat}　<span class="cat-lv">${lvSum}/${maxSum}</span>`));
 
     items.forEach(u=>{
-      const lv = G.Engine.upLevel(u.id);
+      const lv = G.Engine.upLevelLive(u.id);
       const cost = G.Engine.upCost(u.id);
       const maxed = cost===null;
       const can = !maxed && m.frag >= cost;
@@ -16985,7 +17125,41 @@ function renderUpgrades(){
       const b = el('button','up-buy', maxed ? '已满' : `修复<small>◈ ${cost}</small>`);
       if (!can) b.disabled = true;
       else b.addEventListener('click', ()=>{
-        if (G.Engine.buyUpgrade(u.id)){ toast(`${u.name} → ${G.Engine.upLevel(u.id)} 级`,'good'); renderMeta(); }
+        if (G.Engine.buyUpgrade(u.id)){ toast(`${u.name} → ${G.Engine.upLevelLive(u.id)} 级`,'good'); renderMeta(); }
+      });
+
+      /* ---- 降级「−」（第 33 轮 · 玩家要求）----
+         逐级降，退还这一级当时花的碎片（cost(lv-1)），所以不会赚也不会亏。
+         ⚠️ 确认层里必须写清两件事：
+           ① 退多少、效果会变成什么样（用 u.fmt 前后对比）
+           ② **只影响下一局** —— 玩家最怕的是「我一降，正在玩的这局也变弱了」 */
+      const dn = el('button','up-down','−');
+      if (lv <= 0) dn.disabled = true;
+      else dn.addEventListener('click', ()=>{
+        const refund = u.cost(lv-1);
+        const willFrag = m.frag + refund;
+        const body = el('div');
+        body.innerHTML =
+          `<div class="ev-text">把【${u.name}】从 <b>${lv}</b> 级降回 <b>${lv-1}</b> 级。\n\n` +
+          `会退还 <b style="color:#c9a227">◈ ${refund}</b> 碎片` +
+          `（这一级当时就是这个价）。\n` +
+          `退还后你一共有 <b>◈ ${willFrag}</b>。\n\n` +
+          `当前效果：<b>${u.fmt(lv)}</b>\n` +
+          `降级之后：<b>${u.fmt(lv-1)}</b></div>` +
+          `<div class="ev-flavor">这是永久升级：**已经打完的局不受影响**，\n` +
+          `改动从下一局开始生效。\n\n` +
+          `退回来的碎片可以重新花在别处；想变回来，再点一次「修复」就行。</div>`;
+        const foot = [
+          btn('确 认 降 级','btn-main',()=>{
+            const r = G.Engine.downUpgrade(u.id);
+            closeSheet();
+            if (!r){ toast('降级失败','bad'); renderMeta(); return; }
+            toast(`${r.name} → ${r.to} 级　退回 ◈ ${r.refund}`,'good');
+            renderMeta();
+          }),
+          btn('再 想 想','btn-main',()=>closeSheet())
+        ];
+        sheet('降 一 级 · ' + u.name, body, foot);
       });
 
       // 等级进度条
@@ -16996,6 +17170,7 @@ function renderUpgrades(){
            <div class="up-bar"><div class="up-fill" style="width:${pct}%"></div></div>
            <div class="up-desc">${u.desc}${lv>0?'　<b class="up-cur">当前 '+u.fmt(lv)+'</b>':''}</div>
          </div>`;
+      item.appendChild(dn);
       item.appendChild(b);
       sec.appendChild(item);
     });
@@ -18369,6 +18544,19 @@ function showEvent(ev){
       const r = c.eff(st.raw, api);
       // 关闭事件，显示结果
       closeSheet();
+      /* ⚠️ 第 33 轮：**运行时守卫**。
+         「灵石 +undefined」那一族 bug 修过两轮（第 32 轮 22 处、第 33 轮 4 处），
+         每一次都是靠人肉对账才发现的，而玩家可能已经看了好几天假数字。
+         这里在文案交给玩家之前扫一遍：真出现了就留一条 console 警告 +
+         写进记事，而不是静默显示。
+         治标不治本 —— 治本的是 dev/verify-bundle-accounting.js（逐选项对账），
+         但那一层万一漏了，这一层至少能让它**可见**。 */
+      if (typeof r === 'string' && /undefined|NaN|\[object Object\]/.test(r)){
+        try {
+          console.warn('事件文案里出现假值：', ev.id, c.label, r);
+          if (G.Engine && G.Engine.note) G.Engine.note('choice', '（这里有一个数字没算出来：' + ev.id + '）');
+        } catch(e){ /* 守卫自己不许把游戏搞崩 */ }
+      }
       if (r) toast(r, '');
       renderRun();
       if (api._pendingChallenge){

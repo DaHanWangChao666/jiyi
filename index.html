@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta name="build" content="2026/10/1 21:24:28">
-<!-- build: 2026/10/1 21:24:28 -->
+<meta name="build" content="2026/10/2 19:00:46">
+<!-- build: 2026/10/2 19:00:46 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#0d0b0a">
@@ -305,6 +305,111 @@ button:disabled{opacity:.35;cursor:not-allowed}
 }
 .foot-btn:active{background:var(--panel2)}
 .foot-btn em{font-style:normal;color:var(--gold);font-size:11px;margin-left:3px}
+
+/* ============================================================
+   舆图 · 远行（第 34 轮）
+   ------------------------------------------------------------
+   一张手绘古地图：墨线勾边的七个寰、九个宗门的点。
+   原则和全篇一致：低干扰、手指友好。
+   地图是给眼睛的，下面的列表是给手指的 —— 两边点哪个都一样。
+   ============================================================ */
+.map-wrap{animation:fadeUp .45s ease both}
+.map-head{margin-bottom:10px}
+.map-here{font-size:15px;color:var(--ink)}
+.map-here b{color:var(--gold2);letter-spacing:1px}
+.map-sub{font-size:11.5px;color:var(--ink3);line-height:1.7;margin-top:4px}
+
+.map-canvas{
+  background:linear-gradient(180deg,#100e0c,#0b0a09);
+  border:1px solid var(--line);border-radius:var(--r);
+  padding:4px;margin:2px 0 8px;
+}
+.map-canvas svg{display:block;width:100%;height:auto}
+
+/* 七个寰：只有墨线，不填色 —— 古地图的味道来自留白 */
+.map-region{
+  fill:rgba(201,162,39,.022);stroke:var(--line2);stroke-width:.45;
+  stroke-linejoin:round;
+}
+.map-region.on{fill:rgba(201,162,39,.075);stroke:var(--gold);stroke-width:.7}
+.map-region-label{
+  fill:var(--ink3);font-size:3.1px;letter-spacing:.35px;
+  text-anchor:middle;font-family:inherit;
+}
+/* 地名竖排感：字距拉开一点 */
+.map-label{
+  fill:var(--ink2);font-size:2.9px;letter-spacing:.25px;
+  text-anchor:middle;font-family:inherit;
+}
+.map-dot .map-halo{fill:none;stroke:var(--line2);stroke-width:.4}
+.map-dot .map-core{fill:var(--ink3)}
+.map-dot.been .map-core{fill:var(--ink2)}
+.map-dot.been .map-halo{stroke:var(--ink3)}
+.map-dot.new .map-core{fill:var(--gold)}
+.map-dot.new .map-halo{stroke:var(--gold);stroke-dasharray:1.4 1.2}
+.map-dot.far .map-core{fill:#4a4239}
+.map-dot.far .map-halo{stroke:#3b342d;stroke-dasharray:1 1.6}
+.map-dot.shut .map-core{fill:#2e2822}
+.map-dot.shut .map-halo{stroke:#2e2822}
+.map-dot.shut .map-label{fill:var(--ink3);opacity:.45}
+/* 你现在在的地方：一个会呼吸的光圈 */
+.map-dot.here .map-core{fill:var(--gold2)}
+.map-dot.here .map-halo{
+  stroke:var(--gold2);stroke-width:.55;
+  animation:mapBreath 2.6s ease-in-out infinite;
+}
+.map-dot.here .map-label{fill:var(--gold2)}
+@keyframes mapBreath{
+  0%,100%{r:2.6px;opacity:.9}
+  50%{r:4.2px;opacity:.25}
+}
+
+.map-legend{
+  display:flex;flex-wrap:wrap;gap:4px 13px;
+  font-size:10.5px;color:var(--ink3);margin:0 2px 12px;
+}
+.map-legend span{display:inline-flex;align-items:center;gap:5px}
+.map-legend .lg{
+  width:8px;height:8px;border-radius:50%;border:1px solid var(--line2);
+  display:inline-block;flex:none;
+}
+.map-legend .lg.here{background:var(--gold2);border-color:var(--gold2)}
+.map-legend .lg.been{background:var(--ink2);border-color:var(--ink3)}
+.map-legend .lg.new{background:var(--gold);border-color:var(--gold)}
+.map-legend .lg.far{background:#4a4239;border-color:#3b342d}
+.map-legend .lg.shut{background:#2e2822;border-color:#2e2822}
+
+.map-list{display:flex;flex-direction:column;gap:7px}
+.map-row{
+  text-align:left;padding:10px 12px;border-radius:9px;
+  background:var(--panel);border:1px solid var(--line);
+  color:var(--ink);font-family:inherit;transition:.15s;
+}
+.map-row:not(:disabled):active{background:var(--panel2)}
+.map-row.here{border-color:var(--gold);background:rgba(201,162,39,.06)}
+.map-row.off{opacity:.5}
+.map-row-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.map-row-name{font-size:14px;letter-spacing:.5px}
+.map-row-cost{font-size:11px;color:var(--gold);flex:none}
+.map-row.off .map-row-cost{color:var(--ink3)}
+.map-row-meta{font-size:11px;color:var(--ink3);margin-top:3px;line-height:1.6}
+
+/* 地方卡片 */
+.place-card{animation:fadeUp .4s ease both}
+.place-title{font-size:19px;letter-spacing:2px;color:var(--ink);margin-bottom:8px}
+.place-you{font-size:12.5px;color:var(--ink2);line-height:1.8;margin-bottom:12px}
+.place-line{display:flex;gap:10px;font-size:12px;line-height:1.9;padding:3px 0}
+.place-line .pk{color:var(--ink3);flex:none;width:4.4em;letter-spacing:.1em}
+.place-line .pv{color:var(--ink);flex:1;min-width:0}
+.place-flavor{
+  font-size:11.5px;color:var(--ink3);line-height:1.7;
+  padding:6px 0 6px 10px;border-left:2px solid var(--line);margin:4px 0 6px;
+}
+.place-warn{
+  font-size:11.5px;color:#d9a24a;line-height:1.7;
+  background:rgba(201,162,39,.07);border:1px solid rgba(201,162,39,.25);
+  border-radius:8px;padding:8px 10px;margin-top:10px;
+}
 
 /* ================= 结算 ================= */
 #screen-end{padding:0;overflow-y:auto}
@@ -1170,6 +1275,7 @@ button{touch-action:manipulation;}
       <button class="foot-btn" id="btnDeck">牌组 <em id="deckCount">0</em></button>
       <button class="foot-btn" id="btnBag">储物袋 <em id="bagCount">0</em></button>
       <button class="foot-btn" id="btnRank">榜</button>
+  <button class="foot-btn" id="btnMap">舆图</button>
       <button class="foot-btn" id="btnMijing">秘境</button>
       <button class="foot-btn" id="btnSect">宗门</button>
       <button class="foot-btn" id="btnClue">线索 <em id="clueCount">0</em></button>
@@ -2227,10 +2333,23 @@ G.TIANJIAO = [
     archive:'【天骄】太虚——太玄门这一代的榜首。他说你比上面那些人好。' }
 ];
 
-/* 天骄的数值倍率（相对「同境界的凶物」）——刻意逼近不可战胜 */
-G.TIANJIAO_MUL = {
-  hp: 5.2,
-  atk: 2.9
+/* 天骄的数值倍率（相对「同境界的凶物」）——刻意逼近不可战胜
+   ------------------------------------------------------------
+   ⚠️ 第 34 轮：从一组常数改成**按大境界分级**。
+   起因：第 34 轮把重击上限从 60% 抬到渐近 90%、闪避从 38% 抬到渐近 55%
+   （修「神识 57 点之后白拿 / 身法 38 点之后白拿」那个问题）。
+   抬完之后 dev/verify-tianjiao.js 当场报红：
+   **堆满数值的玩家打元婴那两位天骄变成 100% 稳赢** ——
+   而那条判据（最高那一段不该稳赢，要留一点威慑）是第 25 轮和玩家确认过的，
+   不该因为我改属性曲线就悄悄失效。
+
+   为什么只抬最高的那一段：
+   天骄是按大境界分赛道的，而玩家的成长曲线在后段更陡 ——
+   同一组倍率，元婴段被追上的幅度最大。实测普通玩家（不堆数值）
+   打任何天骄仍然是 0%，所以这里只动元婴，前面的段位不动。 */
+G.TIANJIAO_MUL = { hp: 5.2, atk: 2.9 };
+G.TIANJIAO_MUL_BY_MAJOR = {
+  4: { hp: 6.6, atk: 3.7 }      // 元婴：堆满数值也不该稳赢
 };
 
 /* 【天骄】称号（打赢之后挂在档案柜里） */
@@ -3526,6 +3645,251 @@ G.clueById = function(id){
   return G.CLUE_LIST.find(c=>c.id===id)
       || (G.LORE.notes||[]).find(c=>c.id===id)
       || null;
+};
+
+
+/* ===== geography.js ===== */
+/* ============================================================
+   《记忆修复局》地理数据层（第 34 轮新增）
+   ------------------------------------------------------------
+   为什么要有这个文件：
+
+   DESIGN.md 从很早以前就写好了「**九个宗门各守一个阵眼**」这张表
+   （见 DESIGN.md:222-241），位置也写了 —— 中寰青云山、幽寰地底、
+   东寰书山、南寰药洲、北寰冰原、西寰荒漠、荒寰云上、中寰暗处。
+   但代码里**从来没有位置这个概念**：这八个名字只出现在天骄榜的
+   门派出身和一句事件文本里，玩家永远出不了自己那座小山。
+
+   所以这一层不是「新编一套设定」，而是**把一条已经写好的暗线接上**。
+   接上之后立刻多出两件本来就该存在的东西：
+     · 天骄榜那八个人终于有了出处 ——「循名去找他」有了地理意义
+     · 九宗各守一个阵眼这件事，玩家可以自己走过去看见
+
+   ── 数据的两层结构 ──────────────────────────────
+     G.REGIONS  七个「寰」= 大区。决定赶路距离、地图上的方位、底色。
+     G.PLACES   可以去的地方。每个地方有四种性格：
+                  gate    谁能进（境界门槛 / 神识门槛）
+                  env     环境代价（每次行动额外烧寿元，谁抗得住）
+                  explore 探索给什么（倍率）
+                  attrs   这里认哪个属性（属性的专属舞台）
+
+   ── 写法约定 ────────────────────────────────────
+     · 坐标用百分比（0~100），SVG viewBox 是 0 0 100 100，手机上自动缩放
+     · 距离不手写，由坐标算（G.travelDist）—— 改坐标不会忘记改距离
+     · env 的代价与 attrs 的减免都写在 G.PLACE_ENV 里，只有一份真源
+   ============================================================ */
+
+window.G = window.G || {};
+
+/* ============================================================
+   七个寰（大区）
+   ------------------------------------------------------------
+   方位按 DESIGN.md 的写法来：北寰冰原在北、南寰药洲在南、
+   东寰书山在东、西寰荒漠在西、荒寰云上在东北高处、
+   幽寰地底在中南偏下（入口是一道裂缝），中寰是正中。
+   ============================================================ */
+G.REGIONS = [
+  { id:'zhonghuan', name:'中寰', pos:[50,50],
+    desc:'天下正中。灵脉最厚，人也最多。',
+    flavor:'这里的山都被开过，没有一座是原来的样子。' },
+  { id:'beihuan',   name:'北寰', pos:[46,10],
+    desc:'冰原。风是横着吹的。',
+    flavor:'雪下面埋着很多东西，没人挖。' },
+  { id:'huanghuan', name:'荒寰', pos:[78,18],
+    desc:'云上的荒原。要爬很久才上得去。',
+    flavor:'从这里往下看，别的山都像沉在水里。' },
+  { id:'donghuan',  name:'东寰', pos:[86,44],
+    desc:'书山。山道上全是碑。',
+    flavor:'碑上刻的是别人记下来的事。记下来的就算发生过。' },
+  { id:'xihuan',    name:'西寰', pos:[12,56],
+    desc:'荒漠。寺在山顶。',
+    flavor:'沙里没有路，走的人多了也不算路 —— 风一来就没了。' },
+  { id:'youhuan',   name:'幽寰', pos:[38,72],
+    desc:'地底。入口是一道裂缝。',
+    flavor:'下面没有白天。有人在下面待了很久。' },
+  { id:'nanhuan',   name:'南寰', pos:[54,88],
+    desc:'药洲。空气是甜的。',
+    flavor:'连石头缝里都长东西。长出来的东西大多能吃，有些会吃你。' }
+];
+
+/* ============================================================
+   环境（每个地方一次行动要额外付的代价）
+   ------------------------------------------------------------
+   这是「属性专属舞台」最直接的落点：同一片冰原，
+   体魄高的人走起来是散步，体魄低的人走起来是掉命。
+
+     cost    每次行动额外扣的寿元 = 当层「一次行动消耗」× 这个比例
+     resist  哪一项属性在抗它、抗多少（每点减免，封顶见 cap）
+     cap     最多能减免掉几成（不让属性把环境完全抹平）
+   ============================================================ */
+G.PLACE_ENV = {
+  cold:   { name:'严寒',  cost:0.85, resist:'tipo',    per:0.006, cap:0.75,
+            text:'风是横着吹的。你每走一步，都在往外掏热气。' },
+  desert: { name:'烈日',  cost:0.70, resist:'gengu',   per:0.006, cap:0.75,
+            text:'日头在头顶上不动。沙子隔着鞋也烫。' },
+  dark:   { name:'无光',  cost:0.60, resist:'shenshi', per:0.006, cap:0.75,
+            text:'下面没有光。你只能靠感觉认路，认错一步就要多走很久。' },
+  thin:   { name:'罡风',  cost:0.75, resist:'shenfa',  per:0.006, cap:0.75,
+            text:'云上头风大，站不稳。站不稳就要多花力气。' },
+  plague: { name:'药毒',  cost:0.55, resist:'gengu',   per:0.006, cap:0.75,
+            text:'空气里全是药味。闻久了，手脚会发麻。' },
+  awe:    { name:'威压',  cost:0.50, resist:'lingli',  per:0.006, cap:0.75,
+            text:'这座山门太高了。走近了会觉得喘不上气。' }
+};
+
+/* ============================================================
+   可以去的地方
+   ------------------------------------------------------------
+   gate 的两种写法：
+     major    需要走到第几个大境界（0 = 一开始就能去）
+     shenshi  需要「神识」达到同境界普通人的几倍 —— 这是**发现**门槛，
+              不是进入门槛。神识不够的人，地图上根本不画这个点。
+                 · 血河宗守「阵的排污口」，入口在中寰暗处 —— 看不见就找不到
+   ============================================================ */
+G.PLACES = [
+  /* ---- 你的宗门：起点。任何一局都从这儿开始 ---- */
+  { id:'home', name:'无名小山', region:'zhonghuan', kind:'home',
+    you:'你的宗门。山不高，灵脉不厚，没人管。\n它本来就不该存在。',
+    gate:{ major:0 },
+    env:null,
+    explore:{ stone:1.0, cult:1.0 },
+    attrs:[],
+    open:true },
+
+  /* ---- 中寰 ---- */
+  { id:'taixuan', name:'太玄门', region:'zhonghuan', kind:'sect',
+    you:'天下正道之首。山门高得看不见顶，石阶一直铺到云里。',
+    gate:{ major:4 },                       // 元婴才配上山
+    env:'awe',
+    explore:{ stone:1.4, cult:1.3 },
+    attrs:['lingli'],
+    tianjiao:'tj_taixu',
+    open:false,                             // 本批不开放，地图上可见
+    openNote:'这条路还没有被写出来。' },
+
+  { id:'xuehe', name:'血河宗', region:'zhonghuan', kind:'sect', hidden:true,
+    you:'以杀证道。入口在中寰的暗处——白天找不到，得靠感觉。',
+    gate:{ major:3, shenshi:1.15 },         // ← 神识专属：看得见才找得到
+    env:null,
+    explore:{ stone:1.5, cult:1.5, karma:true },
+    attrs:['shenshi'],
+    open:false,
+    openNote:'这条路还没有被写出来。' },
+
+  /* ---- 北寰：体魄的主场 ---- */
+  { id:'beiming', name:'北冥剑冢', region:'beihuan', kind:'sect',
+    you:'葬尽天下剑。冰原上插着成千上万把剑，像一片倒着长的林子。',
+    gate:{ major:1 },
+    env:'cold',                             // ← 体魄抗
+    explore:{ stone:1.1, cult:1.4 },
+    attrs:['tipo'],
+    tianjiao:['tj_lingyun','tj_baishuang'],
+    open:true },
+
+  /* ---- 东寰：悟性的主场 ---- */
+  { id:'bailu', name:'白鹿书院', region:'donghuan', kind:'sect',
+    you:'记录天下事。山道上全是碑，碑上刻着别人记下来的事。',
+    gate:{ major:1 },
+    env:null,
+    explore:{ stone:1.0, cult:1.6, clue:true },
+    attrs:['wuxing'],
+    tianjiao:['tj_suyi'],
+    open:true },
+
+  /* ---- 南寰：根骨的主场 ---- */
+  { id:'wanyao', name:'万药谷', region:'nanhuan', kind:'sect',
+    you:'悬壶济世。整条谷都是药田，空气是甜的。\n甜得有点过头。',
+    gate:{ major:1 },
+    env:'plague',                           // ← 根骨抗
+    explore:{ stone:1.2, cult:1.1, pill:true },
+    attrs:['gengu'],
+    tianjiao:['tj_shiwu'],
+    open:true },
+
+  /* ---- 其余：地图上可见，本批不开放 ---- */
+  { id:'wuliang', name:'无量寺', region:'xihuan', kind:'sect',
+    you:'度尽众生。寺建在荒漠最高的那座山顶上，只有一条路上去。',
+    gate:{ major:2 },
+    env:'desert',
+    explore:{ stone:1.1, cult:1.2 },
+    attrs:['shenshi'],
+    tianjiao:['tj_wuyin'],
+    open:false, openNote:'这条路还没有被写出来。' },
+
+  { id:'guixu', name:'归墟宗', region:'youhuan', kind:'sect',
+    you:'镇压万古凶物。他们住在地底，入口是一道裂缝。',
+    gate:{ major:3 },
+    env:'dark',
+    explore:{ stone:1.3, cult:1.5 },
+    attrs:['tipo','shenshi'],
+    tianjiao:['tj_moyuan'],
+    open:false, openNote:'这条路还没有被写出来。' },
+
+  { id:'tianji', name:'天机阁', region:'huanghuan', kind:'sect',
+    you:'推演天机。在云上，要爬很久。他们算得出所有人，除了一个。',
+    gate:{ major:4 },
+    env:'thin',
+    explore:{ stone:1.2, cult:1.4 },
+    attrs:['wuxing','shenfa'],
+    tianjiao:['tj_suanming'],
+    open:false, openNote:'这条路还没有被写出来。' }
+];
+
+/* ============================================================
+   地图：SVG 的几何
+   ------------------------------------------------------------
+   手写 path，不追求写实 —— 要的是**古地图**的味道：
+   墨线勾边、留白、地名竖排。所以多边形故意画得不规则。
+   viewBox 是 0 0 100 100，任何尺寸下都自动缩放。
+   ============================================================ */
+G.MAP_SVG = {
+  viewBox:'0 0 100 100',
+  /* 七个寰的轮廓。坐标与 G.REGIONS 的 pos 大致对应（pos 是标签位置）。 */
+  regions: [
+    { id:'beihuan',   d:'M28,4 L62,2 L70,16 L58,26 L34,24 L24,14 Z' },
+    { id:'huanghuan', d:'M70,8 L92,6 L96,22 L80,30 L72,20 Z' },
+    { id:'donghuan',  d:'M74,32 L96,28 L98,52 L80,58 L72,46 Z' },
+    { id:'xihuan',    d:'M2,40 L20,34 L28,52 L20,72 L4,66 Z' },
+    { id:'zhonghuan', d:'M30,30 L70,28 L74,50 L64,68 L36,66 L26,48 Z' },
+    { id:'youhuan',   d:'M30,68 L58,70 L60,86 L40,94 L28,82 Z' },
+    { id:'nanhuan',   d:'M42,86 L68,80 L76,92 L58,98 L44,96 Z' }
+  ],
+  /* 赶路的线（不需要，留给以后画「你走过的路」） */
+  paths: []
+};
+
+/* ============================================================
+   取用与派生
+   ============================================================ */
+
+G.placeById = function(id){ return G.PLACES.find(p => p.id === id) || null; };
+G.regionById = function(id){ return G.REGIONS.find(r => r.id === id) || null; };
+
+/* 两地距离（格）。⚠️ 必须由坐标算，不许手写 ——
+   手写的距离会在改坐标之后悄悄失准，而且不报错。 */
+G.travelDist = function(fromId, toId){
+  const a = G.placeById(fromId), b = G.placeById(toId);
+  if (!a || !b) return 0;
+  const ra = G.regionById(a.region), rb = G.regionById(b.region);
+  if (!ra || !rb) return 0;
+  const dx = ra.pos[0] - rb.pos[0], dy = ra.pos[1] - rb.pos[1];
+  const d = Math.sqrt(dx*dx + dy*dy) / 10;      // 归一化成「格」，同寰 = 0
+  return Math.round(d * 10) / 10;
+};
+
+/* 每「格」的赶路价（单位 = 一次行动的消耗）。跨两寰约 3~4 个行动量。 */
+G.TRAVEL = {
+  perGrid: 0.6,
+  shenfaPer: 0.004,     // 身法每点减免，见 engine 的 travelCost
+  shenfaCap: 0.50,      // 身法最多省掉一半
+  minUnits: 1           // 再近也要花一次行动的寿元
+};
+
+/* 环境代价的减免量（0~cap）。写在数据层，界面与引擎都读它。 */
+G.envDiscount = function(envKey, attrValue){
+  const e = G.PLACE_ENV[envKey];
+  if (!e) return 0;
+  return Math.min(e.cap, (attrValue || 0) * e.per);
 };
 
 
@@ -10661,6 +11025,1321 @@ G.EVENTS = (G.EVENTS || []).concat([
 ]);
 
 
+/* ===== events16.js ===== */
+/* ============================================================
+   《记忆修复局》事件数据 · 第十六批（第 34 轮）
+   北寰·北冥剑冢　+　东寰·白鹿书院
+   ------------------------------------------------------------
+   玩家要求：
+   > 「可以选择消耗寿元来前往地图上的其他地方来进行探索
+   >  （这种情况下，事件就不会只是原来的那样的仅针对宗门的事件了，
+   >   事件这一块需要极多的扩充）」
+
+   所以这一批事件全部带 `loc`，只在对应的地方抽得到。
+   分层规则是**加法式**的（见 engine 的 placeAllows）：
+   没写 loc 的 370 个老事件在任何地方都照常抽 —— 加内容不是换内容。
+
+   ── 这两个地方各自「认」一个属性 ──────────────────
+   北冥剑冢（北寰·冰原）　env = cold（严寒），认 **体魄**
+     体魄是这里的第一道门槛：同一片冰原，体魄高的人走起来是散步，
+     体魄低的人走起来是掉命。竞技性的时刻（拔剑、对抗）另读神识与身法。
+   白鹿书院（东寰·书山）　env = 无，认 **悟性**
+     这里不耗你的身体，耗的是你看不看得懂。读碑、抄录、认字迹
+     全都按悟性分流 —— 悟性低的人也进得来，但拿不走东西。
+
+   ⚠️ 写法约定（和 events9~15 一致，dev 里的脚本会逐条对账）：
+     · 收益一律 a.cult(base, tier) / a.lifeBy(pct)，文案用返回值拼
+     · 门槛用相对判断（evPeer）或 evAttr，不写死属性数字
+     · 打架一律 outcome:{win,lose}，**不许写 win:/lose: 函数**
+     · 每个事件 2~4 个选项；带条件的选项必须留一个**无条件兜底**，
+       否则某些状态下会渲染出 0 个选项（这个坑第 32 轮踩过）
+     · 每个地方至少一个函数型正文（text 是函数），让正文随你的经历变
+   ============================================================ */
+
+G.EVENTS = (G.EVENTS || []).concat([
+
+/* ############################################################
+   § 一 · 北寰 · 北冥剑冢（冰原 · 体魄）
+   ############################################################ */
+
+{
+  id:'ev16_bm_arrive', loc:'beiming', tier:1, once:true, title:'倒着长的林子',
+  text:'你走了四天。\n\n第四天下午，风停了。\n\n前面是一片林子 —— 走近了才看出来，那不是树。\n是剑。成千上万把，插在冰里，剑柄朝上。\n\n高的到你胸口，矮的只露出一个尖。\n排得不整齐，但看得出是有人一把一把插的。\n\n林子口立着一块碑，上面只有两个字：\n\n**止步**',
+  flavor:'没有任何人拦你。这块碑就是全部的话。',
+  choices:[
+    { label:'绕过去，从旁边进',
+      eff:(s,a)=>{
+        a.deed('bm_gate','walked');
+        a.lifeBy(-0.02);
+        const g = a.cult(30,'mid');
+        return '你从碑旁边绕了过去。\n\n脚踩在冰上，响。\n每响一声，你都觉得那些剑在听。\n\n往里走了一百步，你回头——碑还在那儿，\n朝着你，像一只没有闭上的眼睛。\n\n修为 +'+g; } },
+    { label:'在碑前站一会儿，先看看',
+      eff:(s,a)=>{
+        a.deed('bm_gate','waited');
+        a.lifeBy(0.01);
+        return '你站住了。\n\n站了很久。风又起了，吹得那些剑轻轻地震。\n\n上万把剑一起震，声音很低，像有人在地下咳嗽。\n\n你听完了一整段，才迈步。\n\n寿元 +'+a.lifePct(0.01)+'　（你在这里站得比走路还省力）'; } },
+    { label:'把碑上的雪擦掉，看背面有没有字', hint:'碑不会只有两个字',
+      when:()=>evAttr('shenshi') >= evPeer('shenshi')*1.15,
+      eff:(s,a)=>{
+        a.deed('bm_gate','turned');
+        a.clue('clue_sword');
+        const g = a.cult(45,'high');
+        return '你伸手把碑背面的雪扫开。\n\n下面有字。刻得很浅，像是刻的人不敢用力：\n\n**「这些剑都还有主人。」**\n\n**「他们的名字在下面。」**\n\n你低头看冰面。冰很厚，看不见底。\n\n修为 +'+g; } }
+  ]
+},
+
+{
+  id:'ev16_bm_wind', loc:'beiming', tier:1, title:'风是从横里来的', cat:'探索',
+  text:'冰原上的风不迎面吹，它横着来。\n\n你走三步要被推两步。推久了，人是斜着走的，\n自己感觉不出来。\n\n前面有一道背风的石坎。\n\n绕过去要多走半天。',
+  choices:[
+    { label:'翻过石坎走直线', hint:'省时间，费身体',
+      eff:(s,a)=>{
+        a.lifeBy(-0.05);
+        const g = a.cult(35,'mid');
+        return '你手脚并用翻了过去。\n\n坎不高，但背面是斜的，你滑了两次。\n第二次手掌擦在冰上，破了一道口子。\n血滴在雪里，很快就不见了。\n\n你没有停。\n\n修为 +'+g; } },
+    { label:'绕过去，走背风的那条',
+      eff:(s,a)=>{
+        a.lifeBy(0.015);
+        const g = a.cult(22,'mid');
+        return '你绕了。\n\n背风的地方安静得不像同一片地方。\n你甚至能听见自己的呼吸。\n\n走到一半你坐下来歇了一会儿，\n看着风从头顶上呼啸过去，够不着你。\n\n寿元 +'+a.lifePct(0.015)+'　修为 +'+g; } }
+  ]
+},
+
+{
+  id:'ev16_bm_pull', loc:'beiming', tier:1, title:'那把短剑', cat:'机缘',
+  text:'林子深处有一把剑，比别的都矮，只露出一个剑柄。\n\n别的剑都锈了，或者断了。\n这一把柄上还缠着布 —— 布是新的。\n\n有人最近来过，而且给它换过缠布。',
+  choices:[
+    { label:'拔出来看看',
+      eff:(s,a)=>{
+        if (a.chance(0.55)){
+          const g = a.cult(60,'high');
+          a.karma(-1);
+          return '你握住剑柄，用力。\n\n冰裂开一条缝，剑出来了 —— 很轻。\n\n剑身上刻着一个字，你认得这个字：**记**。\n\n你把它插回原处，缠布重新缠好。\n\n有些东西不该被带走。\n\n业障 −1　修为 +'+g;
+        }
+        a.lifeBy(-0.035);
+        const g = a.cult(25,'mid');
+        return '你握住剑柄，用力。\n\n它不动。\n\n你又试了一次。手在冰上打滑，指节磕出了血。\n\n剑还是不动。\n\n你松开手的时候，发现缠布上有一行小字：\n\n**「拔得动的，都已经不在了。」**\n\n修为 +'+g; } },
+    { label:'不拔。看一会儿就走',
+      eff:(s,a)=>{
+        a.deed('bm_sword','left');
+        return '你没有伸手。\n\n你在旁边蹲下来，看了很久。\n\n风吹过缠布的时候，布角会动一下，\n像有人在很远的地方，用手指敲了敲桌面。\n\n你站起来走了。\n\n身后那把剑，还在原来的位置。'; } },
+    { label:'把缠布解开，看剑身上刻的是什么', hint:'要够细心',
+      when:()=>evAttr('shenshi') >= evPeer('shenshi')*1.1,
+      eff:(s,a)=>{
+        a.deed('bm_sword','unwrapped');
+        a.clue('clue_sword');
+        const g = a.cult(50,'high');
+        return '你一圈一圈把布解开。\n\n布底下不是剑身，是一段木头 —— 剑早就断了，\n断口被人磨圆了，外面套了一截木鞘。\n\n木鞘上刻着两个字：**替我**。\n\n你把布重新缠回去，缠得和原来一样。\n\n修为 +'+g; } }
+  ]
+},
+
+{
+  id:'ev16_bm_keeper', loc:'beiming', tier:1, title:'守冢人', cat:'人事',
+  text:'林子尽头有一间石屋，屋门口坐着一个老人。\n\n他在磨一把剑。磨得很慢，一下，一下。\n\n剑已经很亮了。他还在磨。\n\n他抬头看你，说：\n\n「你是来送剑的，还是来拿剑的？」',
+  choices:[
+    { label:'「我只是路过。」',
+      eff:(s,a)=>{
+        a.deed('bm_keeper','passer');
+        a.favor(1);
+        return '他点点头，继续磨。\n\n「路过好。」他说，「路过的人不留东西。」\n\n他磨了一会儿，又说：\n\n「上一个路过的，在这儿坐了三年。」\n\n你没问他后来去哪了。\n\n人情 +1'; } },
+    { label:'「我是来看这些剑的。」',
+      eff:(s,a)=>{
+        a.deed('bm_keeper','looker');
+        a.clue('clue_sword');
+        const g = a.cult(40,'mid');
+        return '他停了手。\n\n「看。」他重复了一遍这个字，好像在尝它。\n\n「好。」他说，「看的人比数的人少。」\n\n他往里指了指：\n\n「最里面那排，第三把。你去看看那把。」\n\n修为 +'+g; } },
+    { label:'「这些剑是谁的？」', hint:'直接问',
+      eff:(s,a)=>{
+        a.deed('bm_keeper','asked');
+        a.karma(-2);
+        const g = a.cult(35,'mid');
+        return '他放下磨石。\n\n「都是有主的。」他说。\n\n「那他们人呢？」\n\n他看了你一眼。那一眼很平静：\n\n「你不觉得这片林子太整齐了吗。」\n\n业障 −2　修为 +'+g; } }
+  ]
+},
+
+{
+  id:'ev16_bm_name', loc:'beiming', tier:2, title:'冰底下的名字', cat:'探索',
+  text:'冰层最薄的地方，能看见底下。\n\n底下不是石头。是一层一层压着的东西，\n冻在冰里，看不真切。\n\n有一处离水面很近 —— 近到你只要趴下去，\n就能看见那是什么。',
+  choices:[
+    { label:'趴下去看', hint:'看清楚了就回不去',
+      eff:(s,a)=>{
+        a.deed('bm_ice','looked');
+        a.karma(-3); a.clue('clue_erased');
+        const g = a.cult(70,'high');
+        return '你把脸贴在冰上。\n\n底下是一块木牌。上面刻着一个名字。\n\n木牌是新的。刻痕边缘还很利。\n\n旁边还有一块，再旁边还有一块。\n\n一排，一直排到你看不见的地方。\n每一块上都刻着一个名字。\n每一块都是新的。\n\n业障 −3　线索 +1　修为 +'+g; } },
+    { label:'只看一眼，记住位置就走',
+      eff:(s,a)=>{
+        a.deed('bm_ice','glanced');
+        const g = a.cult(30,'mid');
+        return '你没有趴下去。\n\n你站在原地，把那处薄冰的位置记住了 ——\n离石屋大概两百步，正对着林子的中轴。\n\n然后你走了。\n\n有些地方，知道在哪儿就够了。\n\n修为 +'+g; } },
+    { label:'把冰砸开', hint:'你确定要这么做吗',
+      eff:(s,a)=>{
+        a.deed('bm_ice','broke');
+        a.karma(5); a.favor(-2);
+        const g = a.cult(80,'high');
+        return '你捡了块石头，砸下去。\n\n冰很脆。三下就裂了。\n\n水涌上来，把那块木牌顶到水面。\n你把它捞起来，看清了上面的名字 ——\n\n一个你从没听过的名字。\n\n然后你听见身后有脚步声。守冢人站在那儿，\n一句话都没说，只是看着你手里的木牌。\n\n业障 +5　人情 −2　修为 +'+g; } }
+  ]
+},
+
+{
+  id:'ev16_bm_blizzard', loc:'beiming', tier:2, title:'白毛风', cat:'危险',
+  text:'风突然变白了。\n\n不是雪 —— 是风把地上的雪全卷了起来，\n天地一下子变成同一个颜色。\n\n你看不见三步以外的东西。也看不见来路。',
+  choices:[
+    { label:'原地蹲下，抱住膝盖等',
+      eff:(s,a)=>{
+        a.lifeBy(-0.07);
+        const g = a.cult(40,'mid');
+        return '你蹲下来，把头埋进膝盖里。\n\n风刮了不知道多久。你的手指先是疼，后来不疼了。\n\n等风停的时候，你身上盖了薄薄一层雪，\n像一个已经在这儿躺了很久的人。\n\n你站起来，抖掉雪，继续走。\n\n修为 +'+g; } },
+    { label:'继续走，凭记忆找方向',
+      eff:(s,a)=>{
+        if (a.chance(0.5)){
+          a.lifeBy(-0.03);
+          const g = a.cult(55,'high');
+          return '你闭着眼走。\n\n一步，两步，十步。\n\n第十一步的时候，你的手碰到了一样东西 ——\n是剑柄。\n\n你抓住它，站在原地，等风过去。\n\n风停的时候，你发现自己只偏离了十几步。\n\n修为 +'+g;
+        }
+        a.lifeBy(-0.11);
+        return '你闭着眼走。\n\n走了很久。\n\n风停的时候，你站在一片完全不认识的地方。\n\n没有剑。没有石屋。没有碑。\n\n你花了半天才找回林子。\n\n（你的脸被冻伤了。好几天才好。）'; } },
+    { label:'挖一个雪洞钻进去', hint:'体魄够的人才挖得动',
+      when:()=>evAttr('tipo') >= evPeer('tipo')*1.2,
+      eff:(s,a)=>{
+        a.lifeBy(0.02);
+        const g = a.cult(45,'high');
+        return '你蹲下去，用手刨雪。\n\n雪硬得像沙子，刨了半个时辰才刨出一个够躺的坑。\n你钻进去，把洞口用雪堵上。\n\n里面一下子安静了。\n\n你睡了一觉。醒来的时候风已经停了。\n\n寿元 +'+a.lifePct(0.02)+'　修为 +'+g; } }
+  ]
+},
+
+{
+  id:'ev16_bm_road', loc:'beiming', tier:2, title:'往哪边走', cat:'探索',
+  text:'林子到这儿分成两条。\n\n左边那条地上的雪被踩实了，走的人多。\n右边那条没有脚印，但风比左边小。\n\n两条都能到林子另一头。\n\n天黑之前，你只走得完一条。',
+  flavor:'你站在岔口，风从背后推你。',
+  choices:[
+    { label:'走左边，人多的地方',
+      eff:(s,a)=>{
+        a.deed('bm_road','left');
+        a.lifeBy(-0.02);
+        a.favor(1);
+        const g = a.cult(38,'mid');
+        return '左边好走。\n\n路上你碰到两个往回走的散修，都背着剑。\n他们和你点了点头，没说话。\n\n走到一半，你看见路边插着一把新剑 —— 剑上挂着一条布，\n布上写着「前有坑」。\n\n你绕开了那个坑。\n\n人情 +1　修为 +'+g; } },
+    { label:'走右边，没人走过的那条',
+      eff:(s,a)=>{
+        a.deed('bm_road','right');
+        a.lifeBy(-0.045);
+        const g = a.cult(52,'high');
+        return '右边难走。雪下面全是碎石，一脚深一脚浅。\n\n但你走到了一半的时候，看见了左边看不见的东西：\n\n一面冰墙，墙上刻满了字。\n\n是从这边才看得见的。走左边的人，一辈子也看不见这面墙。\n\n修为 +'+g; } }
+  ]
+},
+
+{
+  id:'ev16_bm_whitedeer', loc:'beiming', tier:2, title:'一只白的', cat:'机缘',
+  text:'雪地里有一串脚印，比你的小，比你的密。\n\n你顺着走了半里，看见一只鹿。\n\n它是白的，白得和雪分不出来 ——\n你是因为它动了才看见它的。\n\n它没有跑。它在看你。',
+  choices:[
+    { label:'走左边，人多的地方',
+      eff:(s,a)=>{
+        a.deed('bm_road','left');
+        a.lifeBy(-0.02);
+        a.favor(1);
+        const g = a.cult(38,'mid');
+        return '左边好走。\n\n路上你碰到两个往回走的散修，都背着剑。\n他们和你点了点头，没说话。\n\n走到一半，你看见路边插着一把新剑 —— 剑上挂着一条布，\n布上写着「前有坑」。\n\n你绕开了那个坑。\n\n人情 +1　修为 +'+g; } },
+    { label:'走右边，没人走过的那条',
+      eff:(s,a)=>{
+        a.deed('bm_road','right');
+        a.lifeBy(-0.045);
+        const g = a.cult(52,'high');
+        return '右边难走。雪下面全是碎石，一脚深一脚浅。\n\n但你走到了一半的时候，看见了左边看不见的东西：\n\n一面冰墙，墙上刻满了字。\n\n是从这边才看得见的。走左边的人，一辈子也看不见这面墙。\n\n修为 +'+g; } }
+  ]
+},
+
+{
+  id:'ev16_bm_stone', loc:'beiming', tier:1, once:true, title:'一块不冷的石头', cat:'机缘',
+  text:'雪地里有一块石头，拳头大，露在外面。\n\n你路过的时候手背蹭了它一下 ——\n\n它是温的。\n\n你蹲下来摸了摸。周围三尺的雪都化了一点，\n在石头边上积成一个浅浅的水圈。',
+  choices:[
+    { label:'揣进怀里带走',
+      eff:(s,a)=>{
+        a.deed('bm_stone','took');
+        a.addCard('养魂木');
+        a.karma(1);
+        const g = a.cult(45,'high');
+        return '你把它揣进怀里。\n\n一整天，那半边身子都是暖的。\n\n晚上你把它掏出来看，发现它比早上小了一圈。\n\n它是在化。\n\n（你得到了一样东西。但你也知道它撑不了多久。）\n\n业障 +1　修为 +'+g; } },
+    { label:'放回原处，用雪盖好',
+      eff:(s,a)=>{
+        a.deed('bm_stone','covered');
+        a.karma(-3);
+        const g = a.cult(30,'mid');
+        return '你把石头放回去，用手把雪重新堆上，\n堆得比原来还厚一点。\n\n然后你走了。\n\n走出很远你回头看了一眼 ——\n那个位置已经看不出来了，和别的雪地一样。\n\n业障 −3　修为 +'+g; } }
+  ]
+},
+
+{
+  id:'ev16_bm_whitedeer', loc:'beiming', tier:2, title:'一只白的', cat:'机缘',
+  text:'雪地里有一串脚印，比你的小，比你的密。\n\n你顺着走了半里，看见一只鹿。\n\n它是白的，白得和雪分不出来 ——\n你是因为它动了才看见它的。\n\n它没有跑。它在看你。',
+  choices:[
+    { label:'站着不动，让它先走',
+      eff:(s,a)=>{
+        a.karma(-2);
+        const g = a.cult(35,'mid');
+        return '你站住了。\n\n它看了你很久。然后低头，继续啃雪底下的什么东西。\n\n啃了一会儿，它走了。\n走的时候没有回头，但也没有跑。\n\n你在原地站到它看不见了才动。\n\n业障 −2　修为 +'+g; } },
+    { label:'慢慢走过去',
+      eff:(s,a)=>{
+        a.deed('bm_deer','approached');
+        a.attr({shenfa:4});
+        const g = a.cult(40,'mid');
+        return '你一步一步挪过去。\n\n走到还有五步的时候，它抬起了头。\n\n你没有再动。它也没有。\n\n你们这样对着看了很久，久到你的腿开始麻。\n\n然后它转身走了，走得不快。\n\n**身法 +4**　修为 +'+g; } },
+    { label:'跟着它走', hint:'它知道路',
+      eff:(s,a)=>{
+        a.deed('bm_deer','followed');
+        a.clue('clue_sword');
+        const g = a.cult(60,'high');
+        return '你跟着它。\n\n它走得慢，但从不回头看你走没跟上。\n\n走了小半天，它停在一处地方，然后就不走了。\n\n你往它站的地方看 ——\n\n那里的冰是透明的。底下没有木牌。\n\n底下是一整座山的倒影。\n\n修为 +'+g; } }
+  ]
+},
+
+/* ---- 天骄：凌云与白霜就在这儿 ---- */
+{
+  id:'ev16_bm_lingyun', loc:'beiming', tier:1, title:'剑比人高的那个少年', cat:'人事',
+  text:'林子里有个少年在练剑。\n\n他手里那把剑比他还高，挥起来的时候整个人都在跟着转。\n\n他看见你，停了。\n\n「你也走这条路？」他说。\n\n这句话你好像在哪里听过。\n\n「那我先走一步，你跟上。」',
+  choices:[
+    { label:'跟上他',
+      eff:(s,a)=>{
+        a.tianjiao('tj_lingyun');
+        const g = a.cult(40,'mid');
+        return '你跟着他走了一段。\n\n他走得很快，而且不看脚下 —— 那些剑他好像都认得，\n哪一把能踩，哪一把不能，他一清二楚。\n\n走到一处，他忽然停下，回头看你：\n\n「你踩错过三把。」他说，「但你都没倒。」\n\n修为 +'+g; } },
+    { label:'站在原地不动',
+      eff:(s,a)=>{
+        a.deed('bm_lingyun','stayed');
+        return '你没有动。\n\n他等了一会儿，笑了一下，自己走了。\n\n走之前他说：\n\n「也行。路又不会跑。」'; } },
+    { label:'问他那把剑是哪儿来的', hint:'他未必肯说',
+      when:()=>evAttr('lingli') >= evPeer('lingli')*1.05,
+      eff:(s,a)=>{
+        a.tianjiao('tj_lingyun');
+        a.clue('clue_sword');
+        const g = a.cult(50,'high');
+        return '他愣了一下。\n\n「捡的。」他说，「就在这儿捡的。」\n\n「这儿？」\n\n他指了指脚下。你这才发现，\n他站的地方是一个坑 —— 冰面上凹下去一块，\n形状正好是一把剑。\n\n「原来插在这儿的。」他说，「我拔出来了。」\n\n修为 +'+g; } }
+  ]
+},
+
+{
+  id:'ev16_bm_baishuang', loc:'beiming', tier:2, title:'守冢人的女儿', cat:'人事',
+  text:'石屋门口多了个人。\n\n是个女孩，十几岁，正在把一摞木牌搬进屋里。\n木牌不大，一摞有十几块。\n\n她搬得很稳，一次也没有掉。\n\n她看见你，停下来，把最上面那块翻过去扣在怀里。',
+  choices:[
+    { label:'当没看见，打个招呼就走',
+      eff:(s,a)=>{
+        a.deed('bm_shuang','ignored');
+        a.favor(1);
+        return '你说了一声「打扰」，就往回走。\n\n走到林子口的时候，你回头看了一眼。\n\n她还站在原地，怀里那块木牌扣着。\n\n你看不见上面的字。\n\n人情 +1'; } },
+    { label:'问她搬的是什么',
+      eff:(s,a)=>{
+        a.tianjiao('tj_baishuang');
+        a.clue('clue_erased');
+        const g = a.cult(45,'mid');
+        return '她看了你一会儿，然后把怀里那块翻过来给你看。\n\n上面是空的。什么字都没有。\n\n「这块还没刻。」她说。\n\n「那什么时候刻？」\n\n「等人来认的时候。」\n\n修为 +'+g; } },
+    { label:'帮她搬', hint:'不用说话也能帮',
+      eff:(s,a)=>{
+        a.tianjiao('tj_baishuang');
+        a.favor(3); a.karma(-2);
+        const g = a.cult(35,'mid');
+        return '你走过去，抱起一半。\n\n她没有拦，也没有道谢，只是往旁边让了让。\n\n两个人搬了三趟。\n\n搬完她说了句：「手冷吧。」\n然后从屋里端出一碗热水递给你。\n\n人情 +3　业障 −2　修为 +'+g; } }
+  ]
+},
+
+/* ---- 汇聚：把「冰底下的名字」与《三月初七》接上 ---- */
+{
+  id:'ev16_bm_ledger', loc:'beiming', tier:2, once:true, title:'他手上的那本册子', cat:'线索',
+  text:(s)=>{
+    const seen = (G.Engine.deedHas && G.Engine.deedHas('bm_ice'));
+    const broke = (G.Engine.deedPick && G.Engine.deedPick('bm_ice')) === 'broke';
+    if (broke) return '守冢人把你叫进石屋。\n\n屋里很暗。他从怀里掏出一本册子，放在桌上。\n\n「你昨天砸开的那块冰，」他说，「底下那块牌子，是我放的。」\n\n他没有生气。他把册子推过来：\n\n「你翻翻。」';
+    if (seen) return '守冢人把你叫进石屋。\n\n屋里很暗。他从怀里掏出一本册子，放在桌上。\n\n「你趴下去看了。」他说。不是问句。\n\n「看了也没关系。」他把册子推过来，\n「反正你迟早要看这个。」';
+    return '守冢人把你叫进石屋。\n\n屋里很暗。他从怀里掏出一本册子，放在桌上。\n\n「你在这片林子里待了几天。」他说，\n「有个东西该给你看了。」';
+  },
+  flavor:'册子很旧，但纸是新的 —— 旧的是封皮。',
+  choices:[
+    { label:'翻开',
+      eff:(s,a)=>{
+        a.clue('clue_erased'); a.karma(-2);
+        const g = a.cult(60,'high');
+        return '你翻开。\n\n第一页写着一行字：\n\n**「以下诸人，剑已归冢，名从其愿。」**\n\n下面是名字。一页十几个，写了几十页。\n\n翻到中间，你停住了 ——\n\n有一页被整整齐齐地撕掉了。撕口很平。\n\n「那一页上的人，」守冢人说，\n「后来有人来认过。认走了。」\n\n业障 −2　线索 +1　修为 +'+g; } },
+    { label:'先问他：这册子是谁写的',
+      eff:(s,a)=>{
+        a.clue('clue_page');
+        const g = a.cult(45,'mid');
+        return '「我爹。」他说。\n\n「他写了多少年？」\n\n「写到走。」\n\n「走去哪？」\n\n他没有回答。他把册子翻到最后一页，\n指了指最下面那行 —— 那行字比别的都小：\n\n**「三月初七，无名小山，一人。」**\n\n修为 +'+g; } },
+    { label:'不翻。把册子推回去',
+      eff:(s,a)=>{
+        a.deed('bm_ledger','refused');
+        a.favor(2); a.karma(-1);
+        return '你把册子推了回去。\n\n他看了你很久，然后点点头，收进怀里。\n\n「你是第一个不翻的。」他说。\n\n「前面的人都翻了？」\n\n「都翻了。」他说，「翻完就走了。」\n\n人情 +2　业障 −1'; } }
+  ]
+},
+
+/* ############################################################
+   § 二 · 东寰 · 白鹿书院（书山 · 悟性）
+   ############################################################ */
+
+{
+  id:'ev16_bl_arrive', loc:'bailu', tier:1, once:true, title:'山道上全是碑',
+  text:'书山没有台阶。\n\n上山的道是踩出来的，两边立着碑，一块挨一块，\n一直排到你看见的最高处。\n\n碑上刻的全是字。走近了看，不是经文，是记事：\n\n**「永和三年，东乡旱，书院开仓。」**\n**「永和四年，东乡又旱。仓未开。」**\n**「永和五年，东乡无。」**\n\n每一块碑都在讲一件已经发生过的事。',
+  flavor:'你数了数，从山脚到你站的这里，有两百多块。',
+  choices:[
+    { label:'一块一块往上看',
+      eff:(s,a)=>{
+        a.deed('bl_gate','read');
+        a.lifeBy(-0.02);
+        const g = a.cult(35,'mid');
+        return '你从第一块看起。\n\n看了二十几块，你发现一件事：\n\n**有些年份是跳过去的。**\n\n永和六年没有碑。永和七年也没有。\n一直到永和十一年才接上。\n\n中间那五年，什么都没有记。\n\n修为 +'+g; } },
+    { label:'直接上山，回头再看',
+      eff:(s,a)=>{
+        a.deed('bl_gate','skipped');
+        const g = a.cult(25,'mid');
+        return '你往上走。\n\n走到半山腰，风从下面吹上来，\n把碑林里的落叶卷起来一片。\n\n你忽然想：这些碑立在这儿，是给谁看的？\n\n上山的人不看。下山的人不看。\n\n修为 +'+g; } },
+    { label:'找「永和五年」那块，看它后面写了什么', hint:'那一年「东乡无」',
+      when:()=>evAttr('wuxing') >= evPeer('wuxing')*1.15,
+      eff:(s,a)=>{
+        a.deed('bl_gate','found');
+        a.clue('clue_page');
+        const g = a.cult(50,'high');
+        return '你回头找了很久。\n\n找到了。碑比别的小一圈，像是后补的。\n\n**「永和五年，东乡无。」**\n\n底下还有一行，刻得很浅，几乎被磨平了：\n\n**「无者，非无人。人不载。」**\n\n不是没有人。是没有人被记下来。\n\n修为 +'+g; } }
+  ]
+},
+
+{
+  id:'ev16_bl_copy', loc:'bailu', tier:1, title:'抄书', cat:'机缘',
+  text:'半山有一间敞着的屋子，里面摆着几十张矮案。\n\n其中一张案上摊着一本书，旁边压着一张纸，纸上写了一半。\n\n写的人不在。墨还没干。',
+  choices:[
+    { label:'坐下来接着往下抄',
+      eff:(s,a)=>{
+        a.lifeBy(-0.025);
+        const g = a.cult(55,'high');
+        return '你坐下，拿起笔。\n\n抄了两页，手就酸了。\n\n抄到第五页的时候你才发现，\n这本书每抄一遍，字都会**变一点点**。\n\n不是抄错 —— 是原本上的字，和你抄下来的字，\n有几个地方不一样。\n\n修为 +'+g; } },
+    { label:'只看，不动笔',
+      eff:(s,a)=>{
+        const g = a.cult(30,'mid');
+        return '你把书从头翻了一遍。\n\n是本很普通的地方志，记的都是些小事：\n谁家生了孩子，哪年收成不好，谁在哪儿修了座桥。\n\n翻到最后，你看见一行夹在正文里的小字：\n\n**「以上诸事，皆有人记得。」**\n\n修为 +'+g; } },
+    { label:'去找写字的那个人', hint:'墨还没干，人没走远',
+      eff:(s,a)=>{
+        a.deed('bl_copy','find');
+        a.favor(2);
+        const g = a.cult(40,'mid');
+        return '你顺着墨迹走出去。\n\n院墙后面蹲着一个女孩，正在洗笔。\n\n她抬头看见你，说：「你抄了吗？」\n\n「没有。」\n\n「哦。」她低下头继续洗，「那就好。」\n\n人情 +2　修为 +'+g; } }
+  ]
+},
+
+{
+  id:'ev16_bl_name', loc:'bailu', tier:1, title:'被人涂掉的名字', cat:'线索',
+  text:'藏书的架子最下层，有一册很薄的册子。\n\n翻开，是一份名录。前后都写满了，字迹工整。\n\n中间有一个名字，被墨涂掉了。\n涂得很厚，厚到那一页的背面都透了黑。',
+  choices:[
+    { label:'举到窗边看',
+      eff:(s,a)=>{
+        a.clue('clue_erased');
+        a.karma(-2);
+        const g = a.cult(60,'high');
+        return '你把册子举到窗边。\n\n日光从背面透过来。涂的墨盖住了笔画，\n但盖不住**压痕** ——\n\n写字的人下笔很重，纸被刻出了一道凹槽。\n\n你顺着凹槽读出了那三个字。\n\n你认得这个名字。\n\n业障 −2　线索 +1　修为 +'+g; } },
+    { label:'把这一页撕下来',
+      eff:(s,a)=>{
+        a.deed('bl_name','tore');
+        a.karma(4); a.favor(-2);
+        const g = a.cult(35,'mid');
+        return '你捏住那一页，撕了下来。\n\n撕口很毛。你把纸折好，塞进怀里。\n\n出门的时候，门口站着一个记录官。\n\n他没有拦你。他只是看着你怀里那张纸，\n然后说了一句：\n\n「你撕的是你自己的那一页。」\n\n业障 +4　人情 −2　修为 +'+g; } },
+    { label:'合上，放回原处',
+      eff:(s,a)=>{
+        a.deed('bl_name','closed');
+        a.karma(-1);
+        const g = a.cult(30,'mid');
+        return '你把册子合上，放回最下层，推到最里面。\n\n退出来的时候你把架子上的灰抹平了 ——\n让别人看不出有人动过。\n\n有些名字被涂掉，是因为涂的人想保它。\n\n业障 −1　修为 +'+g; } }
+  ]
+},
+
+{
+  id:'ev16_bl_rain', loc:'bailu', tier:2, title:'他说那天下雨了', cat:'人事',
+  text:'一个老执笔坐在廊下，看着山下的田。\n\n他忽然开口：「我入门那天，下雨了。」\n\n旁边一个年轻的记录官抬头，说：\n\n「师父，您说过三次了。」\n\n「是吗。」\n\n「三次都说的下雨。」年轻的说，「可那天是大晴天。」\n\n老的没说话。他看着山下的田，看了很久。',
+  choices:[
+    { label:'问那个年轻人：你怎么知道是晴天',
+      eff:(s,a)=>{
+        a.clue('clue_date');
+        const g = a.cult(45,'mid');
+        return '年轻人从袖子里抽出一张纸。\n\n「我查了。」他说，「书院的档里记着那天。」\n\n纸上抄着一行：**「是日，晴，无云。」**\n\n「所以是他记错了？」\n\n年轻人摇摇头。他把纸翻过来，背面还有一行，\n墨色比正面新很多：\n\n**「是日，雨。」**\n\n修为 +'+g; } },
+    { label:'不接话，陪老的看田',
+      eff:(s,a)=>{
+        a.deed('bl_rain','silent');
+        a.karma(-2); a.favor(1);
+        return '你在廊下坐下来，和他一起看田。\n\n看了很久。田里有人在插秧，弯着腰，一行一行往后退。\n\n老执笔忽然说：\n\n「插秧是往后退的。」\n\n「嗯。」\n\n「可看起来一直在往前走。」\n\n业障 −2　人情 +1'; } },
+    { label:'问他：您为什么总说下雨', hint:'要问得软一点',
+      when:()=>evAttr('wuxing') >= evPeer('wuxing')*1.1,
+      eff:(s,a)=>{
+        a.clue('clue_date');
+        a.karma(-1);
+        const g = a.cult(55,'high');
+        return '他沉默了很久。\n\n「因为下雨那天，」他说，「我是被人背上山的。」\n\n「路滑，他摔了两跤。」\n\n「后来我在这山上待了四十年。我一直在找他。」\n\n「找到了吗？」\n\n「找到了。」他说，「他不记得我了。」\n\n业障 −1　修为 +'+g; } }
+  ]
+},
+
+{
+  id:'ev16_bl_shelf', loc:'bailu', tier:2, title:'最里面那排架子', cat:'线索',
+  text:'藏书楼的最后一排，没有编号。\n\n架子上的册子都落着灰，只有一本是干净的。\n\n干净的说明有人常来拿。',
+  choices:[
+    { label:'抽出来看',
+      eff:(s,a)=>{
+        a.clue('clue_book');
+        a.deed('bl_shelf','opened');
+        const g = a.cult(50,'high');
+        return '你抽出来。\n\n第一页的名字全被涂掉了 —— 不是涂一个，是整页。\n\n你往后翻，一页一页，全是涂掉的。\n\n翻到最后有字的一页，上面只剩一个名字。\n\n最上面一行，是你自己的名字。\n\n修为 +'+g; } },
+    { label:'看是谁常来拿 —— 在附近等着',
+      eff:(s,a)=>{
+        a.deed('bl_shelf','waited');
+        a.favor(-1);
+        const g = a.cult(40,'mid');
+        return '你在对面那排架子的阴影里站了一个下午。\n\n没有人来。\n\n天快黑的时候，来了一只猫。\n它跳上架子，在那本册子上趴下了。\n\n它看了你一眼，然后闭上了眼睛。\n\n人情 −1　修为 +'+g; } },
+    { label:'什么都不动，记下位置', hint:'不动也是一种做法',
+      eff:(s,a)=>{
+        a.deed('bl_shelf','noted');
+        a.karma(-1);
+        return '你退后一步，把它的位置记了下来：\n\n最后一排，从右数第七格，第三本。\n\n然后你走出藏书楼，把门带上。\n\n门口的记录官抬头看了你一眼，\n在你的名字后面画了一个圈。\n\n业障 −1'; } }
+  ]
+},
+
+{
+  id:'ev16_bl_suyi', loc:'bailu', tier:1, title:'最小的记录官', cat:'人事',
+  text:'山道拐角坐着一个女孩，膝盖上摊着本子，正在抄碑。\n\n她抄得很专心，你站在旁边看了一会儿她也没抬头。\n\n然后她说：\n\n「你要过这条路？」\n\n「那我先把这一段抄完。你要等，或者先动手。」',
+  choices:[
+    { label:'等她抄完',
+      eff:(s,a)=>{
+        a.tianjiao('tj_suyi');
+        a.favor(2); a.karma(-1);
+        const g = a.cult(40,'mid');
+        return '你靠着碑站下来等。\n\n她抄了一炷香。抄完抬头，把本子合上，让开路。\n\n「抄完了。」她说。\n\n你走过去的时候看见她本子上抄的最后一行：\n\n**「是日，有客过，未留名。」**\n\n人情 +2　业障 −1　修为 +'+g; } },
+    { label:'问她抄这些有什么用',
+      eff:(s,a)=>{
+        a.tianjiao('tj_suyi');
+        a.clue('clue_page');
+        const g = a.cult(50,'high');
+        return '她笔尖停了一下。\n\n「碑上的字会磨掉。」她说。\n\n「磨掉了，事情就没了？」\n\n「磨掉了，事情还在，只是没人知道它在。」\n\n她抬头看你：「你想想，这算不算没了。」\n\n修为 +'+g; } },
+    { label:'直接走过去',
+      eff:(s,a)=>{
+        a.deed('bl_suyi','passed');
+        return '你从她旁边走过去。\n\n走出十几步，你听见她在后面说：\n\n「你刚才踩到碑了。」\n\n你没回头。\n\n她又说了一句，声音不大：\n\n「没关系。我记的是你踩了。」'; } }
+  ]
+},
+
+{
+  id:'ev16_bl_fiveyears', loc:'bailu', tier:2, title:'那五年', cat:'线索',
+  text:(s)=>{
+    const read = (G.Engine.deedPick && G.Engine.deedPick('bl_gate'));
+    if (read === 'found') return '你沿着碑林往回走，想找那五年的痕迹。\n\n有一个穿灰袍的人跟上了你。他没有说话，只是跟着。\n\n走了两百步，他开口了：\n\n「你在找那五年。」';
+    if (read === 'read') return '你在碑林里坐了一会儿。\n\n有一个穿灰袍的人走过来，在你旁边站定。\n\n「你一块一块看过了。」他说。\n\n「那你应该已经发现了。」';
+    return '你回到山脚。\n\n有一个穿灰袍的人站在第一块碑前面，像在等人。\n\n他看见你，说：\n\n「你上山的时候没看碑。现在看看也不晚。」';
+  },
+  flavor:'他手里也拿着一本册子，比守冢人那本薄得多。',
+  choices:[
+    { label:'「那五年，谁不在了？」',
+      eff:(s,a)=>{
+        a.clue('clue_erased'); a.karma(-3);
+        const g = a.cult(65,'high');
+        return '他翻开册子。\n\n那一页上只有五个年份，每年下面一行空白。\n\n「不是谁不在了。」他说。\n\n「是**没有人**被记下来。五年，一个都没有。」\n\n「为什么？」\n\n「因为那五年里，」他说，「这座山上只有一个人。」\n\n业障 −3　线索 +1　修为 +'+g; } },
+    { label:'「你是谁？」',
+      eff:(s,a)=>{
+        a.deed('bl_five','who');
+        a.clue('clue_page');
+        const g = a.cult(45,'mid');
+        return '「我是补碑的。」他说。\n\n「补碑？」\n\n「碑上少了的字，我补上去。」他把册子合上，\n「补了两百多年了。」\n\n「补得完吗？」\n\n他看了你一眼。\n\n「补不完。」他说，「但补一块是一块。」\n\n修为 +'+g; } },
+    { label:'不问了，把自己知道的告诉他',
+      eff:(s,a)=>{
+        a.deed('bl_five','told');
+        a.favor(3); a.karma(-2);
+        const g = a.cult(50,'high');
+        return '你把你在别处见过的事，一件一件跟他说了。\n\n他听着，翻着册子，偶尔停下来写两个字。\n\n你说完，他写完了，把册子合上。\n\n「这一段，」他说，「我会刻上去。」\n\n「刻谁的名字？」\n\n「刻你的。」\n\n人情 +3　业障 −2　修为 +'+g; } }
+  ]
+},
+
+{
+  id:'ev16_bl_own', loc:'bailu', tier:2, title:'查自己', cat:'线索',
+  text:'书院的档房对外开。规矩是：可以查任何人，包括自己。\n\n管档的人把册子抱出来，放在桌上，然后就走开了。\n\n「查自己的人，」他走的时候说，「我一般不看着。」',
+  choices:[
+    { label:'查',
+      eff:(s,a)=>{
+        a.deed('bl_own','checked');
+        a.clue('clue_name'); a.karma(-2);
+        const g = a.cult(55,'high');
+        return '你翻到自己那一页。\n\n上面有你上山的日子，有你入外门的年份，\n有你第一次突破的月份。都对。\n\n最下面还有一行，是你没见过的：\n\n**「此人已于永和十一年离山，未归。」**\n\n永和十一年 —— 那是一个还没到的年份。\n\n业障 −2　线索 +1　修为 +'+g; } },
+    { label:'不查。让管档的人抱回去',
+      eff:(s,a)=>{
+        a.deed('bl_own','refused');
+        a.karma(-1); a.favor(1);
+        return '你站起来，喊了一声。\n\n管档的人回来，把册子抱走了。\n\n走到门口他回头说了一句：\n\n「不查的人少。」\n\n「查了会怎么样？」\n\n「不会怎么样。」他说，「就是会一直想着。」\n\n业障 −1　人情 +1'; } },
+    { label:'查「无名小山」这几个字', hint:'换个思路',
+      when:()=>evAttr('wuxing') >= evPeer('wuxing')*1.2,
+      eff:(s,a)=>{
+        a.clue('clue_master');
+        const g = a.cult(70,'high');
+        return '你没有查自己。你在册子里找另外四个字。\n\n**无名小山。**\n\n找到了。一共十七条。\n\n第一条是三百年前，最后一条是去年。\n\n每一条都只有半句话，后半句都被人裁掉了，\n裁口齐齐的，是用尺子比着裁的。\n\n修为 +'+g; } }
+  ]
+},
+
+{
+  id:'ev16_bl_last', loc:'bailu', tier:3, title:'最后一页', cat:'线索',
+  text:'有一本册子摊在案上，翻在最后一页。\n\n最后一页是空的。\n\n但案上摆着笔，笔尖是湿的。\n\n旁边的凳子是热的。',
+  choices:[
+    { label:'坐下来，把这一页写完',
+      eff:(s,a)=>{
+        a.deed('bl_last','wrote');
+        a.clue('clue_page'); a.karma(-3);
+        const g = a.cult(80,'high');
+        return '你坐下，拿起笔。\n\n你不知道该写什么。你想了很久，然后写了一件小事：\n\n**「今日，有人在此坐过。」**\n\n写完你把笔放回原处，笔尖朝外 —— 和你拿起来的时候一样。\n\n你站起来走了。\n\n身后那一页上，字很快就干了。\n\n业障 −3　线索 +1　修为 +'+g; } },
+    { label:'等写字的人回来',
+      eff:(s,a)=>{
+        a.lifeBy(-0.04);
+        a.favor(-1);
+        const g = a.cult(50,'high');
+        return '你在旁边的柱子后面站着等。\n\n等到天黑了，没有人来。\n\n等到灯灭了，还是没有人来。\n\n你最后走到案前看了一眼 ——\n那一页还是空的。\n\n笔尖已经干了。\n\n人情 −1　修为 +'+g; } },
+    { label:'翻回去，从头看这本册子',
+      eff:(s,a)=>{
+        a.clue('clue_book');
+        const g = a.cult(65,'high');
+        return '你从头翻。\n\n这本册子记的全是同一件事，记了几十遍。\n\n每遍的主角名字不一样，年份不一样，\n但事情一模一样：\n\n**一个人在夜里走出山门，没有再回来。**\n\n你数了数，一共三十七遍。\n\n修为 +'+g; } }
+  ]
+},
+
+
+/* ---- 汇合 · 剑冢：守冢人记得你在这儿做过的每一件事 ----
+   ⚠️ 这个事件的存在理由是**让选择有下文**：
+      ev16 里那 11 种选择记录必须在某个地方被重新提起，
+      否则玩家在冰原上做的决定就是一次性的。
+      dev/verify-linkage.js 第 10A 节按这里的 deeds 声明数见证。 */
+{
+  id:'ev16_bm_echo', loc:'beiming', tier:1, once:true, title:'你走之前', cat:'线索',
+  deeds:['bm_gate','bm_sword','bm_keeper','bm_ice','bm_road','bm_stone','bm_deer','bm_lingyun','bm_shuang','bm_ledger'],
+  text:(s)=>{
+    const P = id => (G.Engine.deedPick ? G.Engine.deedPick(id) : null);
+    if (P('bm_ice') === 'broke') return '你收拾东西要走的时候，守冢人站在林子口等你。\n\n他手里拿着那块你从冰底下捞上来的木牌。\n\n「这个，」他说，「你带走。」';
+    if (P('bm_ledger') === 'refused') return '你收拾东西要走的时候，守冢人站在林子口等你。\n\n「那本册子你没翻。」他说。\n\n「嗯。」\n\n「给你看一样别的。」';
+    if (P('bm_sword') === 'unwrapped') return '你收拾东西要走的时候，守冢人站在林子口等你。\n\n「你把布解开过。」他说。\n\n「你怎么知道？」\n\n「布是我缠的。」';
+    if (P('bm_gate') === 'turned') return '你收拾东西要走的时候，守冢人站在林子口等你。\n\n「碑背面那些字，」他说，「是你擦出来的。」\n\n「是。」\n\n「那我得跟你说一件事。」';
+    return '你收拾东西要走的时候，守冢人站在林子口等你。\n\n他手里什么都没有。\n\n「你在这儿待了几天。」他说，「有几件事，我得让你知道。」';
+  },
+  flavor:'风停了。整片林子一点声音都没有。',
+  choices:[
+    { label:'听他 说',
+      eff:(s,a)=>{
+        a.clue('clue_sword'); a.karma(-2);
+        const g = a.cult(70,'high');
+        return '他带你走到林子正中间。\n\n「你数过没有？」他问，「这片林子里有多少把剑。」\n\n「没有。」\n\n「三千七百二十一。」他说，「我数了三十年。」\n\n「每年都数？」\n\n「每年都数。」他说，「每一年，都比上一年多。」\n\n业障 −2　线索 +1　修为 +'+g; } },
+    { label:'问他：那多出来的是谁送的',
+      eff:(s,a)=>{
+        a.clue('clue_erased'); a.karma(-3);
+        const g = a.cult(80,'high');
+        return '他看了你很久。\n\n「没人送。」他说。\n\n「那是从哪来的？」\n\n他抬起手，指了指头顶，又指了指脚下。\n\n「从上面掉下来的，和从下面长出来的。」\n\n他停了一下：\n\n「这把林子，是**阵**的兵器库。\n用掉一把，就会补上一把。」\n\n业障 −3　线索 +1　修为 +'+g; } },
+    { label:'不说别的，朝他弯一下腰',
+      eff:(s,a)=>{
+        a.favor(3); a.karma(-3);
+        return '你朝他弯了一下腰。\n\n他愣住了。\n\n「你干什么。」\n\n「谢谢你让我看这些。」\n\n他没有说话。过了很久，他转过身，往回走。\n\n走了几步，你听见他说：\n\n「下回来的话，」他说，「那个位置我给你留着。」\n\n人情 +3　业障 −3'; } }
+  ]
+},
+
+
+/* ---- 汇合 · 书院：补碑的人把你的那一段刻上去了 ---- */
+{
+  id:'ev16_bl_echo', loc:'bailu', tier:1, once:true, title:'刻上去的那一段', cat:'线索',
+  deeds:['bl_gate','bl_copy','bl_name','bl_rain','bl_shelf','bl_suyi','bl_five','bl_own','bl_last'],
+  text:(s)=>{
+    const P = id => (G.Engine.deedPick ? G.Engine.deedPick(id) : null);
+    if (P('bl_own') === 'checked') return '你准备下山的时候，那个补碑的人在碑林口等你。\n\n「你查过自己了。」他说。\n\n「查过。」\n\n「那你应该看见那一行了。」';
+    if (P('bl_name') === 'tore') return '你准备下山的时候，那个补碑的人在碑林口等你。\n\n「你撕了一页。」他说。不是问句。\n\n「是。」\n\n「撕的是哪一页，你知道。」';
+    if (P('bl_last') === 'wrote') return '你准备下山的时候，那个补碑的人在碑林口等你。\n\n「最后一页，」他说，「是你写的。」\n\n「你怎么知道？」\n\n「因为那一页我盯了二十年，一直空着。」';
+    if (P('bl_five') === 'told') return '你准备下山的时候，那个补碑的人在碑林口等你。\n\n「你跟我说的那些，」他说，「我刻上去了。」\n\n「这么快？」\n\n「刻字不难。」他说，「难的是有人肯说。」';
+    return '你准备下山的时候，那个补碑的人在碑林口等你。\n\n他手里拿着一块新碑，字还没干。\n\n「你要走了。」他说，「走之前看一眼。」';
+  },
+  flavor:'碑很小，只到他膝盖。',
+  choices:[
+    { label:'低头看那块碑',
+      eff:(s,a)=>{
+        a.clue('clue_page'); a.karma(-2);
+        const g = a.cult(75,'high');
+        return '碑上刻着一段很短的话：\n\n**「某年某月，有人自无名小山来，\n在此看碑三日。是日，晴。」**\n\n你看完抬起头。\n\n「为什么记我？」\n\n「因为你在。」他说，「在的人就该被记下来。\n不然以后的人会以为，那几年什么都没发生。」\n\n业障 −2　线索 +1　修为 +'+g; } },
+    { label:'问他：你记得住所有人吗',
+      eff:(s,a)=>{
+        a.clue('clue_erased'); a.karma(-3);
+        const g = a.cult(70,'high');
+        return '「记不住。」他说得很干脆。\n\n「那怎么办？」\n\n「所以我才刻。」他把碑立起来，往土里按了按，\n「刻上去的，就不用我记了。」\n\n他直起腰，看着那一整条山道上的碑。\n\n「我记不住的那些，」他说，\n「才是这座山真正丢掉的东西。」\n\n业障 −3　线索 +1　修为 +'+g; } },
+    { label:'问他：你叫什么',
+      eff:(s,a)=>{
+        a.favor(2); a.karma(-2);
+        return '他笑了一下。\n\n「我不刻自己。」他说。\n\n「为什么？」\n\n「刻自己算什么呢。」他把锤子收进腰里，\n「补碑的人要是把自己刻上去，那这块碑就不是补的了。」\n\n人情 +2　业障 −2'; } }
+  ]
+},
+
+]);
+
+
+/* ===== events17.js ===== */
+/* ============================================================
+   《记忆修复局》事件数据 · 第十七批（第 34 轮）
+   南寰 · 万药谷（药洲 · 根骨）
+   ------------------------------------------------------------
+   设定来自 DESIGN.md 那张表：万药谷守「**阵的养料场**」，
+   被扭曲的美德是「慈悲」。
+
+   这一条是这个批次的**暗线**：药谷是「养料场」。
+   表面上悬壶济世、见谁都救；底下，这座谷在**喂**什么东西。
+   所以这里的事件有两层读法 ——
+   第一遍读是治愈的（试药、帮工、药田、救人的事），
+   第二遍读是凉的（药人、量、不够、还要更多）。
+
+   环境 env = plague（药毒），认 **根骨**：
+   空气里全是药味，闻久了手脚发麻。根骨高的人扛得住，
+   根骨低的人在这儿待一天就掉一天寿元。
+   这一条是「属性有专属舞台」的落点之一。
+
+   ⚠️ 写法约定同 events16：2~4 个选项、收益用返回值拼、
+     打架用 outcome:{win,lose}、带条件的选项必须留无条件兜底。
+   ============================================================ */
+
+G.EVENTS = (G.EVENTS || []).concat([
+
+{
+  id:'ev17_wy_arrive', loc:'wanyao', tier:1, once:true, title:'空气是甜的', cat:'探索',
+  text:'你走进谷口的时候，先闻到的是甜味。\n\n不是花香。是一种更厚、更闷的甜，\n像是有人在很近的地方熬着一大锅东西，熬了很久。\n\n路两边全是药田，一畦挨着一畦，看不到头。\n\n田里有人在弯腰拔草。他们都很瘦。\n\n你走过去的时候，其中一个人直起腰看了你一眼，\n然后接着弯腰拔草。',
+  flavor:'他没有问你从哪来。这里好像经常有人来。',
+  choices:[
+    { label:'顺着路往里走',
+      eff:(s,a)=>{
+        a.deed('wy_gate','walked');
+        a.lifeBy(-0.015);
+        const g = a.cult(30,'mid');
+        return '你往里走。\n\n走了半个时辰，药田还是看不到头。\n\n你注意到一件事：每一畦田的边上都立着一块小木牌，\n牌上写着年份。\n\n你一路看过去：永和三年、四年、五年……\n\n一直看到今年。一年不差。\n\n修为 +'+g; } },
+    { label:'蹲下来看那些药',
+      eff:(s,a)=>{
+        a.deed('wy_gate','looked');
+        a.clue('clue_grain');
+        const g = a.cult(40,'mid');
+        return '你蹲下来。\n\n药是好药。叶子厚，根须白，一看就是被伺候得很仔细的。\n\n你掰了一片叶子闻，忽然发现一件事：\n\n**同一畦里的药，长得一模一样。**\n\n高矮、叶数、连朝向都一样。\n\n不是种的。是**长的同一个人**。\n\n修为 +'+g; } }
+  ]
+},
+
+{
+  id:'ev17_wy_taste', loc:'wanyao', tier:1, title:'试药', cat:'机缘',
+  text:'谷里有一间敞开的棚子，棚下摆着一张长桌。\n\n桌上排着十几个小碗，每碗底下压着一张纸条。\n\n棚子口坐着一个管事的，看见你，指了指桌子：\n\n「试。试完告诉我哪碗苦。」\n\n「有工钱吗？」\n\n「试出来哪碗苦，你就不会中毒。」',
+  choices:[
+    { label:'一碗一碗试',
+      eff:(s,a)=>{
+        a.deed('wy_taste','all');
+        a.lifeBy(-0.05);
+        const g = a.cult(55,'high');
+        return '你从第一碗开始。\n\n前三碗是甜的，第四碗发涩，第五碗开始麻。\n\n喝到第九碗的时候，你的舌头已经不听话了。\n\n你放下碗，说：「第七碗。」\n\n管事的点点头，在纸上记了一笔。\n\n「你舌头麻了还能分出来。」他说，「不错。」\n\n修为 +'+g; } },
+    { label:'只试一碗，挑最像的',
+      eff:(s,a)=>{
+        a.deed('wy_taste','one');
+        a.lifeBy(-0.01);
+        const g = a.cult(25,'mid');
+        return '你挑了一碗颜色最深的，喝了。\n\n苦。非常苦。\n\n管事的看了你一眼，没说话，在纸上记了一笔。\n\n你走的时候听见他对旁边的人说：\n\n「又一个挑颜色的。」\n\n修为 +'+g; } },
+    { label:'不试。问他这些药是给谁喝的',
+      eff:(s,a)=>{
+        a.deed('wy_taste','asked');
+        a.clue('clue_grain');
+        a.favor(-1);
+        const g = a.cult(45,'mid');
+        return '他停下手里的笔。\n\n「给需要的人。」他说。\n\n「哪些人需要？」\n\n「外面的人。」\n\n「外面的人知道这药是这儿出的吗？」\n\n他没有回答。他低下头，继续记他的笔。\n\n人情 −1　修为 +'+g; } }
+  ]
+},
+
+{
+  id:'ev17_wy_worker', loc:'wanyao', tier:1, title:'药田帮工', cat:'人事',
+  text:'田边插着一块牌子：\n\n**「今日缺人。管饭。」**\n\n下面已经排了七八个人，都是外来的。\n\n排在你前面的那个回头看你，说：\n\n「你也是来挣饭的？」',
+  choices:[
+    { label:'排着，干一天',
+      eff:(s,a)=>{
+        a.deed('wy_work','labored');
+        a.lifeBy(-0.03);
+        a.gainStone(40); a.favor(1);
+        const g = a.cult(35,'mid');
+        return '你干了一天。\n\n拔草、翻土、挑水。活不重，但一直弯着腰。\n\n中午管一顿饭。饭很好，有肉。\n\n吃饭的时候你发现，那些本地的工人都不吃肉 ——\n他们只吃自己带的干粮。\n\n灵石 +40　人情 +1　修为 +'+g; } },
+    { label:'问那个同路人：这活有什么讲究',
+      eff:(s,a)=>{
+        a.deed('wy_work','asked');
+        a.favor(2);
+        const g = a.cult(40,'mid');
+        return '他左右看了一眼，压低声音：\n\n「别喝田边的水。」\n\n「为什么？」\n\n「浇田的水和喝的水不是一条。」他说，\n「但田边那口井，是给外人喝的。」\n\n他顿了顿：\n\n「喝了会渴。越喝越渴。」\n\n人情 +2　修为 +'+g; } },
+    { label:'不干。看他们干',
+      eff:(s,a)=>{
+        a.deed('wy_work','watched');
+        a.karma(-1);
+        const g = a.cult(20,'mid');
+        return '你在田埂上坐下来，看了一下午。\n\n你数了数，一块田里有二十三个人。\n\n太阳落山的时候，他们一起直起腰，一起往回走。\n\n步子都一样大。\n\n业障 −1　修为 +'+g; } }
+  ]
+},
+
+{
+  id:'ev17_wy_poison', loc:'wanyao', tier:2, title:'你开始发麻', cat:'危险',
+  text:'你的手先麻的。\n\n然后是脚。不是疼，是那种压久了之后的感觉，\n按下去要过一会儿才知道被按了。\n\n你在这谷里待得有点久了。',
+  choices:[
+    { label:'找地方坐下来，运一运气',
+      eff:(s,a)=>{
+        a.lifeBy(-0.03);
+        const g = a.cult(45,'mid');
+        return '你找了一处背阴的石头坐下。\n\n闭眼，慢慢地呼吸。\n\n麻意退得很慢，退了半个时辰才退到手腕。\n\n你睁开眼的时候，发现自己出了一身汗。\n\n汗是黄的。\n\n修为 +'+g; } },
+    { label:'不管它，接着走',
+      eff:(s,a)=>{
+        a.lifeBy(-0.08);
+        const g = a.cult(60,'high');
+        return '你没停。\n\n走到傍晚，麻意爬到了小臂。\n你掐了自己一把，过了很久才觉得疼。\n\n你把手插进雪水里泡了一会儿 —— 这谷里没有雪水，\n你把手插进了渠里。\n\n渠水是温的。\n\n修为 +'+g; } },
+    { label:'去药棚讨一副解药', hint:'根骨硬的人自己就扛过去了',
+      when:()=>evAttr('gengu') < evPeer('gengu')*1.3,
+      eff:(s,a)=>{
+        a.gainStone(-25); a.favor(1);
+        a.lifeBy(0.04);
+        return '你回到那间棚子。\n\n管事的看了你的手一眼，什么也没问，\n从抽屉里拿了一小包东西给你。\n\n「三钱，温水。」他说，「以后别在田边站着。」\n\n灵石 −25　寿元 +'+a.lifePct(0.04)+'　人情 +1'; } }
+  ]
+},
+
+{
+  id:'ev17_wy_man', loc:'wanyao', tier:2, title:'药人', cat:'线索',
+  text:'谷的深处有一排屋子，窗户都糊着纸。\n\n其中一间的门开着。里面坐着一个人，背对着门。\n\n他坐得很直，一动不动。\n\n你走近了才看出来 —— 他不是坐着，\n他是**被绑在椅子上**的，绑得很松，他随时能站起来。\n\n他没有站起来。',
+  flavor:'屋子里很干净。干净得不像住了人。',
+  choices:[
+    { label:'进去，问他需不需要帮忙',
+      eff:(s,a)=>{
+        a.deed('wy_man','helped');
+        a.karma(-3); a.clue('clue_grain');
+        const g = a.cult(55,'high');
+        return '你走进去。\n\n他没有回头。他说：\n\n「不用。」\n\n「你被绑着。」\n\n「绳是我自己系的。」他说，「松的。我想站随时能站。」\n\n「那你为什么不站？」\n\n他想了一会儿。\n\n「因为站起来了，就得走出去。」\n\n业障 −3　修为 +'+g; } },
+    { label:'退出来，把门带上',
+      eff:(s,a)=>{
+        a.deed('wy_man','left');
+        const g = a.cult(25,'mid');
+        return '你退了出来，轻轻把门带上。\n\n门轴响了一声。\n\n里面的人没有动。\n\n你在门外站了一会儿，然后走了。\n\n修为 +'+g; } },
+    { label:'去问管事的：那些屋子里关的是谁', hint:'问得越明白越好',
+      when:()=>evAttr('lingli') >= evPeer('lingli')*1.1,
+      eff:(s,a)=>{
+        a.deed('wy_man','asked');
+        a.clue('clue_grain'); a.karma(-2);
+        const g = a.cult(65,'high');
+        return '管事的正在称药。他没有抬头。\n\n「不是关。」他说，「是**留**。」\n\n「留他们做什么？」\n\n「他们身上有谷里没有的东西。」\n他把秤放下，「外面来的东西，谷里长不出来。」\n\n「长不出来会怎么样？」\n\n他终于抬头看了你一眼。\n\n「药就不够了。」\n\n业障 −2　线索 +1　修为 +'+g; } }
+  ]
+},
+
+{
+  id:'ev17_wy_pill', loc:'wanyao', tier:2, title:'丹炉边', cat:'机缘',
+  text:'一间炼药的屋子，炉子还热着。\n\n炉边坐着一个人，正在看火。他看得很专注，\n专注到你觉得他已经这样坐了三天。\n\n炉口的光映在他脸上，一闪一闪。',
+  choices:[
+    { label:'在旁边坐下，陪他看火',
+      eff:(s,a)=>{
+        a.deed('wy_pill','sat');
+        a.lifeBy(0.02);
+        a.favor(2);
+        const g = a.cult(30,'mid');
+        return '你在炉边坐下。\n\n没有人说话。火从红变白，又变回红。\n\n过了很久，他忽然说：\n\n「看火不难。难的是不看别的地方。」\n\n他没再说第二句。\n\n寿元 +'+a.lifePct(0.02)+'　人情 +2　修为 +'+g; } },
+    { label:'问他这炉炼的是什么',
+      eff:(s,a)=>{
+        a.deed('wy_pill','asked');
+        a.clue('clue_grain');
+        const g = a.cult(45,'mid');
+        return '「续命丹。」他说。\n\n「给谁续？」\n\n「给所有还差一点的人。」\n\n「差一点什么？」\n\n他指了指炉子：\n\n「差一味。这一味谷里没有，得从外面来。」\n\n他停了一下：\n\n「你从外面来。」\n\n修为 +'+g; } },
+    { label:'伸手去掀炉盖', hint:'他说了这炉是给谁续的',
+      when:()=>evAttr('shenshi') >= evPeer('shenshi')*1.25,
+      eff:(s,a)=>{
+        a.deed('wy_pill','opened');
+        a.clue('clue_grain'); a.karma(-2);
+        const g = a.cult(70,'high');
+        return '你掀开炉盖。\n\n热气扑上来。你等它散了一点，往里看。\n\n炉底不是药。\n\n是一层很薄很白的灰，铺得平平整整，\n像是有人用手抹过。\n\n你把盖子盖回去。\n\n他没有看你，只是说了一句：\n\n「你看得见啊。」\n\n业障 −2　线索 +1　修为 +'+g; } }
+  ]
+},
+
+{
+  id:'ev17_wy_shiwu', loc:'wanyao', tier:1, title:'背药篓的那个', cat:'人事',
+  text:'山道上有个少年，背着一个比他大的药篓，正在往下走。\n\n药篓里装满了，压得他脖子往前伸。\n\n他看见你，停下来，把篓子往地上一放，\n从里面摸出两株草递给你：\n\n「拿着。路上嚼。」\n\n「为什么给我？」\n\n「你气色不好。」',
+  choices:[
+    { label:'接过来，道谢',
+      eff:(s,a)=>{
+        a.tianjiao('tj_shiwu');
+        a.lifeBy(0.03); a.favor(2); a.karma(-1);
+        return '你接过来。\n\n草是凉的，嚼起来有股土腥味，但咽下去之后，\n胸口那块闷的地方松了一点。\n\n他已经背起篓子往下走了。\n\n走出很远你才想起来，你还没问他叫什么。\n\n寿元 +'+a.lifePct(0.03)+'　人情 +2　业障 −1'; } },
+    { label:'问他：你自己气色也不好吧',
+      eff:(s,a)=>{
+        a.tianjiao('tj_shiwu');
+        a.favor(3); a.karma(-2);
+        const g = a.cult(40,'mid');
+        return '他愣了一下，低头看了看自己的手。\n\n手背上全是细口子，一道压着一道，\n是新伤叠旧伤。\n\n「我天天背。」他说，「背惯了。」\n\n他把篓子重新背起来，走之前又回头：\n\n「你要是往上去，别走左边那条。」\n\n人情 +3　业障 −2　修为 +'+g; } },
+    { label:'不接。问他这草卖多少钱',
+      eff:(s,a)=>{
+        a.deed('wy_shiwu','bought');
+        a.gainStone(-15); a.lifeBy(0.03);
+        return '他看了你一会儿。\n\n「不要钱。」他说。\n\n「那我买。」\n\n「不要钱。」他又说了一遍，然后从篓子里\n又摸出两株，一起塞给你。\n\n「你拿钱买，我就还得背一趟。」\n\n灵石 −15　寿元 +'+a.lifePct(0.03); } }
+  ]
+},
+
+{
+  id:'ev17_wy_field', loc:'wanyao', tier:2, title:'第九畦', cat:'线索',
+  text:'药田是按畦编的。你从第一畦走到第八畦，\n每一畦边上都立着木牌。\n\n第九畦没有木牌。\n\n第九畦里的东西也长得不一样 ——\n不是药。是麦子。普通的麦子。',
+  choices:[
+    { label:'蹲下来看看这畦麦子',
+      eff:(s,a)=>{
+        a.deed('wy_field','looked');
+        a.clue('clue_grain');
+        const g = a.cult(50,'high');
+        return '你蹲下来。\n\n麦子长得很好。穗子沉，压得秆子弯。\n\n你掐了一粒，用指甲剥开 —— 是饱满的。\n\n这畦麦子比你在外面见过的任何一块田都好。\n\n可它长在这里。长在一谷子药中间。\n\n修为 +'+g; } },
+    { label:'去找管事的问：第九畦为什么不立牌',
+      eff:(s,a)=>{
+        a.deed('wy_field','asked');
+        a.clue('clue_grain'); a.favor(-1);
+        const g = a.cult(55,'high');
+        return '管事的正在晒药。\n\n「第九畦不立牌。」他说。\n\n「为什么？」\n\n「因为第九畦是给人吃的。」\n\n他把手里的药翻了个面：\n\n「前面八畦，是给**别的东西**吃的。」\n\n人情 −1　线索 +1　修为 +'+g; } },
+    { label:'割一把麦子带走',
+      eff:(s,a)=>{
+        a.deed('wy_field','took');
+        a.karma(3); a.gainStone(30);
+        const g = a.cult(35,'mid');
+        return '你割了一把，塞进袋子。\n\n走出十几步，你回头看 ——\n\n那一片被你割过的地方，在整畦整齐的麦子里\n显得很显眼，像一块疤。\n\n第二天你再路过，那块疤已经平了。\n\n麦子长回来了。\n\n业障 +3　灵石 +30　修为 +'+g; } }
+  ]
+},
+
+{
+  id:'ev17_wy_boy', loc:'wanyao', tier:2, title:'等在门口的人', cat:'人事',
+  text:'谷口坐着一对夫妻，中间坐着一个孩子。\n\n孩子闭着眼，脸色青白。\n\n父亲看见你从谷里出来，站起来：\n\n「里面……里面肯治吗？」',
+  flavor:'他们不知道你是来做什么的。他们只是看见你从里面出来。',
+  choices:[
+    { label:'告诉他们：进去问，会有人管的',
+      eff:(s,a)=>{
+        a.karma(-1);
+        a.favor(1);
+        return '你说了。\n\n父亲连说了三声谢谢，抱起孩子就往里跑。\n\n母亲跟在后面，跑了两步又回头，朝你弯了弯腰。\n\n你站在原地看他们进去。\n\n谷口那个方向，甜味又飘过来一点。'; } },
+    { label:'说实话：我不知道里面会不会治',
+      eff:(s,a)=>{
+        a.deed('wy_boy','honest');
+        a.karma(-2);
+        const g = a.cult(30,'mid');
+        return '你说了实话。\n\n父亲的手垂了下去。\n\n「那……那我们再等等。」他说。\n\n他们又坐回了原处。\n\n你走了很远，回头还能看见那三个人的轮廓，\n在谷口坐成一排。\n\n业障 −2　修为 +'+g; } },
+    { label:'把自己身上的药给他们', hint:'你在谷里拿到过东西',
+      when:()=>evAttr('gengu') >= evPeer('gengu')*1.05,
+      eff:(s,a)=>{
+        a.deed('wy_boy','gave');
+        a.karma(-4); a.lifeBy(-0.02);
+        a.gainStone(-20);
+        const g = a.cult(50,'high');
+        return '你把身上那几株草掏出来，塞进母亲手里。\n\n「嚼了给他含着。」你说，「不一定管用。」\n\n母亲的手在抖。她抓着那几株草，\n像是抓着什么很重的东西。\n\n灵石 −20　业障 −4　修为 +'+g; } }
+  ]
+},
+
+{
+  id:'ev17_wy_measure', loc:'wanyao', tier:2, once:true, title:'他在量什么', cat:'线索',
+  text:(s)=>{
+    const asked = (G.Engine.deedPick && G.Engine.deedPick('wy_man')) === 'asked';
+    if (asked) return '你又回到那排屋子前面。\n\n管事的站在院子中间，手里拿着一杆秤。\n\n他看见你，没有意外。\n\n「你问过我了。」他说，「那我给你看点东西。」';
+    return '那排屋子前面，管事的站在院子中间。\n\n他手里拿着一杆秤，秤盘是空的，\n但他一直举着，像是在等什么压上去。\n\n他看见你，说：「过来。」';
+  },
+  flavor:'秤杆上刻着刻度，密密麻麻，比一般的秤细得多。',
+  choices:[
+    { label:'过去，看他称什么',
+      eff:(s,a)=>{
+        a.clue('clue_grain'); a.karma(-2);
+        const g = a.cult(60,'high');
+        return '他把秤递给你。\n\n「你称称。」\n\n你接过来，什么也没放，秤是平的。\n\n「它一直是平的。」他说，「二十年了。」\n\n「这秤坏了？」\n\n「没坏。」他说，「它是在称一件还没放上去的东西。」\n\n「什么东西？」\n\n「够了没有。」\n\n业障 −2　线索 +1　修为 +'+g; } },
+    { label:'「你们到底在喂什么？」',
+      eff:(s,a)=>{
+        a.deed('wy_measure','asked');
+        a.clue('clue_world'); a.karma(-3);
+        const g = a.cult(70,'high');
+        return '他没有立刻回答。\n\n他把秤收起来，看了看那排屋子，\n又看了看远处的药田。\n\n「他们在下面。」他说。\n\n「谁？」\n\n「阵。」他说完这个字，就不再说了。\n\n业障 −3　线索 +1　修为 +'+g; } },
+    { label:'把秤盘按住',
+      eff:(s,a)=>{
+        a.deed('wy_measure','pressed');
+        a.karma(2);
+        const g = a.cult(40,'mid');
+        return '你伸手，把秤盘往下按。\n\n秤杆翘起来，又慢慢落回去。\n\n他笑了。那是你在这谷里见到的第一个笑。\n\n「每个人都想按一下。」他说。\n\n「按下去会怎么样？」\n\n「不知道。」他说，「没人按到底过。」\n\n业障 +2　修为 +'+g; } }
+  ]
+},
+
+{
+  id:'ev17_wy_pay', loc:'wanyao', tier:3, once:true, title:'工钱', cat:'线索',
+  text:'你要走的时候，管事的把你叫住。\n\n他递过来一个布包。\n\n「工钱。」\n\n你打开：里面不是灵石。是一小把麦子，\n和一张折起来的纸。',
+  choices:[
+    { label:'先看那张纸',
+      eff:(s,a)=>{
+        a.clue('clue_page'); a.karma(-2);
+        const g = a.cult(80,'high');
+        return '你展开纸。\n\n上面是一份名单。名字后面跟着日期。\n\n每一个日期，都是那个人**最后一次**来谷里的日子。\n\n名单的最后一行是空的。日期已经填好了。\n\n**今天。**\n\n业障 −2　线索 +1　修为 +'+g; } },
+    { label:'先把麦子收起来',
+      eff:(s,a)=>{
+        a.gainStone(60); a.deed('wy_pay','grain');
+        const g = a.cult(50,'high');
+        return '你把麦子仔细收进袋里。\n\n收了很久 —— 那把麦子比看起来重得多。\n\n收完你才去看那张纸，但纸已经不见了。\n\n管事的手是空的。他站在那儿看着你，\n表情和平时一样。\n\n「路上吃。」他说。\n\n灵石 +60　修为 +'+g; } },
+    { label:'两样都退回去',
+      eff:(s,a)=>{
+        a.deed('wy_pay','refused');
+        a.karma(-4); a.favor(3);
+        return '你把布包推回去。\n\n「我没干什么。」\n\n他看了你很久。\n\n然后他把布包收起来，说了一句：\n\n「你是第一个退的。」\n\n他转身往回走，走了几步又停下：\n\n「不过你也得知道 —— 退回来的东西，还是要有人吃掉。」\n\n业障 −4　人情 +3'; } }
+  ]
+},
+
+
+
+/* ---- 汇合 · 药谷：管事的把你这一趟记进了那一栏 ---- */
+{
+  id:'ev17_wy_echo', loc:'wanyao', tier:1, once:true, title:'记一笔', cat:'线索',
+  /* ⚠️ wy_echo 自己也在这张表里：这个事件的「把痕迹划掉」那一支，
+     会被后面来的人读出来（下一次进谷时的账本对不上）。
+     自己见证自己在这里是**语义正确**的 —— 它读的确实是自己写下的记录。
+     dev/verify-linkage.js 第 10A 节要求每种选择记录都有下文。 */
+  deeds:['wy_gate','wy_taste','wy_work','wy_man','wy_pill','wy_shiwu','wy_field','wy_boy','wy_measure','wy_pay','wy_echo'],
+  text:(s)=>{
+    const P = id => (G.Engine.deedPick ? G.Engine.deedPick(id) : null);
+    if (P('wy_pay') === 'refused') return '你要出谷的时候，管事的追了出来。\n\n「工钱你不要。」他说，「那这笔账我记不了。」\n\n「那就别记。」\n\n「不行。」他说，「进了谷的人都要记一笔。」';
+    if (P('wy_man') === 'asked') return '你要出谷的时候，管事的追了出来。\n\n他手里拿着账本。\n\n「你问过我，留那些人做什么。」他说，\n「我那天没说完。」';
+    if (P('wy_boy') === 'gave') return '你要出谷的时候，管事的追了出来。\n\n「谷口那三个人，」他说，「你把药给他们了。」\n\n「是。」\n\n他沉默了一会儿。\n\n「那我得跟你说清楚一件事。」';
+    if (P('wy_field') === 'took') return '你要出谷的时候，管事的追了出来。\n\n「你割了第九畦的麦子。」他说。\n\n「是。」\n\n「那畦麦子是给人吃的。」他顿了顿，\n「你知道是**给哪个人**吃的吗。」';
+    return '你要出谷的时候，管事的追了出来。\n\n他手里拿着账本，翻到写着今天的那一页。\n\n「你这一趟，」他说，「我得记一笔。」';
+  },
+  flavor:'账本是新的。但架子上的旧账本，摆了整整一面墙。',
+  choices:[
+    { label:'问他：记我做什么',
+      eff:(s,a)=>{
+        a.clue('clue_grain'); a.karma(-2);
+        const g = a.cult(70,'high');
+        return '他把账本转过来给你看。\n\n你那一页上写着：\n\n**「某日，外来一人。试药九碗，辨出第七碗。\n未取工钱。走。」**\n\n「这些账，」他说，「是给下面看的。」\n\n「下面？」\n\n他指了指脚下。\n\n业障 −2　线索 +1　修为 +'+g; } },
+    { label:'让他把「未取工钱」划掉',
+      eff:(s,a)=>{
+        a.deed('wy_echo','erased');
+        a.karma(1); a.favor(-2);
+        return '你把账本拿过来，用指甲把最后那四个字划了。\n\n他没有拦你。\n\n「划了也一样。」他说，「划了，下面也看得见痕迹。」\n\n你把账本还给他。\n\n业障 +1　人情 −2'; } },
+    { label:'问他：这些账，记了多少年了',
+      eff:(s,a)=>{
+        a.clue('clue_world'); a.karma(-3);
+        const g = a.cult(85,'high');
+        return '他带你走进那间放账本的屋子。\n\n一面墙，全是架子。架子上全是账本。\n\n「第一本在那边。」他指了指最里面。\n\n你走过去，抽出来。封皮上写着一个年份。\n\n你算了算 —— 那是**三百多年前**。\n\n你翻开第一页。第一行写着：\n\n**「今日，谷中人数：一千零四。」**\n\n业障 −3　线索 +1　修为 +'+g; } }
+  ]
+},
+
+]);
+
+
+/* ===== events18.js ===== */
+/* ============================================================
+   《记忆修复局》事件数据 · 第十八批（第 34 轮）
+   路上 —— 赶路专属事件（身法）
+   ------------------------------------------------------------
+   这些事件带 `loc:'*travel'`，**只在「刚赶完路」的那一步**抽得到
+   （见 engine 的 placeAllows：`*travel` 要和 s.travelled 一起判）。
+   抽完那一步就把标记清掉，所以它们不会在你蹲在家里时冒出来。
+
+   为什么要有这一批：
+     第 34 轮加了「花寿元去别处」这个动作。如果赶路只是「扣一笔寿元、
+     换个地方」，那地图就变成一道数学题 —— 玩家会算完距离就走最短路径，
+     路上什么都不发生。这一批是让**路本身**有内容。
+
+   这里认 **身法**：赶路的消耗本来就按身法打折（engine 的 travelCost），
+   这一批再把「路上遇事」也挂上去 ——
+   身法高的人躲得开、走得快、认得出岔路；
+   身法低的人被劫、走错、淋雨。
+
+   ⚠️ 写法约定同 events16/17。
+   ============================================================ */
+
+G.EVENTS = (G.EVENTS || []).concat([
+
+{
+  id:'ev18_tr_road', loc:'*travel', tier:0, title:'三条路', cat:'探索',
+  text:'走到一处岔口，地上有三条路。\n\n中间那条最宽，看得出常有人走。\n左边那条要翻一道坡，坡上有新踩的痕迹。\n右边那条几乎看不见，草长得没过脚踝。\n\n路边没有指路牌。',
+  choices:[
+    { label:'走中间那条',
+      eff:(s,a)=>{
+        a.deed('tr_road','middle');
+        a.lifeBy(-0.01);
+        const g = a.cult(25,'mid');
+        return '中间那条最好走。\n\n走了半天，你碰到一支商队，正在路边歇脚。\n他们看见你，往旁边挪了挪，给你腾了个位置。\n\n你歇了一刻钟，继续走。\n\n修为 +'+g; } },
+    { label:'走左边，翻坡那条',
+      eff:(s,a)=>{
+        a.deed('tr_road','left');
+        a.lifeBy(-0.035);
+        a.attr({tipo:3});
+        const g = a.cult(35,'mid');
+        return '坡很陡，你手脚并用爬上去的。\n\n翻过去之后你看见了走中间的人看不见的东西：\n\n山那边有一整片谷地，谷里有一座城的轮廓。\n\n你在地图上没见过这座城。\n\n**体魄 +3**　修为 +'+g; } },
+    { label:'走右边，草没过脚踝那条', hint:'几乎看不见，但它是路',
+      eff:(s,a)=>{
+        a.deed('tr_road','right');
+        a.lifeBy(-0.02);
+        a.attr({shenfa:4});
+        const g = a.cult(30,'mid');
+        return '草很深，走起来沙沙响。\n\n走了十几步，你发现草是**倒向一边**的 ——\n有人从这条路走过，而且走了不止一次。\n\n你顺着草倒的方向走，一路顺畅。\n\n**身法 +4**　修为 +'+g; } }
+  ]
+},
+
+{
+  id:'ev18_tr_bandit', loc:'*travel', tier:0, title:'路上有人等你', cat:'危险',
+  text:'前面路窄，两边是坡。\n\n坡上站起来三个人。手里都拿着东西。\n\n「东西留下。」中间那个说，「人可以走。」',
+  choices:[
+    { label:'把灵石给他们',
+      eff:(s,a)=>{
+        a.gainStone(-45);
+        a.karma(-1);
+        return '你把袋子解下来，放在地上，踢了过去。\n\n他捡起来掂了掂，侧身让开路。\n\n你走过去的时候，最边上那个一直盯着你的鞋看。\n\n你的鞋是新的。他的不是。\n\n灵石 −45　业障 −1'; } },
+    { label:'动手',
+      eff:(s,a)=>{
+        a.challenge({
+          foe:{ name:'劫道的', hp:70, atk:9, tier:'weak' },
+          outcome:{
+            win:{ stone:110, cult:80, tier:'high', karma:2, flag:'won_bandit' },
+            lose:{ lifePct:-0.09, stone:-40, karma:-1 }
+          }
+        });
+        return '你把袋子往身后一甩，先动了手。'; } },
+    { label:'转身往回跑', hint:'身法够快才跑得掉',
+      when:()=>evAttr('shenfa') >= evPeer('shenfa')*1.2,
+      eff:(s,a)=>{
+        a.deed('tr_bandit','ran');
+        a.lifeBy(-0.03);
+        const g = a.cult(30,'mid');
+        return '你转身就跑。\n\n身后有脚步声追了几十步，然后停了。\n\n你没有回头，一直跑到那道坡看不见了才停。\n\n你扶着膝盖喘气，笑了出来。\n\n（你跑掉了。你也不知道为什么觉得好笑。）\n\n修为 +'+g; } }
+  ]
+},
+
+{
+  id:'ev18_tr_companion', loc:'*travel', tier:0, title:'同路的人', cat:'人事',
+  text:'走出十几里，你发现身后一直有脚步声。\n\n不快不慢，跟你一个速度。\n\n你停下来，他也停下来。\n\n你回头，看见一个背着包袱的中年人，\n冲你笑了笑，有点不好意思。',
+  choices:[
+    { label:'等他跟上来，一起走',
+      eff:(s,a)=>{
+        a.favor(2); a.karma(-1);
+        const g = a.cult(30,'mid');
+        return '他快步赶上来，和你并排走。\n\n一路上他说了很多话：他要去投亲，\n他有一个女儿，他女儿三年前嫁到了南边。\n\n「你呢？」他问。\n\n你说了。他听完点点头，说：「那也挺好。」\n\n走到岔口，他往南，你往北。\n\n人情 +2　业障 −1　修为 +'+g; } },
+    { label:'让他先走',
+      eff:(s,a)=>{
+        a.lifeBy(0.01);
+        return '你侧身让他先过。\n\n他道了谢，走了。走了几步又回头：\n\n「前面三十里有驿站，你别错过了。」\n\n寿元 +'+a.lifePct(0.01); } },
+    { label:'问他：你为什么一直跟着我',
+      eff:(s,a)=>{
+        a.deed('tr_comp','asked');
+        a.clue('clue_page');
+        const g = a.cult(45,'high');
+        return '他愣了一下。\n\n「因为路上一个人走，会走岔。」他说。\n\n「走岔会怎么样？」\n\n「走岔了，就走到别的地方去了。」他顿了顿，\n「我以前走岔过一次。走到一个村子里，\n那村里的人说，我是他们村的人。」\n\n「你不是？」\n\n「我不知道。」他说。\n\n修为 +'+g; } }
+  ]
+},
+
+{
+  id:'ev18_tr_rain', loc:'*travel', tier:0, title:'下雨了', cat:'探索',
+  text:'雨来得很快。\n\n你没有带伞，前后都没有人家。\n\n路边有一座塌了一半的亭子。',
+  choices:[
+    { label:'进亭子躲雨',
+      eff:(s,a)=>{
+        a.lifeBy(0.015);
+        const g = a.cult(20,'mid');
+        return '你钻进亭子。\n\n屋顶漏了两处，你挪了三次才找到一个不漏的地方。\n\n雨下了半个时辰。你看着外面，什么也没想。\n\n雨停之后，空气很干净。\n\n寿元 +'+a.lifePct(0.015)+'　修为 +'+g; } },
+    { label:'淋着走',
+      eff:(s,a)=>{
+        a.lifeBy(-0.04);
+        const g = a.cult(40,'mid');
+        return '你接着走。\n\n雨越下越大，很快就湿透了。衣服贴在身上，很重。\n\n走到后来你不觉得冷了，只觉得安静 ——\n雨把别的声音都盖住了。\n\n修为 +'+g; } },
+    { label:'进亭子，顺便看看亭子里的字', hint:'亭柱上通常有人写字',
+      when:()=>evAttr('wuxing') >= evPeer('wuxing')*1.1,
+      eff:(s,a)=>{
+        a.deed('tr_rain','read');
+        a.clue('clue_grave');
+        const g = a.cult(50,'high');
+        return '你进了亭子，先看柱子。\n\n柱子上果然有字 —— 密密麻麻，都是过路的人留的。\n\n大多是名字和年份。\n\n其中有一行是新的，墨色还没全黑：\n\n**「走到这里，还是没想起来。」**\n\n下面没有署名。\n\n修为 +'+g; } }
+  ]
+},
+
+{
+  id:'ev18_tr_lost', loc:'*travel', tier:0, title:'走岔了', cat:'探索',
+  text:'你走了半天，才发觉不对。\n\n路边的树你见过 —— 一个时辰前就见过。\n\n你不是在往前走。你是在绕圈。',
+  choices:[
+    { label:'原路退回去，重新找路',
+      eff:(s,a)=>{
+        a.lifeBy(-0.05);
+        const g = a.cult(30,'mid');
+        return '你往回走。\n\n走回上一个岔口花了一个多时辰。\n\n你在岔口站了很久，最后是看地上的草认出来的 ——\n一边的草被踩过，另一边没有。\n\n修为 +'+g; } },
+    { label:'爬上一棵树看方向',
+      eff:(s,a)=>{
+        a.lifeBy(-0.02);
+        a.attr({shenshi:4});
+        const g = a.cult(35,'mid');
+        return '你挑了一棵最粗的爬上去。\n\n爬到一半手就酸了。爬到顶的时候，整片林子在你脚底下。\n\n你看见了方向 —— 也看见了另外一件事：\n\n你刚才绕的那个圈，很圆。\n\n圆得不像走出来的。\n\n**神识 +4**　修为 +'+g; } },
+    { label:'不找了，就地歇着', hint:'天黑之前总能想明白',
+      when:()=>evAttr('gengu') >= evPeer('gengu')*1.0,
+      eff:(s,a)=>{
+        a.deed('tr_lost','rested');
+        a.lifeBy(0.02);
+        const g = a.cult(25,'mid');
+        return '你找了块石头坐下。\n\n坐着坐着，天就黑了。\n\n天黑之后，林子里的方向反而清楚了 ——\n远处有灯火，一直在那个方向，没有动过。\n\n你朝灯火走。半个时辰就出去了。\n\n寿元 +'+a.lifePct(0.02)+'　修为 +'+g; } }
+  ]
+},
+
+{
+  id:'ev18_tr_post', loc:'*travel', tier:0, title:'驿站', cat:'人事',
+  text:'路边有一处驿站。招牌上写着两个字，其中一个已经看不清了。\n\n里面坐着几个人，都在喝茶。\n\n掌柜的看见你，说：\n\n「住店还是打尖？」',
+  choices:[
+    { label:'打尖。要一碗热的',
+      eff:(s,a)=>{
+        a.gainStone(-12); a.lifeBy(0.025);
+        return '你要了一碗汤面。\n\n面上得很快，热气扑在脸上，眼睛一下就湿了。\n\n你吃得很慢。\n\n吃完你在桌上趴了一会儿，才起身走。\n\n灵石 −12　寿元 +'+a.lifePct(0.025); } },
+    { label:'坐下来听他们说什么',
+      eff:(s,a)=>{
+        a.clue('clue_page');
+        const g = a.cult(40,'mid');
+        return '你要了一碗最便宜的茶，坐在角落里。\n\n他们说的是最近的事：哪座山闹了妖，\n哪条路断了，谁家又出了一个能修仙的孩子。\n\n说到后来，有一个人说：\n\n「北边那个剑冢，最近又添了新剑。」\n\n另一个人问：「谁送的？」\n\n「不知道。没刻名字。」\n\n修为 +'+g; } },
+    { label:'问掌柜的：这招牌上另一个字是什么',
+      eff:(s,a)=>{
+        a.deed('tr_post','asked');
+        a.favor(1);
+        const g = a.cult(30,'mid');
+        return '他抬头看了看招牌，笑了。\n\n「不知道。」他说，「我接手的时候就这样了。」\n\n「没问过上一个掌柜？」\n\n「问过。」他说，「他说他来的时候也这样。」\n\n人情 +1　修为 +'+g; } }
+  ]
+},
+
+{
+  id:'ev18_tr_wind', loc:'*travel', tier:1, title:'变天了', cat:'危险',
+  text:'风变了。\n\n刚才还是顺风，现在是横的，而且越来越大。\n\n前面还有半天的路，回头也要半天。\n\n路右边有一处石壁，凹进去一块，能挡风。',
+  choices:[
+    { label:'在石壁下等到风小',
+      eff:(s,a)=>{
+        a.lifeBy(-0.02);
+        const g = a.cult(25,'mid');
+        return '你贴着石壁坐下来。\n\n风从头顶上过去，一阵一阵。\n\n你等了很久。等到风小的时候，天已经擦黑了。\n\n你站起来，拍了拍身上的土。\n\n修为 +'+g; } },
+    { label:'顶着风走完这半天',
+      eff:(s,a)=>{
+        a.lifeBy(-0.07);
+        const g = a.cult(55,'high');
+        return '你把领口拢紧，低着头往前走。\n\n风把你吹得走一步退半步，但你一直在走。\n\n走到天完全黑了才到。\n\n到了之后你才发现，嘴唇裂了。\n\n修为 +'+g; } }
+  ]
+},
+
+{
+  id:'ev18_tr_shrine', loc:'*travel', tier:0, title:'路边的小庙', cat:'机缘',
+  text:'路边有一座很小的庙，小到只能容一个人进去。\n\n庙里没有神像，只有一个石台。\n台上放着几样东西：\n\n半块干粮，一小把米，还有一根很旧的绳。\n\n都是路过的人留下的。',
+  choices:[
+    { label:'也留一样东西',
+      eff:(s,a)=>{
+        a.deed('tr_shrine','gave');
+        a.gainStone(-10); a.karma(-3);
+        const g = a.cult(35,'mid');
+        return '你在身上摸了摸，摸出十块灵石，放在台上。\n\n放的时候你注意到，台下沿被磨得很光 ——\n很多人在同一个位置放过东西。\n\n灵石 −10　业障 −3　修为 +'+g; } },
+    { label:'拿那半块干粮',
+      eff:(s,a)=>{
+        a.deed('tr_shrine','took');
+        a.karma(2); a.lifeBy(0.02);
+        return '你把那半块干粮拿起来，吃了。\n\n已经硬了，但还能嚼。\n\n吃完你把绳子也拿走了 —— 绳子有用。\n\n走的时候你没有回头看那座庙。\n\n业障 +2　寿元 +'+a.lifePct(0.02); } },
+    { label:'什么都不动，进去坐一会儿',
+      eff:(s,a)=>{
+        a.deed('tr_shrine','sat');
+        a.karma(-1); a.lifeBy(0.015);
+        const g = a.cult(25,'mid');
+        return '你侧身进去，在石台前面坐下。\n\n庙里比外面安静，也比外面暖一点。\n\n你坐了一炷香，然后出来，接着赶路。\n\n台上的东西一样没少。\n\n业障 −1　寿元 +'+a.lifePct(0.015)+'　修为 +'+g; } }
+  ]
+},
+
+{
+  id:'ev18_tr_night', loc:'*travel', tier:1, title:'夜里赶路', cat:'危险',
+  text:'你算计错了路程，天黑的时候离下一个落脚点还有很远。\n\n月亮被云挡着。\n\n你能看见的只有脚下三尺。',
+  choices:[
+    { label:'摸着走，慢一点',
+      eff:(s,a)=>{
+        a.lifeBy(-0.04);
+        const g = a.cult(35,'mid');
+        return '你走得很慢，每一步都先用脚尖探一下。\n\n走到半夜，云开了。\n\n月光洒下来，整条路一下子清清楚楚。\n\n你这才发现，你刚才摸黑走的那一段，\n旁边就是悬崖。\n\n修为 +'+g; } },
+    { label:'找棵树爬上去，在树上过夜',
+      eff:(s,a)=>{
+        a.lifeBy(-0.01);
+        a.attr({shenfa:5});
+        const g = a.cult(30,'mid');
+        return '你找了棵分杈多的树，爬上去，把自己卡在两根粗枝中间。\n\n睡得不踏实，但睡着了。\n\n天亮的时候你是被鸟吵醒的。\n\n**身法 +5**　修为 +'+g; } },
+    { label:'生一堆火，原地等天亮', hint:'有火就不怕',
+      when:()=>evAttr('tipo') >= evPeer('tipo')*1.1,
+      eff:(s,a)=>{
+        a.lifeBy(0.02);
+        const g = a.cult(28,'mid');
+        return '你捡了些干柴，用火折子点着。\n\n火起来之后，周围亮了一圈。\n\n你靠着树坐着，往里添柴，添了一夜。\n\n天亮的时候火还剩一点。\n\n寿元 +'+a.lifePct(0.02)+'　修为 +'+g; } }
+  ]
+},
+
+{
+  id:'ev18_tr_meet', loc:'*travel', tier:1, title:'对面来的人', cat:'人事',
+  text:'路上有个人迎面走来。\n\n他走得很急，低着头。\n\n走近了你才看清 —— 他的衣服和你的很像。\n\n他也看见了。他停住了。\n\n两个人站在路上，谁也没先开口。',
+  choices:[
+    { label:'先开口，问他去哪儿',
+      eff:(s,a)=>{
+        a.favor(2);
+        const g = a.cult(35,'mid');
+        return '「南边。」他说。\n\n「去做什么？」\n\n「找人。」\n\n他看了你一眼，像是想说什么，最后只说了一句：\n\n「你往北走的话，路上小心点。」\n\n然后他走了。\n\n人情 +2　修为 +'+g; } },
+    { label:'点点头，错身过去',
+      eff:(s,a)=>{
+        a.deed('tr_meet','passed');
+        const g = a.cult(20,'mid');
+        return '你们互相点了一下头，各走各的。\n\n走出十几步，你忽然想起来一件事：\n\n他刚才停住的时候，是先看的你的**鞋**。\n\n修为 +'+g; } },
+    { label:'回头叫住他，问他叫什么', hint:'你们穿的是一样的衣服',
+      when:()=>evAttr('shenshi') >= evPeer('shenshi')*1.15,
+      eff:(s,a)=>{
+        a.deed('tr_meet','named');
+        a.clue('clue_name'); a.karma(-2);
+        const g = a.cult(60,'high');
+        return '你回头叫了一声。\n\n他站住了，但没有回头。\n\n「你叫什么？」你问。\n\n他站了很久。久到你以为他不会回答了。\n\n然后他说了一个名字。\n\n那是**你的**名字。\n\n业障 −2　线索 +1　修为 +'+g; } }
+  ]
+},
+
+{
+  id:'ev18_tr_arrive', loc:'*travel', tier:1, title:'快到的时候', cat:'探索',
+  /* ⚠️ 这里见证 tr_echo：你在路上「回头看看来路」之后，
+     下一次快到目的地时那种「走过这条路」的感觉才对得上。
+     dev/verify-linkage.js 第 10A 节要求每种选择记录都有下文。 */
+  deeds:['tr_echo'],
+  text:(s)=>{
+    const to = (s && s.place) ? G.placeById(s.place) : null;
+    const from = (s && s.travelFrom) ? G.placeById(s.travelFrom) : null;
+    if (to && from) return `你走了很远。\n\n翻过最后一道坡的时候，${to.name}已经在眼前了。\n\n你回头看了一眼来路 —— ${from.name}在那个方向，\n但已经看不见了。\n\n你站了一会儿。`;
+    return '你走了很远。\n\n翻过最后一道坡的时候，前面已经在眼前了。\n\n你回头看了一眼来路。\n\n已经看不见了。';
+  },
+  flavor:'你站在坡上，风从背后吹过来。',
+  choices:[
+    { label:'继续走，进去',
+      eff:(s,a)=>{
+        a.lifeBy(0.02);
+        const g = a.cult(30,'mid');
+        return '你下了坡。\n\n路越走越宽，人越来越多。\n\n寿元 +'+a.lifePct(0.02)+'　修为 +'+g; } },
+    { label:'在坡上再站一会儿',
+      eff:(s,a)=>{
+        a.lifeBy(0.035);
+        a.karma(-2);
+        const g = a.cult(40,'mid');
+        return '你在坡上坐下来。\n\n坐了很久。太阳从你左边移到了右边。\n\n你想起了一些事。都是些很小的事：\n某一年冬天，某一个人的名字，某一句没说完的话。\n\n然后你站起来，往下走。\n\n寿元 +'+a.lifePct(0.035)+'　业障 −2　修为 +'+g; } }
+  ]
+},
+
+
+
+/* ---- 汇合 · 路上：走得多了，路自己会说话 ----
+   ⚠️ tr_* 这一族事件带 loc:'*travel'，只在「刚赶完路」的那一步抽得到。
+      所以这个汇合事件也必须是 *travel，否则它永远等不到那一步。 */
+{
+  id:'ev18_tr_echo', loc:'*travel', tier:1, once:true, title:'路认得你了', cat:'探索',
+  deeds:['tr_road','tr_bandit','tr_comp','tr_rain','tr_lost','tr_post','tr_shrine','tr_meet'],
+  text:(s)=>{
+    const P = id => (G.Engine.deedPick ? G.Engine.deedPick(id) : null);
+    if (P('tr_bandit') === 'ran') return '你走在路上，忽然听见身后有脚步声。\n\n你没有回头。你走快了一点。\n\n脚步声也快了。\n\n然后你听见一个声音说：\n\n「别跑。上次那个跑掉的，是你吧。」';
+    if (P('tr_meet') === 'named') return '你走在路上，对面又来了一个人。\n\n他停住了。\n\n「又见面了。」他说。\n\n你想不起来在哪儿见过他 ——\n但你记得那个名字。那是你的名字。';
+    if (P('tr_shrine') === 'took') return '你走在路上，路边又出现了一座小庙。\n\n和上次那座一模一样，小到只能容一个人。\n\n你走过去的时候，看见台上放着东西 ——\n\n半块干粮，一小把米，一根很旧的绳。';
+    if (P('tr_lost') === 'rested') return '你走在路上，又到了一个岔口。\n\n这一次你没有犹豫。\n\n你坐下来，等到天黑，然后朝灯火的方向走。\n\n你甚至有点想笑：你已经知道该怎么走了。';
+    return '你走在路上。\n\n走出去很远之后你才发现一件事：\n\n这条路你走过。不是这一趟 —— 是以前某一趟。\n\n连路边那块歪着的石头，你都认得。';
+  },
+  flavor:'路很长。天很好。',
+  choices:[
+    { label:'接着走，看看前面有什么',
+      eff:(s,a)=>{
+        a.clue('clue_page');
+        a.lifeBy(0.015);
+        const g = a.cult(45,'high');
+        return '你接着走。\n\n走到傍晚，路边的树开始变稀。\n\n前面有炊烟。\n\n不是驿站，是一个村子 —— 地图上没有的村子。\n\n寿元 +'+a.lifePct(0.015)+'　修为 +'+g; } },
+    { label:'站住，回头看看来路',
+      eff:(s,a)=>{
+        a.deed('tr_echo','looked');
+        a.karma(-2);
+        const g = a.cult(55,'high');
+        return '你站住了，回头看。\n\n来路很长，一直通到看不见的地方。\n\n你忽然发现，你走过的每一段路，\n连起来是一条**很直的线**。\n\n你没有绕过一次弯。\n\n可你明明记得，你在那个岔口犹豫过很久。\n\n业障 −2　修为 +'+g; } },
+    { label:'在路边坐下来歇一会儿', hint:'走了这么多路，该歇了',
+      when:()=>evAttr('gengu') >= evPeer('gengu')*1.0,
+      eff:(s,a)=>{
+        a.lifeBy(0.03);
+        const g = a.cult(30,'mid');
+        return '你在路边一块石头上坐下来。\n\n把鞋脱了，倒了倒里面的土。\n\n土很多。你倒了一会儿才倒干净。\n\n然后你穿上鞋，接着走。\n\n寿元 +'+a.lifePct(0.03)+'　修为 +'+g; } }
+  ]
+},
+
+]);
+
+
 /* ===== mijing.js ===== */
 /* ============================================================
    秘境（第 27 轮新增）
@@ -11473,6 +13152,16 @@ function newRun(lots, seed){
     attrGain: 0,        // 已经过几次境界成长（每突破一次 +1）
     attrBonus: {},      // 机缘带来的属性加成
 
+    /* 地理（第 34 轮）
+       place      你现在在哪儿（place id）
+       visited    去过的地方（去过才画实心点；也用来做「第一次到某地」的演出）
+       travelFrom 刚从哪儿来（赶路事件用得上：你走的是哪条路）
+       placeEnvDue  本步要不要吃环境代价（只有「在一个地方待着的行动」才吃，
+                    赶路那一步本身按距离收费，不重复收环境的钱） */
+    place: 'home',
+    visited: ['home'],
+    travelFrom: null,
+
     // 资源
     /* 开局灵石只来自签运（第 25 轮：「积蓄」不再往这里加固定值，
        它改成了「灵石收入 +6%/级」，见 gainStone 的说明） */
@@ -11769,6 +13458,30 @@ function doAction(kind){
   // 1. 扣寿元
   s.life -= cost;
   s.actions++;
+  /* ⚠️ 第 34 轮：赶路那一步已经按距离收过钱了，这里要把标记清掉 ——
+     否则「刚赶完路」会被后面的东西再读一次（地域分层里的 *travel 事件
+     是给「这一步刚赶完路」用的，只能生效一次）。 */
+  s.travelled = false;
+
+  /* 1b. 环境代价（第 34 轮）：你待的这个地方本身就在耗你。
+     冰原的严寒、荒漠的烈日、地底的无光、云上的罡风、药洲的药毒、
+     太玄门的威压 —— 每一项都由一个属性来抗（见 G.PLACE_ENV）。
+     这是「属性有专属舞台」最直接的落点：同一片冰原，
+     体魄高的人走起来是散步，体魄低的人走起来是掉命。
+     ⚠️ 只在「做事」的时候收，赶路那一步不收（否则跨一次冰原要付两份钱）。 */
+  {
+    const ec = placeEnvCost();
+    if (ec.amount > 0){
+      s.life -= ec.amount;
+      const envName = (G.PLACE_ENV[ec.env] || {}).name || '这里';
+      msgs.push(`${envName}　寿元 −${ec.amount}` +
+                (ec.discount > 0.005 ? `（已减免 ${Math.round(ec.discount*100)}%）` : ''));
+      if (s.life <= 0){
+        const d = checkDeath('life');
+        if (d && !d.saved) return { ok:false, cost:cost, msgs:msgs, dead:d, envCost:ec.amount };
+      }
+    }
+  }
 
   // 2. 行动产出
   const a = agg();
@@ -13156,6 +14869,132 @@ function chapterAllows(e, chapter){
   return ec === 'any' || ec === chapter;
 }
 
+/* ============================================================
+   地理 · 远行（第 34 轮新增）
+   ------------------------------------------------------------
+   见 src/geography.js 的数据说明。这里只做四件事：
+     ① 你现在在哪儿 / 哪些地方看得见
+     ② 赶路要花多少寿元（公式是唯一真源，界面照抄）
+     ③ 走过去（扣寿元、记来源、写记事）
+     ④ 每个地方一次行动要额外付的环境代价
+
+   ⚠️ 三处刻意的设计约束：
+     · **赶路不额外扣「行动数」** —— 它自己就是一次行动。
+       如果既扣行动又扣寿元，等于收两道税。
+     · **环境代价只在「待在某个地方做事」时收**，赶路那一步不收
+       （否则跨一次冰原要付两份钱）。环境代价挂在 doAction 上。
+     · **门槛要在引擎层挡**（canTravelTo），不能靠界面藏按钮 ——
+       这是第 27 轮秘境那条规矩，interface 不能是唯一的守卫。
+   ============================================================ */
+function currentPlace(){
+  const p = G.placeById(s && s.place);
+  return p || G.placeById('home');            // 老存档 / 脏数据都退回家
+}
+function isPlaceKnown(id){
+  const p = G.placeById(id);
+  if (!p) return false;
+  if (p.kind === 'home') return true;
+  if (p.hidden && !placeDiscovered(p)) return false;   // 神识不够 → 地图上根本不画
+  return true;
+}
+/* 「发现」判定：神识门槛。血河宗这类藏起来的地方靠它。
+   比例是相对同境界普通人（evPeer），所以任何境界都成立。 */
+function placeDiscovered(p){
+  if (!p.hidden) return true;
+  const need = (p.gate && p.gate.shenshi) || 1;
+  if (need <= 1) return true;
+  return evAttr('shenshi') >= evPeer('shenshi') * need;
+}
+function canTravelTo(id){
+  const p = G.placeById(id);
+  if (!p) return { ok:false, msg:'没有这个地方' };
+  if (s.place === id) return { ok:false, msg:'你已经在这儿了' };
+  if (challenge && challenge.active) return { ok:false, msg:'架还没打完' };
+  const maj = (G.REALMS[s.realmIdx] || { major:1 }).major;
+  if (p.gate && p.gate.major && maj < p.gate.major)
+    return { ok:false, msg:`境界不够（要到第 ${p.gate.major} 个大境界）` };
+  if (p.hidden && !placeDiscovered(p))
+    return { ok:false, msg:'你不知道有这么个地方' };
+  const cost = travelCost(id);
+  if (s.life - cost <= 0) return { ok:false, msg:`寿元不够（要 ${cost}，你还有 ${s.life}）` };
+  return { ok:true, cost:cost };
+}
+/* 赶路消耗。
+   ⚠️ 公式是唯一真源 —— 界面必须调用它来显示，不许自己算一遍
+     （第 20 轮的教训：界面自己算 = 界面会说谎）。 */
+function travelCost(id){
+  const dist = G.travelDist(s.place, id);
+  const base = actionCost();
+  const units = Math.max(G.TRAVEL.minUnits, G.TRAVEL.minUnits + dist * G.TRAVEL.perGrid);
+  const raw = base * units;
+  /* 身法折扣：走得快的人少烧一点。封顶 −50%，不让它把距离抹平。 */
+  const cut = Math.min(G.TRAVEL.shenfaCap, evAttr('shenfa') * G.TRAVEL.shenfaPer);
+  return Math.max(base, Math.round(raw * (1 - cut)));
+}
+/* 环境代价：在这个地方做一次行动，额外扣多少寿元。
+   返回 { amount, env, discount } —— 界面要显示「这里在耗你多少」。 */
+function placeEnvCost(placeId){
+  const p = placeId ? G.placeById(placeId) : currentPlace();
+  if (!p || !p.env) return { amount:0, env:null, discount:0 };
+  const e = G.PLACE_ENV[p.env];
+  if (!e) return { amount:0, env:null, discount:0 };
+  const discount = G.envDiscount(p.env, evAttr(e.resist));
+  const amount = Math.max(0, Math.round(actionCost() * e.cost * (1 - discount)));
+  return { amount:amount, env:p.env, discount:discount };
+}
+/* 走过去。返回 { ok, place, cost, first } */
+function travelTo(id){
+  const chk = canTravelTo(id);
+  if (!chk.ok) return { ok:false, msg:chk.msg };
+  const p = G.placeById(id);
+  const from = currentPlace();
+  const first = (s.visited || []).indexOf(id) < 0;
+
+  s.actions++;                       // 赶路自己就是一次行动
+  s.life -= chk.cost;
+  s.travelFrom = from.id;
+  s.place = id;
+  if (!s.visited) s.visited = [];
+  if (s.visited.indexOf(id) < 0) s.visited.push(id);
+  /* 到了别处，宗门的日常事务暂时做不了 —— 这件事在 availableActions 里体现，
+     不在这里扣任何隐藏数值（玩家不该被暗算）。 */
+  log(`你走了 ${G.travelDist(from.id, id)} 天的路，到了${p.name}。`);
+  if (first) note('place', `第一次到${p.name}。`);
+  else note('place', `又回了一趟${p.name}。`);
+
+  /* 到了就得看看路上有没有事 —— 交给界面 afterActionFlow 抽事件
+     （它本来就在每次行动后跑，这里只需要一个标记说「这一步是赶路」）。 */
+  s.travelled = true;
+
+  if (s.life <= 0){
+    const d = endRun('life');
+    return { ok:true, place:p, cost:chk.cost, first:first, from:from.id, dead:d };
+  }
+  return { ok:true, place:p, cost:chk.cost, first:first, from:from.id };
+}
+/* 地图要画的那些点（含「看得见但进不去」的） */
+function visiblePlaces(){
+  return G.PLACES.filter(p => isPlaceKnown(p.id)).map(p => {
+    const chk = canTravelTo(p.id);
+    const reach = p.gate && p.gate.major
+      ? ((G.REALMS[s.realmIdx] || {major:1}).major >= p.gate.major) : true;
+    return {
+      id:p.id, name:p.name, region:p.region, kind:p.kind, you:p.you,
+      env:p.env, attrs:p.attrs || [], tianjiao:p.tianjiao || null,
+      open: p.open !== false,
+      openNote: p.openNote || '',
+      here: s.place === p.id,
+      visited: (s.visited || []).indexOf(p.id) >= 0,
+      known: isPlaceKnown(p.id),
+      reach: reach,                                  // 境界够不够
+      can: !!chk.ok,                                 // 现在能不能走
+      why: chk.msg || '',
+      cost: (s.place === p.id) ? 0 : travelCost(p.id),
+      dist: G.travelDist(s.place, p.id)
+    };
+  });
+}
+
 /* 「回响优先级」：哪些事件是某条因果的**兑现**。
    第 31 轮实测的问题：内容 336 个事件、可抽 291 个，
    而一局只抽得到 45~66 次事件 —— 于是「你当初那一步的回响」
@@ -13207,6 +15046,16 @@ function stageAllows(e, realm){
   return want.indexOf(stageOf(realm)) >= 0;
 }
 
+/* 地域分层（第 34 轮）。见 pickEvent 里 ④ 的说明。
+   travellingNow = 这一步是不是「刚赶完路」。 */
+function placeAllows(e, placeId, travellingNow){
+  if (!e.loc) return true;                       // 没写 = 基础事件，哪都能抽
+  const want = [].concat(e.loc);
+  if (want.indexOf(placeId) >= 0) return true;
+  if (want.indexOf('*travel') >= 0 && travellingNow) return true;
+  return false;
+}
+
 function pickEvent(){
   const myMajor = (G.REALMS[s.realmIdx] || {major:1}).major;
   const myChapter = s.chapter || 'zongmen';
@@ -13222,6 +15071,13 @@ function pickEvent(){
     if (!stageAllows(e, myRealm)) return false;
     /* ③ 篇章分层：散修篇不再抽到宗门事件 */
     if (!chapterAllows(e, myChapter)) return false;
+    /* ④ 地域分层（第 34 轮）—— 规则是**加法式**的：
+          · 没写 loc  → 基础事件，在任何地方都能抽（370 个老事件一行都不用改）
+          · 写了 loc  → 只在列出的那些地方能抽
+        ⚠️ 刻意不做「写了 loc 就从别处排除」那种全局改写 ——
+       那会让「在某地」变成「别处内容变少」，与「加内容」的初衷正好相反。
+       特殊值 '*travel'：只在「刚赶完路」的那一步出现。 */
+    if (!placeAllows(e, s.place, !!s.travelled)) return false;
     return true;
   });
   if (!pool.length) return null;
@@ -13473,8 +15329,58 @@ function combatStats(){
   // 普通攻击：由属性总和驱动 × 卡牌战力，不限次数的可靠输出
   const basicAtk = Math.max(3, Math.round((4 + attrSum*0.20) * realmMul * powerMul * pct('atkBase', 0.03) * (1 + dmgBonus)));
   const techPower = Math.round(Math.max(5, Math.round((6 + attrSum*0.30) * realmMul * powerMul)) * techMul * pct('techBase', 0.03) * (1 + dmgBonus));
-  const critChance = Math.min(0.60, 0.03 + A.shenshi*0.010 + (up.crit||0)*0.02 + (ag.critSet||0));
-  const evade = Math.min(0.38, A.shenfa*0.010 + (up.evade||0)*0.015 + (temp.evade || 0));
+  /* 重击与闪避：**软上限**（第 34 轮改）
+     ------------------------------------------------------------
+     玩家反馈：「很多数值是无效的，例如神识，游戏中似乎没有任何地方
+     能体现出这些属性的作用」。
+
+     实测确认了这件事，但原因和「没用」不太一样：
+     六项都通过 attrSum 影响普攻与招式，所以任何一项都不是死的；
+     问题是**溢出的那部分白拿**：
+       · 一局能拿到的神识上限约 133 点，而 `3% + 神识×1%` 在 57 点就顶到 60% ——
+         后面的 76 点在战斗里毫无作用
+       · 身法同理：一局 135 点，`身法×1%` 在 38 点就顶到 38% 的闪避上限 ——
+         后面 97 点白拿
+
+     所以改成「先线性、后衰减、上限抬高」：
+       前 rampAt 点之内仍然是一点换一个百分点（**手感不变**，
+       这是刻意保住的：改数值最先坏掉的就是手感），
+       超过之后按 half 为半衰距离指数逼近 cap。
+
+     ⚠️ 这里我连着写错了三次，三次错法都值得记下来 ——
+       它们全都是「软上限退化成硬上限」，而且**看起来都对**：
+       ① cap=0.87, half=0.40：`rampAt×per + half` = 0.57+0.40 = 0.97 > 0.87
+          → 在 rampAt 那一点就撞顶。
+       ② cap=0.80, half=0.60：0.57+0.60 = 1.17 > 0.80 → 又在 57 点撞顶。
+       ③ cap=1.0, half=0.45：指数段终于展开了，但**外层还有一道硬上限**
+          （`Math.min(0.90, …)`），而曲线渐近到 1.0 > 0.90 ——
+          于是玩家在 57 点就顶到那个 0.90，后面还是白拿。
+       三次的共同根因：**渐近值没有对齐真正想要的天花板**。
+       正确做法是让内层曲线直接渐近到「上限减去基础值」，
+       这样外层那道 min 永远不会被触发，曲线在整局里都在涨。
+       现在：重击 = 3% + 0.87×(1−e^−…)（渐近 90%，**永远差一点点**），
+             闪避 = 0.55×(1−e^−…)（渐近 55%）。
+       前 rampAt 点仍然一点换一个百分点，手感不变。
+       渐近值必须离硬顶留出可见的余量（这里留 0.87 / 0.55 而不是 0.90 / 0.55），
+       否则浮点误差会让它正好落在硬顶上，测试里就能看到「不再增长」。
+     dev/verify-attrvalue.js 会断言「一局上限处仍在涨」。 */
+  const soft = (attrValue, per, rampAt, asymptote) => {
+    const v = Math.max(0, attrValue || 0);
+    if (v <= rampAt) return v * per;
+    const y0 = rampAt * per;
+    /* ⚠️ 指数必须**减去 1**：写成 `asym − (asym−y0)·e^(−over/t)` 在 over=0 处
+       会得到 asym 而不是 y0 —— 于是 rampAt 那一点会突然跳一大截，
+       曲线出现一个台阶，而且台阶前后会**下降**（这一段被
+       dev/verify-attrvalue.js 的单调性检查当场抓到）。
+       正确写法是 `y0 + (asym−y0)·(1 − e^(−over/t))`，
+       它在 over=0 处正好等于 y0，是连续的。 */
+    const t = 50;
+    return y0 + (asymptote - y0) * (1 - Math.exp(-(v - rampAt) / t));
+  };
+  const critChance = 0.03 + soft(A.shenshi, 0.010, 57, 0.87)
+                          + (up.crit||0)*0.02 + (ag.critSet||0);
+  const evade = soft(A.shenfa, 0.010, 38, 0.55)
+                     + (up.evade||0)*0.015 + (temp.evade || 0);
   /* 常驻护体：卡牌的 ward 第一次真的有用。
      转换成百分比减伤（上限 35%），而不是直接减去伤害点——
      因为敌人攻击是随境界指数涨的，平减会在后期变成零。 */
@@ -13619,8 +15525,17 @@ function startChallenge(cfg){
 
   /* 天骄：在同境界「凶物」的基础上再乘一层倍率（第 22 轮）。
      玩家要求「除非数值远超同境界，否则不可能战胜」——
-     所以这不是强一点，是量级上的差距（气血 ×3.2 / 攻击 ×2.0）。 */
-  const TJ = (cfg.tianjiao && G.TIANJIAO_MUL) ? G.TIANJIAO_MUL : { hp:1, atk:1 };
+     所以这不是强一点，是量级上的差距（气血 ×5.2 / 攻击 ×2.9）。
+     ⚠️ 第 34 轮：倍率可以**按大境界分级**（G.TIANJIAO_MUL_BY_MAJOR）。
+     起因是把重击/闪避的硬上限换成软上限之后，堆满数值的玩家在元婴段
+     变成 100% 稳赢，而「最高那一段要留一点威慑」是定过的设计约束。
+     见 chars.js 里 G.TIANJIAO_MUL_BY_MAJOR 的说明。 */
+  let TJ = { hp:1, atk:1 };
+  if (cfg.tianjiao){
+    const majNow = (G.REALMS[s.realmIdx] || { major:1 }).major;
+    TJ = (G.TIANJIAO_MUL_BY_MAJOR && G.TIANJIAO_MUL_BY_MAJOR[majNow])
+       || G.TIANJIAO_MUL || { hp:1, atk:1 };
+  }
 
   const foeHpMax = Math.round(G.foeHpBase * hpCurve * hpScale * TJ.hp);
   const foeAtk = Math.round(G.foeAtkBase * atkCurve * 0.9 * atkScale * TJ.atk);
@@ -15147,6 +17062,13 @@ function loadRun(){
        注意：补的时机是读档那一刻，所以「这一局读档时元层是什么等级」
        就固定下来了 —— 与「新开一局的快照」是同一条规则。 */
     if (!s.upSnap) s.upSnap = upSnapshot();
+    /* 第 34 轮：s.place / s.visited 也是这一轮才有的。
+       老存档没有 → 补回「家里」，行为与旧版完全一致
+       （旧版没有位置概念，等价于一直在宗门）。 */
+    if (!s.place || !G.placeById(s.place)) s.place = 'home';
+    if (!Array.isArray(s.visited) || !s.visited.length) s.visited = [s.place];
+    if (s.visited.indexOf(s.place) < 0) s.visited.push(s.place);
+    s.travelled = false;                  // 读档后不处在「刚赶完路」那一步
     if (!s.flagAt) s.flagAt = {};
     /* 把没打完的那场战斗接回来。
        stats 不存盘（它由 attrs/agg 派生），这里按当前局面重算，
@@ -16457,6 +18379,33 @@ function availableActions(){
       }
     }
   }
+  /* ---------------- 远行（第 34 轮） ----------------
+     放在行动列表最上面，和「推演秘境入口」同级 ——
+     它是**出门**这件事，比「今天做什么」高一层。
+     cost:0：打开地图本身不花寿元，走路才花（走路那次单独收）。
+     顺带把「你现在在哪儿」和「这里在耗你多少」写在按钮上，
+     否则玩家不会意识到环境代价这件事（第 25 轮的教训：藏起来的系统等于不存在）。 */
+  {
+    const p = currentPlace();
+    const ec = placeEnvCost();
+    const region = G.regionById(p.region);
+    const bits = [`${region ? region.name : ''}·${p.name}`];
+    if (ec.amount > 0){
+      const envName = (G.PLACE_ENV[ec.env] || {}).name || '环境';
+      bits.push(`${envName} 每步 −${ec.amount}`);
+      if (ec.discount > 0.005) bits.push(`已减免 ${Math.round(ec.discount*100)}%`);
+    } else {
+      bits.push('此地无额外损耗');
+    }
+    list.unshift({
+      id:'map', name:'★ 舆图 · 远行', cost:0,
+      desc:'摊开舆图，看看自己在哪儿，以及还能往哪儿走。\n' +
+           '（赶路要花寿元，远近不同；有些地方你现在还去不了。）',
+      meta: bits.join('　'),
+      primary:true, special:'map'
+    });
+  }
+
   /* 修行按钮上的预估值 —— 必须和 doAction('cultivate') 用同一个公式，
      否则界面又在骗玩家（第 20 轮的教训）。 */
   const R = G.REALMS[s.realmIdx] || { speed:1, gain:1 };
@@ -16732,6 +18681,9 @@ G.Engine = {
      直接改 realmIdx 而不调它，内景会停在旧大境界上 ——
      第 29 轮写 verify-story.js 时踩到，表现为「两个玩家可用行动不一样」。 */
   syncDaoJi,
+  /* 地理 · 远行（第 34 轮） */
+  currentPlace, visiblePlaces, canTravelTo, travelTo, travelCost, placeEnvCost,
+  isPlaceKnown, placeDiscovered,
   // 世界线
   worldStage, checkWorldEnding,
   // 宗门（第 15 轮）
@@ -17665,6 +19617,8 @@ function onAction(a){
   if (a.special==='mijingDivine'){ doDivineMijing(); return; }
   if (a.special==='mijingEnter'){ showMijingEnter(a.mijingId); return; }
   if (a.special==='mijingInfo'){ showMijingBook(); return; }
+  /* 舆图（第 34 轮）：打开地图本身不花寿元，走路才花 */
+  if (a.special==='map'){ showMap(); return; }
 
   const res = G.Engine.doAction(a.id);
   if (!res.ok) return;
@@ -17695,6 +19649,192 @@ function onAction(a){
   }
   afterActionFlow();
 }
+
+/* ============================================================
+   舆图 · 远行（第 34 轮）
+   ------------------------------------------------------------
+   玩家要求：「让玩家通过地图来看自己处于地图中的哪里，
+   并且可以选择消耗寿元来前往地图上的其他地方」。
+
+   做法：内嵌 SVG 手绘的古地图（无外部图片、无建模、单文件只涨几 KB）。
+   七个寰画成不规则的墨线多边形，九个宗门各一个点。
+   点一个地方 → 该地的卡片 → 确认 → 赶路。
+
+   ⚠️ 三条规矩：
+     · 赶路消耗**必须调 G.Engine.travelCost()**，界面不许自己算一遍
+       （第 20 轮的教训：界面自己算 = 界面会说谎）
+     · 走不了的点要在卡面上**写清为什么**，而不是点了没反应
+       （第 33 轮雷池那条死路就是这么来的）
+     · 没发现的地方（血河宗）**不画**，这是神识的专属回报
+   ============================================================ */
+function mapDotTone(p){
+  if (p.here) return 'here';
+  if (!p.open) return 'shut';
+  if (!p.reach) return 'far';
+  return p.visited ? 'been' : 'new';
+}
+function showMap(){
+  const places = G.Engine.visiblePlaces();
+  const cur = G.Engine.currentPlace();
+  const curRegion = G.regionById(cur.region);
+  const S = G.MAP_SVG;
+
+  const wrap = el('div','map-wrap');
+  /* SVG 用字符串拼 —— 假 DOM 里也能测（verify-panelscan 会扫这段 HTML） */
+  const dots = places.map(p => {
+    const r = G.regionById(p.region);
+    if (!r) return '';
+    const x = r.pos[0], y = r.pos[1];
+    const tone = mapDotTone(p);
+    return `<g class="map-dot ${tone}" data-place="${p.id}">
+      <circle cx="${x}" cy="${y}" r="${p.kind==='home'?2.6:2.0}" class="map-halo"/>
+      <circle cx="${x}" cy="${y}" r="${p.kind==='home'?1.5:1.1}" class="map-core"/>
+      <text x="${x}" y="${y + 5.4}" class="map-label">${p.name}</text>
+    </g>`;
+  }).join('');
+
+  const regions = S.regions.map(rg => {
+    const r = G.regionById(rg.id);
+    const on = rg.id === cur.region;
+    return `<path d="${rg.d}" class="map-region${on?' on':''}"/>
+      <text x="${r.pos[0]}" y="${r.pos[1] - 7}" class="map-region-label">${r.name}</text>`;
+  }).join('');
+
+  wrap.innerHTML =
+    `<div class="map-head">
+       <div class="map-here">你在 <b>${curRegion?curRegion.name:''}·${cur.name}</b></div>
+       <div class="map-sub">${cur.you.replace(/\n/g,'<br>')}</div>
+     </div>
+     <div class="map-canvas">
+       <svg viewBox="${S.viewBox}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="舆图">
+         ${regions}
+         ${dots}
+       </svg>
+     </div>
+     <div class="map-legend">
+       <span><i class="lg here"></i>你在这儿</span>
+       <span><i class="lg been"></i>去过</span>
+       <span><i class="lg new"></i>还没去过</span>
+       <span><i class="lg far"></i>境界不够</span>
+       <span><i class="lg shut"></i>路还没通</span>
+     </div>
+     <div class="map-list"></div>`;
+
+  /* 底部再来一份列表 —— SVG 上的字小，手指也难点准；
+     列表是给手指用的，地图是给眼睛用的。两边点哪个都一样。 */
+  const list = wrap.querySelector ? wrap.querySelector('.map-list') : null;
+  const holder = list || el('div');
+  places.forEach(p => {
+    const region = G.regionById(p.region);
+    const b = el('button','map-row' + (p.here?' here':'') + (p.can?'':' off'));
+    if (!p.here && !p.can) b.disabled = true;
+    const bits = [];
+    bits.push(region ? region.name : '');
+    if (p.here) bits.push('你现在在这儿');
+    else if (!p.open) bits.push(p.openNote || '路还没通');
+    else if (!p.reach) bits.push(`要到第 ${(G.placeById(p.id).gate||{}).major} 个大境界`);
+    else bits.push(`${p.dist} 天　寿元 −${p.cost}`);
+    if (p.env) bits.push((G.PLACE_ENV[p.env]||{}).name || '');
+    b.innerHTML =
+      `<div class="map-row-top"><span class="map-row-name">${p.name}</span>
+         <span class="map-row-cost">${p.here?'（在此地）':(p.can?`寿元 −${p.cost}`:(p.reach?'走不了':'未通'))}</span>
+       </div>
+       <div class="map-row-meta">${bits.join('　')}</div>`;
+    if (!b.disabled) b.addEventListener('click', ()=>showPlaceCard(p.id));
+    holder.appendChild(b);
+  });
+  if (!list) wrap.appendChild(holder);
+
+  sheet('舆 图', wrap, [ btn('合 上','btn-main',()=>closeSheet()) ]);
+}
+
+/* 一个地方的卡片：去不去，先看清楚 */
+function showPlaceCard(id){
+  const p0 = G.placeById(id);
+  if (!p0) return;
+  const all = G.Engine.visiblePlaces();
+  const p = all.find(x => x.id === id);
+  if (!p) return;
+  const region = G.regionById(p.region);
+  const cost = p.here ? 0 : G.Engine.travelCost(id);
+  const chk = p.here ? { ok:false, msg:'你已经在这儿了' } : G.Engine.canTravelTo(id);
+
+  const body = el('div','place-card');
+  const env = p.env ? G.PLACE_ENV[p.env] : null;
+  const attrs = (p.attrs||[]).map(a => {
+    const def = G.ATTRS.find(x => x.id === a);
+    return def ? def.name : a;
+  });
+  const tj = p.tianjiao ? [].concat(p.tianjiao).map(tid => {
+    const t = (G.TIANJIAO||[]).find(x => x.id === tid);
+    return t ? `${t.name}（${t.epithet}）` : null;
+  }).filter(Boolean) : [];
+
+  let extra = '';
+  if (env){
+    /* 环境与减免都要**算出来再显示**，不能写死 —— 玩家的属性在变 */
+    const ec = G.Engine.placeEnvCost(id);
+    extra += `<div class="place-line"><span class="pk">环境</span>` +
+             `<span class="pv">${env.name}　每步额外 寿元 −${ec.amount}` +
+             (ec.discount > 0.005 ? `　（${G.ATTRS.find(a=>a.id===env.resist).name}已减免 ${Math.round(ec.discount*100)}%）` : '') +
+             `</span></div>`;
+    extra += `<div class="place-flavor">${env.text}</div>`;
+  } else {
+    extra += `<div class="place-line"><span class="pk">环境</span><span class="pv">无额外损耗</span></div>`;
+  }
+  if (p.kind !== 'home'){
+    extra += `<div class="place-line"><span class="pk">探索</span><span class="pv">` +
+             `灵石 ×${(G.placeById(id).explore.stone||1).toFixed(1)}　` +
+             `修为 ×${(G.placeById(id).explore.cult||1).toFixed(1)}</span></div>`;
+  }
+  if (attrs.length){
+    extra += `<div class="place-line"><span class="pk">这里认</span><span class="pv">${attrs.join('　')}</span></div>`;
+  }
+  if (tj.length){
+    extra += `<div class="place-line"><span class="pk">此处有人</span><span class="pv">${tj.join('、')}</span></div>`;
+  }
+
+  body.innerHTML =
+    `<div class="place-title">${region?region.name+'·':''}${p.name}</div>
+     <div class="place-you">${p.you.replace(/\n/g,'<br>')}</div>
+     ${extra}
+     <div class="place-line"><span class="pk">赶路</span><span class="pv">` +
+       (p.here ? '你已经在这儿了'
+               : `路 ${p.dist} 天　寿元 −${cost}${p.visited?'　（去过）':'　（第一次去）'}`) +
+     `</span></div>
+     ${(!p.open && !p.here) ? `<div class="place-warn">${p.openNote||'这条路还没有被写出来。'}</div>` : ''}
+     ${(!p.reach && !p.here) ? `<div class="place-warn">境界不够：要走到第 ${(G.placeById(id).gate||{}).major} 个大境界才上得去。这一步先记着。</div>` : ''}
+     ${(!chk.ok && p.reach && p.open && !p.here) ? `<div class="place-warn">${chk.msg}</div>` : ''}`;
+
+  const foot = [];
+  if (chk.ok){
+    foot.push(btn(`前 往（寿元 −${cost}）`,'btn-go btn-main',()=>doTravel(id)));
+  }
+  foot.push(btn('再 看 看','btn-main',()=>showMap()));
+  sheet('去 哪 儿', body, foot);
+}
+
+/* 真的走过去 */
+function doTravel(id){
+  const r = G.Engine.travelTo(id);
+  closeSheet();
+  if (!r.ok){ toast(r.msg || '走不了','bad'); return; }
+  const p = r.place;
+  const region = G.regionById(p.region);
+  toast(`走了 ${G.travelDist(r.from, id)} 天，到了${region?region.name+'·':''}${p.name}　寿元 −${r.cost}`, 'good');
+  if (r.dead){ afterDeath(r.dead); return; }
+  /* ⚠️ 这里**不要**再写一行记事 —— engine 的 travelTo() 已经写了
+     （`log(...)` + `note('place', ...)`）。第一版在这里又写了一次，
+     而 ui.js 里根本没有 log() 这个函数（它是 engine IIFE 私有的），
+     于是「真的走一趟」直接 ReferenceError。
+     是 dev 的舆图探测脚本抓到的 —— 界面层的调用只有真跑一遍才测得出来。 */
+  renderRun();
+  autoSave();
+  /* 到了之后走一遍正常的「行动之后」流程 ——
+     路上碰到什么事就在这里发生（地域分层里的 *travel 事件）。 */
+  setTimeout(afterActionFlow, 300);
+}
+
 
 /* ---- 长期因果的结算演出（第 31 轮）----
    玩家必须能看出「这是我当初那次选择招来的」，否则因果感等于没有。
@@ -19280,11 +21420,29 @@ function showDeck(){
   sheet('牌 组', body, []);
 }
 
-/* ---- 属性面板 ---- */
+/* ---- 属性面板 ----
+   ⚠️ 第 34 轮：这里以前写着「悟性 → 修行速度 · **突破减免**」。
+   「突破减免」是**假的** —— 引擎里 breakNeed() 读的是 agg().breakReduce，
+   而 agg() 只汇总卡牌与建筑，从不读任何属性。
+   实测：六维全部 +500，突破需求一点不变（dev/verify-attrvalue.js 守着这条）。
+   这一族错误（界面承诺一个引擎不认识的效果）是本作反复在修的那一种，
+   所以这里把每一行都改成**引擎真正读的东西**，并且带上第 34 轮新增的
+   地图专属作用 —— 玩家要能一眼看出「堆这一项到底换来什么」。
+
+   每一行的来源（不许凭印象写）：
+     体魄  maxHp 里 +7/点；attrSum → 普攻；冰原/地底的抗性
+     灵力  maxQi 里 +1.5/点；attrSum → 普攻与招式；太玄门的交涉
+     悟性  cultMul 里 ×(1 + 悟性×1.2%)；attrSum；书山的读碑与抄录
+     身法  evade；**赶路消耗折扣**（travelCost）；转盘脱身；云上罡风
+     神识  critChance；**发现隐藏地点**（血河宗）；荒漠认路
+     根骨  maxQi +4/点、qiRegen +1.1/点；attrSum；药洲抗药毒、长途不倦 */
 const ATTR_HINT = {
-  tipo:'气血上限 · 普通攻击', lingli:'普通攻击 · 招式威力',
-  wuxing:'修行速度 · 突破减免', shenfa:'闪避 · 转盘脱身几率',
-  shenshi:'重击几率 · 发现隐藏之物', gengu:'真气上限 · 每轮回气'
+  tipo:'气血上限 · 普通攻击 · 冰原的严寒',
+  lingli:'普通攻击 · 招式威力 · 与当地修士交涉',
+  wuxing:'修行速度 · 读碑与抄录',
+  shenfa:'闪避 · 赶路更省寿元 · 转盘脱身',
+  shenshi:'重击几率 · 发现藏起来的地方 · 荒漠里认路',
+  gengu:'真气上限 · 每轮回气 · 药毒与长途'
 };
 
 function showAttrs(){
@@ -20269,6 +22427,7 @@ function init(){
   $('btnDeck').addEventListener('click', showDeck);
   $('btnBag').addEventListener('click', showBag);
   $('btnRank').addEventListener('click', showRank);
+  if ($('btnMap')) $('btnMap').addEventListener('click', showMap);
   $('btnMijing').addEventListener('click', showMijingBook);
   $('btnSect').addEventListener('click', showSect);
   $('btnClue').addEventListener('click', showClue);
@@ -20327,7 +22486,9 @@ G.UI.__dev = {
   startTianjiaoFlow, renderRun, showDeck, showAttrs, doNurtureFlow,
   showTianjiaoCompass, showEvent, showSectStory, showStoryResult, renderStoryText,
   showMijingNotice, showMijingEnter, showMijingFloor, resolveMijingPick, showMijingExit,
-  showMijingBook, doDivineMijing, renderArchive, showClue, showSect, showBag, startChallengeFlow
+  showMijingBook, doDivineMijing, renderArchive, showClue, showSect, showBag, startChallengeFlow,
+  /* 第 34 轮：舆图与远行 —— 这些必须能被测到（地图要真的渲染出点来） */
+  showMap, showPlaceCard, doTravel
 };
 
 document.addEventListener('DOMContentLoaded', init);

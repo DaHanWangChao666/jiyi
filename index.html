@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta name="build" content="2026/10/3 15:34:52">
-<!-- build: 2026/10/3 15:34:52 -->
+<meta name="build" content="2026/10/3 17:20:39">
+<!-- build: 2026/10/3 17:20:39 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#0d0b0a">
@@ -372,6 +372,40 @@ button:disabled{opacity:.35;cursor:not-allowed}
 }
 .map-dot.here .map-label{fill:var(--gold2)}
 
+/* ---- 第 37 轮加厚的图层 ----
+   玩家说「地图的呈现有点过于简陋了」。这一层补上经纬 / 地貌 / 路网 / 雾。
+   原则：全部极淡。地图是背景，地名与点才是内容 ——
+   任何一层抢了注意力都是错的。 */
+
+/* 经纬：比轮廓还淡一档 */
+.map-grid{stroke:var(--line);stroke-width:.18;opacity:.5}
+
+/* 纹样（冰原点纹 / 荒漠横纹） */
+.map-tex-mark{fill:var(--ink3);stroke:var(--ink3);opacity:1}
+.map-tex{opacity:.13;pointer-events:none}
+
+/* 山脊：连续尖角，用折线的拐点做「山」的意思 */
+.map-peak{
+  fill:none;stroke:var(--line2);stroke-width:.42;
+  stroke-linejoin:round;stroke-linecap:round;opacity:.85;
+}
+/* 河：曲线，比山淡、比经纬实 */
+.map-river{
+  fill:none;stroke:var(--blue);stroke-width:.45;
+  stroke-linecap:round;opacity:.30;
+}
+
+/* 路网：没去过的虚线、去过一头的点线、两头都去过的实线 */
+.map-road{stroke:var(--ink3);stroke-width:.30;stroke-dasharray:.8 2.2;opacity:.40}
+.map-road.half{stroke:var(--ink2);stroke-dasharray:1.4 1.6;opacity:.55}
+.map-road.on{stroke:var(--gold);stroke-width:.40;stroke-dasharray:none;opacity:.42}
+
+/* 雾：没踏过的地方 */
+.map-fog{fill:#070606;opacity:.42;pointer-events:none}
+.map-legend .lg.fog{
+  background:#070606;border-color:var(--line);opacity:.75;
+}
+
 /* 你走过的路（第 36 轮）：把去过的地方连起来，让地图留下足迹。
    虚线 —— 「路」不是实体的东西，是有人走过才有的。 */
 .map-trail{
@@ -433,6 +467,74 @@ button:disabled{opacity:.35;cursor:not-allowed}
   background:rgba(201,162,39,.07);border:1px solid rgba(201,162,39,.25);
   border-radius:8px;padding:8px 10px;margin-top:10px;
 }
+
+/* ============================================================
+   人 · 对话（第 37 轮）
+   ------------------------------------------------------------
+   人名册 + 话题列表 + 对话结算。
+   好感度**摆在明面上**（档位 / 进度 / 上限）—— 不做隐藏数字。
+   ============================================================ */
+.npc-wrap{animation:fadeUp .45s ease both}
+
+/* 有人主动来找你 */
+.npc-call{
+  background:rgba(201,162,39,.09);border:1px solid rgba(201,162,39,.35);
+  border-radius:var(--r);padding:11px 13px;margin-bottom:13px;
+}
+.npc-call-h{font-size:10.5px;letter-spacing:3px;color:var(--gold2);margin-bottom:5px}
+.npc-call-t{font-size:12.5px;color:var(--ink2);line-height:1.8;white-space:pre-wrap}
+
+.npc-card{
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+  padding:12px 13px;margin-bottom:9px;
+}
+.npc-card.off{opacity:.62}
+.npc-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.npc-name{font-size:15px;letter-spacing:.08em;color:var(--ink)}
+.npc-aff{font-size:11px;flex:none;letter-spacing:.04em}
+.npc-bar{height:3px;background:#0a0908;border-radius:2px;overflow:hidden;margin:6px 0 5px}
+.npc-fill{height:100%;transition:width .35s}
+.npc-who{font-size:12px;color:var(--ink2);line-height:1.75}
+.npc-where{font-size:11px;color:var(--ink3);margin-top:3px}
+.npc-disc{font-size:11.5px;color:var(--jade);margin-top:5px}
+.npc-disc b{color:var(--ink)}
+/* ⚠️ 说不了的人必须**写清为什么**，不给一个点不动的按钮 ——
+   第 33 轮雷池那条死路的教训。 */
+.npc-why{
+  font-size:11.5px;color:#d9a24a;line-height:1.7;margin-top:7px;
+  background:rgba(201,162,39,.07);border-radius:7px;padding:7px 9px;
+}
+.npc-go{
+  display:block;width:100%;margin-top:10px;padding:9px;border-radius:8px;
+  border:1px solid var(--line2);background:var(--bg2);color:var(--gold2);
+  font-size:12.5px;letter-spacing:.1em;font-family:inherit;
+}
+.npc-go:active{background:var(--panel2)}
+
+/* 话题列表 */
+.npc-topics{display:flex;flex-direction:column;gap:7px;margin-top:12px}
+.npc-topic{
+  text-align:left;padding:10px 12px;border-radius:9px;
+  background:var(--panel);border:1px solid var(--line);color:var(--ink);
+  font-family:inherit;font-size:13.5px;transition:.15s;
+  display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;
+}
+.npc-topic:not(:disabled):active{background:var(--panel2)}
+.npc-tname{flex:1;min-width:0}
+.npc-tag{
+  font-size:10px;color:var(--gold);border:1px solid rgba(201,162,39,.4);
+  border-radius:5px;padding:1px 5px;flex:none;
+}
+.npc-tmin{font-size:10.5px;color:var(--ink3);flex:none}
+
+/* 对话结算 */
+.npc-said{animation:fadeUp .4s ease both}
+.npc-line{font-size:14px;line-height:2.05;color:var(--ink);white-space:pre-wrap;min-height:2em}
+.npc-delta{
+  margin-top:12px;padding-top:9px;border-top:1px dashed var(--line);
+  font-size:12px;color:var(--gold);line-height:1.8;
+}
+.npc-delta.dim{color:var(--ink3)}
 
 /* ================= 结算 ================= */
 #screen-end{padding:0;overflow-y:auto}
@@ -1372,6 +1474,7 @@ button{touch-action:manipulation;}
         <button class="foot-btn" id="btnAttr">属性</button>
         <button class="foot-btn" id="btnDeck">牌组 <em id="deckCount">0</em></button>
         <button class="foot-btn" id="btnMap">舆图</button>
+        <button class="foot-btn" id="btnNpc">人</button>
         <button class="foot-btn" id="btnSect">宗门</button>
       </div>
       <!-- 第二组：翻开的六个 -->
@@ -3993,11 +4096,21 @@ G.PLACES = [
 ];
 
 /* ============================================================
-   地图：SVG 的几何
+   地图：SVG 的几何（第 37 轮加厚）
    ------------------------------------------------------------
    手写 path，不追求写实 —— 要的是**古地图**的味道：
-   墨线勾边、留白、地名竖排。所以多边形故意画得不规则。
+   墨线勾边、留白、地名。所以多边形故意画得不规则。
    viewBox 是 0 0 100 100，任何尺寸下都自动缩放。
+
+   🔴 第 37 轮：玩家说「地图的呈现有点过于简陋了」。
+      原来只有七块轮廓 + 九个点，中间全是空的。
+      这一轮补上五样，全部手写 path，**零图片零建模**
+      （守住「零依赖单文件」这条底线）：
+        terrain  地貌：山（折线尖角）/ 水（曲线）/ 冰原（点纹）/ 荒漠（短横纹）
+        grid     经纬：极淡的方格 —— 古地图的味道来自「有人量过」
+        scale    四边刻度
+        fog      雾：没去过的地方压暗，「探索」在图上看得见
+        roads    路：相邻地点之间的虚线（去过的变实线，但那是运行时算的）
    ============================================================ */
 G.MAP_SVG = {
   viewBox:'0 0 100 100',
@@ -4011,8 +4124,117 @@ G.MAP_SVG = {
     { id:'youhuan',   d:'M30,68 L58,70 L60,86 L40,94 L28,82 Z' },
     { id:'nanhuan',   d:'M42,86 L68,80 L76,92 L58,98 L44,96 Z' }
   ],
-  /* 赶路的线（不需要，留给以后画「你走过的路」） */
+
+  /* ---- 地貌：山与水的折线 / 曲线 ----
+     山：连续尖角（每座山三个点）。刻意画得高低不一，像真的山脊。
+     水：二次曲线，走向绕开地点坐标（不然地名会压在河上）。 */
+  terrain: [
+    /* 北寰的雪山脊 —— 三座连着 */
+    { kind:'peak', d:'M31,12 L35,6 L39,12 M41,14 L45,7 L49,14 M51,12 L55,5 L59,12' },
+    /* 中寰的山（你的宗门在山的南麓） */
+    { kind:'peak', d:'M31,38 L35,32 L39,38 M63,36 L67,30 L71,36' },
+    /* 荒寰的云上孤峰 */
+    { kind:'peak', d:'M76,22 L79,15 L82,22' },
+    /* 东寰书山：一道长坡 */
+    { kind:'peak', d:'M80,40 L84,36 L88,40 L92,36' },
+    /* 西寰荒漠里的孤山（无量寺在上面） */
+    { kind:'peak', d:'M8,52 L13,45 L18,52' },
+    /* 幽寰地底的裂隙（一条往下的折线） */
+    { kind:'peak', d:'M33,74 L37,80 L35,86 M50,72 L54,78 L52,84' },
+    /* 水系：从北寰下来，向东南入海（绕开太玄门 57,43 与白鹿 86,43） */
+    { kind:'river', d:'M44,18 Q40,30 46,38 Q52,46 44,54 Q36,62 42,74 Q47,84 44,94' },
+    /* 南寰的一条支流 */
+    { kind:'river', d:'M64,86 Q60,90 58,96' },
+    /* 东寰海边 */
+    { kind:'river', d:'M94,50 Q90,56 92,62' }
+  ],
+
+  /* ---- 冰原点纹与荒漠横纹：用 pattern 平铺，不用逐条画 ---- */
+  patterns: [
+    { id:'mapIce',  w:3, h:3, marks:'<circle cx="1" cy="1" r="0.28"/>' },
+    { id:'mapSand', w:4, h:3, marks:'<path d="M0,1.2 L2.2,1.2 M0.8,2.4 L3,2.4" stroke-width="0.22"/>' }
+  ],
+  /* 哪块地上铺哪种纹（铺在轮廓之上、点数之下，很淡） */
+  textures: [
+    { pattern:'mapIce',  d:'M28,4 L62,2 L70,16 L58,26 L34,24 L24,14 Z' },
+    { pattern:'mapSand', d:'M2,40 L20,34 L28,52 L20,72 L4,66 Z' }
+  ],
+  /* 赶路的线（留给以后画「你走过的路」） */
   paths: []
+};
+
+/* 经纬网格：每 10 格一条，四边刻度。
+   极淡 —— 它的作用是「这张图是量过的」，不是「这是一张方格纸」。 */
+G.MAP_SVG.grid = {
+  step: 10,
+  /* 只画内部的线，边框由 CSS 的描边负责 */
+  lines: (function(){
+    const out = [];
+    for (let v = 10; v < 100; v += 10){
+      out.push({ x1:v, y1:0, x2:v, y2:100 });      // 竖
+      out.push({ x1:0, y1:v, x2:100, y2:v });      // 横
+    }
+    return out;
+  })()
+};
+
+/* 相邻地点之间的路。
+   ------------------------------------------------------------
+   ⚠️ 一开始想的是「距离 ≤ N 格就算相邻」，实测发现这样会连成一张**网**：
+      九个点里 24 对都够近 —— 图上会变成一团蜘蛛网，看不出路。
+      所以改成两段式：
+        ① **最小生成树**（Prim）：保证整张图是连通的（每个地方都到得了）
+        ② 再补上**最近的几对**（距离 ≤ G.ROAD_NEAR），让图上出现环路
+      于是画出来是「几条主干 + 几个岔口」，像真的路网。
+   全部由坐标算，不手写 —— 手写的路会在改坐标之后悄悄错位。 */
+G.ROAD_NEAR = 1.6;          // 补环路用的「特别近」阈值（格）
+
+function distGrid(a, b){
+  if (!a.pos || !b.pos) return Infinity;
+  return Math.hypot(a.pos[0]-b.pos[0], a.pos[1]-b.pos[1]) / 10;
+}
+
+G.mapRoads = function(){
+  const P = G.PLACES.filter(p => p.pos);
+  const n = P.length;
+  if (n < 2) return [];
+  const key = (a, b) => a < b ? a + '|' + b : b + '|' + a;
+  const seen = {};
+  const out = [];
+  const push = (a, b) => {
+    const k = key(a.id, b.id);
+    if (seen[k]) return;
+    seen[k] = 1;
+    out.push({ a:a.id, b:b.id, d:Math.round(distGrid(a,b)*10)/10 });
+  };
+
+  /* ① 最小生成树（Prim，贪心取最近的未收录点） */
+  const inTree = [P[0]];
+  const rest = P.slice(1);
+  while (rest.length){
+    let best = null, bd = Infinity, bi = -1;
+    rest.forEach((c, i) => {
+      inTree.forEach(t => {
+        const d = distGrid(t, c);
+        if (d < bd){ bd = d; best = c; bi = i; }
+      });
+    });
+    if (!best) break;
+    /* 找出树里离它最近的那个，连上去 */
+    let from = inTree[0], fd = Infinity;
+    inTree.forEach(t => { const d = distGrid(t, best); if (d < fd){ fd = d; from = t; } });
+    push(from, best);
+    inTree.push(best);
+    rest.splice(bi, 1);
+  }
+
+  /* ② 补环路：只补「特别近」的 */
+  for (let i = 0; i < n; i++){
+    for (let j = i+1; j < n; j++){
+      if (distGrid(P[i], P[j]) <= G.ROAD_NEAR) push(P[i], P[j]);
+    }
+  }
+  return out;
 };
 
 /* ============================================================
@@ -4150,6 +4372,319 @@ G.envDiscount = function(envKey, attrValue){
   const e = G.PLACE_ENV[envKey];
   if (!e) return 0;
   return Math.min(e.cap, (attrValue || 0) * e.per);
+};
+
+
+/* ===== dialogue.js ===== */
+/* ============================================================
+   《记忆修复局》对话系统 · 人物与话题（第 37 轮新增）
+   ------------------------------------------------------------
+   玩家原话：
+   > 「我希望这个游戏中能新增一个能与游戏中相遇的 npc 对话的功能
+   >  （由于目前的内容多数集中在宗门这块，所以就先做与宗门内成员的对话吧，
+   >   玩家可以主动选择是否与他们对话，以及与他们对话中可能会发生什么）」
+
+   ── 为什么不新造人物 ──────────────────────────────
+   宗门里已经有一群**反复出现、但从来没被当作角色对待**的人。
+   实测他们出现在多少个事件里：
+     师父 13 个 / 管事的 16 个 / 执事 5 个 / 长老 5 个 / 大师兄 4 个 / 师弟 5 个
+   而弟子系统本来就有 `loyalty`（忠诚）、`trait`（性格）、`line`（专属台词）。
+   所以这一层做的是**把已经写了十几遍的人扶正**，不是空降四个新 NPC。
+
+   ── 四条设计约束（都来自这个项目吃过的亏）────────────────
+   ① **好感度必须可解释**：每一次加减都要说得出理由。
+      不做「隐藏的随机 +3」—— 那是第 20 轮那类「界面承诺了引擎不认识的东西」的反面。
+   ② **话题门槛用相对判断**，不写死数字（照 events9 的规矩）：
+      但这里比的是**好感度**，那是本系统自己的量，可以写绝对值。
+   ③ **对话不烧寿元、不占行动** —— 聊天不该要命。
+      代价是「每次行动最多聊一次」，否则可以无限刷好感。
+   ④ **有些话题就是闲聊**，什么都不发生。
+      不能每次点开都像开箱，否则玩家的期待会被自己耗光。
+
+   ── 数据结构 ────────────────────────────────────
+     G.NPC          人物与话题表（纯数据）
+     s.npc          运行态：{ master:{aff, talked, lastAt, seen:[]} }
+     aff            好感度 0~100
+   ============================================================ */
+
+window.G = window.G || {};
+
+/* ============================================================
+   好感度的档位：界面要显示，引擎要用它筛话题
+   ============================================================ */
+G.NPC_AFF = [
+  { id:'cold',   min:0,  name:'生分',   color:'#6f6459' },
+  { id:'plain',  min:20, name:'平常',   color:'#a89c8e' },
+  { id:'warm',   min:45, name:'亲近',   color:'#c9bd95' },
+  { id:'close',  min:70, name:'知心',   color:'#a9e0c8' },
+  { id:'deep',   min:90, name:'生死之交', color:'#e8c95a' }
+];
+G.npcAffTier = function(aff){
+  let out = G.NPC_AFF[0];
+  G.NPC_AFF.forEach(t => { if (aff >= t.min) out = t; });
+  return out;
+};
+
+/* 好感度的边界与速率。
+   ⚠️ 全部写成常数，方便一处调参；测试直接读它，不抄数字。 */
+G.NPC_RULES = {
+  affMax: 100,
+  affMin: 0,
+  perTalk: 2,          // 每次有效对话
+  repeatDecay: 0,      // 同一话题重复聊：+0（不是负的 —— 不惩罚，只是不再涨）
+  missDays: 40,        // 超过这么多次行动没聊过，他会主动来找你
+  missAff: 0,          // 「很久没来」不扣好感（不惩罚玩家）
+  lowQiCap: 60         // 宗门气运衰败时，好感上限降到这个数
+};
+
+/* ============================================================
+   人物表
+   ------------------------------------------------------------
+   topics 里每条：
+     id      话题 id（进 s.npc[x].seen，用来判 once / 重复）
+     name    按钮上的字
+     min     需要多少好感
+     once    聊过就不再出现
+     when    （可选）额外条件 —— **在全局作用域求值**，与事件同规矩：
+             只能用引擎发布到 window 的助手（flagAge / deedPick / evAttr…），
+             拿不到 s。写 s.xxx 会 ReferenceError 并把整个面板弄空白。
+     eff     （可选）结算。签名 (s, a, api) —— a 是 makeActions() 的返回值，
+             所以「收益一律用返回值拼文案」这条规矩在这里同样适用。
+     say     说出来的话（字符串或函数）
+   ============================================================ */
+
+G.NPC = [
+
+/* ============================================================
+   师父 —— 主线《三月初七》的核心人物，也是平行支线的入口
+   ============================================================ */
+{
+  id:'master', name:'师父', kind:'core', order:1,
+  who:'他教你引气入体。他写字的时候，纸上会留一道很深的压痕。',
+  where:'后山的小屋',
+  topics:[
+    { id:'greet', name:'问安', min:0,
+      say: s => s.actions < 30
+        ? '「来了。」\n他没有抬头。「坐下吧。今天不用问我什么。」'
+        : '「你最近来得少了。」\n他放下笔。「我不催你。修行是长事。」',
+      eff:(s,a)=>{ return null; } },
+
+    { id:'ask_qi', name:'问宗门的气运', min:6,
+      say:'「气运这东西，」他说，「不是攒出来的，是**别人信你**信出来的。」\n\n「那要是没人信了呢？」\n\n「那就散了。」他说得很平。',
+      eff:(s,a)=>{ return null; } },
+
+    { id:'ask_self', name:'问他：我像你当年吗', min:18,
+      say: s => (s.realmIdx > 12)
+        ? '他看了你很久。\n\n「我当年走到你这个地方，」他说，「停下来了。」\n\n「为什么？」\n\n「因为我发现再往前走，就要开始丢东西了。」'
+        : '「像。」他说，「所以你比我当年急。」\n\n他笑了一下 —— 你很少见他笑。',
+      eff:(s,a)=>{ return null; } },
+
+    { id:'ask_name', name:'问他：三月初七那天', min:30,
+      say:'他的手停了一下。\n\n「你从哪儿听来这个日子的？」\n\n他没有等你回答，就自己接了下去：\n\n「那天没什么事。真的。只是一年里最普通的一天。」\n\n「那为什么大家都记得？」\n\n「因为有人不想让我们记得别的事。」',
+      eff:(s,a)=>{ a.clue('clue_date'); return null; } },
+
+    { id:'heart', name:'问他：你心里那件事', min:52, once:true,
+      /* 好感 52 才问得出口 —— 这是平行支线的入口 */
+      say:'你把门关上。\n\n他没问你为什么关门。\n\n「你想问的是那个名字。」他说。\n\n「是。」\n\n他站起来，从柜子最上面拿下一本册子，放在你面前。\n\n「这本里记着一个人。他来过，他走了，现在没有一个人记得他。」\n\n「我要你替我记得。」',
+      eff:(s,a)=>{
+        /* 开启平行支线：主线与支线各自独立推进 */
+        if (a && a.openStory2) a.openStory2();
+        return null; } },
+
+    { id:'truth', name:'把册子的事跟他摊开说', min:66, once:true,
+      when: ()=> flagAge('clue_book') >= 0,
+      say:'你把在藏书楼看到的那一页讲给他听。\n\n他听完，很久没有说话。\n\n「你翻到最后一页了。」他终于说。\n\n「翻到了。」\n\n「那上面是我的名字。」',
+      eff:(s,a)=>{ a.karma(-3); a.clue('clue_master'); return null; } },
+
+    { id:'give', name:'给他带一壶酒', min:40,
+      when: ()=> true,
+      say:'他接了，没有推辞。\n\n「你还记得我喝这个。」\n\n他倒了两杯，一杯推给你。\n\n「坐。」',
+      eff:(s,a)=>{
+        a.gainStone(-12);
+        a.favor(2);
+        return null; } },
+
+    { id:'silent', name:'不说话，陪他坐一会儿', min:0,
+      say:'你在他旁边坐下来。\n\n他继续写字。笔画很慢。\n\n外面的天一点点暗下去。\n\n你们一句话都没有说。',
+      eff:(s,a)=>{ a.karma(-1); return null; } }
+  ]
+},
+
+/* ============================================================
+   执事 —— 管账的人。他站在「规矩」那一边
+   ============================================================ */
+{
+  id:'steward', name:'执事', kind:'core', order:2,
+  who:'管贡献与月俸。他不记仇，他记账。',
+  where:'执事堂',
+  topics:[
+    { id:'greet', name:'问安', min:0,
+      say:'「有事说事。」\n他连头都没抬。',
+      eff:(s,a)=>{ return null; } },
+
+    { id:'ledger', name:'问：我这一世记了多少', min:8,
+      say: s => {
+        const c = (s.sectContribTotal || 0);
+        return '他翻了两页账，停住。\n\n「你这一世，记了 ' + c + ' 点。」\n\n「多吗？」\n\n「不算多。」他把账合上，「但每一笔都对得上。这就比很多人强。」';
+      },
+      eff:(s,a)=>{ return null; } },
+
+    { id:'work', name:'问：还有什么活', min:14,
+      say:'「有。」他抽出一张单子。\n\n「不过我先问你一句 —— 你是想要贡献，还是想要事做？」\n\n「有区别吗？」\n\n「有。」他说，「想要贡献的人，我不给他要命的事。」',
+      eff:(s,a)=>{ a.contrib(6); return null; } },
+
+    { id:'karma', name:'问：业障记不记在账上', min:24,
+      say:'他终于抬起头。\n\n「记。」\n\n「记在哪儿？」\n\n「不记在这本上。」他把手里的账本放下，\n「记在你自己那一本上。那本我管不着。」',
+      eff:(s,a)=>{ a.karma(-1); return null; } },
+
+    { id:'name', name:'问他：你叫什么', min:36, once:true,
+      say:'他愣了一下 —— 这可能是你第一次看见他愣住。\n\n「……问这个做什么。」\n\n「就是想知道。」\n\n他重新低下头，把笔蘸满墨：\n\n「账上写着呢。你自己去看。」\n\n（你去看了。那本账上，他那一栏是空的。）',
+      eff:(s,a)=>{ a.clue('clue_erased'); return null; } },
+
+    { id:'cut', name:'跟他算一笔旧账', min:20,
+      say:'你把上次那件事摆出来。\n\n他听完，从抽屉里拿出十五块灵石，推过来。\n\n「是我算错了。」他说，「我认。」\n\n他没有道歉 —— 那对他来说，就是道歉。',
+      eff:(s,a)=>{ a.gainStone(15); return null; } },
+
+    { id:'silent', name:'不说话，看他记账', min:0,
+      say:'你站在旁边看他写。\n\n一炷香的时间，他写了满满两页，一笔没有涂改。\n\n「看够了？」他说。\n\n「够了。」',
+      eff:(s,a)=>{ return null; } }
+  ]
+},
+
+/* ============================================================
+   大师兄 —— 名字每次都不一样的那个。他自己也不知道为什么
+   ============================================================ */
+{
+  id:'senior', name:'大师兄', kind:'core', order:3,
+  who:'入门比你早。他记得所有人的名字，除了自己的。',
+  where:'练功场',
+  topics:[
+    { id:'greet', name:'打招呼', min:0,
+      say:'「哟。」他朝你抬了抬下巴。\n\n「今天练什么？」',
+      eff:(s,a)=>{ return null; } },
+
+    { id:'spar', name:'跟他过两招', min:10,
+      say:'他放下手里的剑。\n\n「行。三招，点到为止。」\n\n第三招的时候他停住了，剑尖离你还有半尺。\n\n「你手快了。」他说，「好事。」',
+      eff:(s,a)=>{ a.cult(45,'mid'); a.attr({shenfa:2}); return null; } },
+
+    { id:'ask_name', name:'问他：你叫什么', min:16,
+      say:'他张了张嘴。\n\n然后他停住了。\n\n「……你等我想想。」\n\n他想了很久。久到旁边练功的人都走光了。\n\n「算了。」他最后说，「你叫我师兄就行。」',
+      eff:(s,a)=>{ a.clue('clue_name'); a.karma(-2); return null; } },
+
+    { id:'ask_why', name:'问他：最近还好吗', min:28,
+      say:'他没有立刻回答。\n\n「我昨天早上起来，」他说，「想了一下自己叫什么。」\n\n「想出来了吗？」\n\n「想出来了。」他笑了一下，「但我想了两次。」',
+      eff:(s,a)=>{ a.karma(-1); return null; } },
+
+    { id:'book', name:'把藏书楼那一页跟他讲', min:44, once:true,
+      say:'他听得很认真。\n\n听完他问了一句：\n\n「那一页上，只有你我的名字？」\n\n「是。」\n\n他点点头，像是终于确定了什么：\n\n「那就对了。**我上一次也翻到过那一页。**」',
+      eff:(s,a)=>{ a.clue('clue_page'); return null; } },
+
+    { id:'honest', name:'跟他说实话：我也快忘了', min:52, once:true,
+      say:'你把那句话说出来的时候，他没有惊讶。\n\n「我知道。」他说。\n\n「你怎么知道？」\n\n「因为你今天叫我的时候，」他说，\n「你顿了一下。」',
+      eff:(s,a)=>{ a.karma(-2); a.favor(3); return null; } },
+
+    { id:'silent', name:'陪他练一会儿', min:0,
+      say:'你们各练各的。\n\n半个时辰里只说了三句话，都是「让一下」。\n\n天黑的时候他先走了，走之前朝你摆了摆手。',
+      eff:(s,a)=>{ a.cult(20,'low'); return null; } }
+  ]
+},
+
+/* ============================================================
+   你的弟子 —— 已有的系统，这里给他一张嘴
+   ------------------------------------------------------------
+   ⚠️ 这一档是**动态的**：s.disciples 为空时不该出现。
+      人物页会显示「你还没有收徒」，而不是报错。
+   ============================================================ */
+{
+  id:'disciple', name:'弟子', kind:'disciple', order:4,
+  who:'他叫你师父。你是他第一个师父。',
+  where:'你的院子',
+  dynamic:'disciples',            // ← 界面据此判断要不要显示
+  topics:[
+    { id:'greet', name:'问他今天练得怎么样', min:0,
+      say: s => {
+        const d = (s.disciples || [])[0];
+        const nm = d ? d.name : '他';
+        return '「练了。」' + nm + '说。\n\n「《吐纳诀》背到第三段了。」\n\n他说完看着你，等你说点什么。';
+      },
+      eff:(s,a)=>{ return null; } },
+
+    { id:'teach', name:'教他一招', min:8,
+      say:'你把那一招拆成三步，一步一步给他看。\n\n他学得很慢，但每一步都记住了。\n\n「师父，」他问，「你当年也是这么学的吗？」\n\n「不是。」你说，「我当年没人教。」\n\n他沉默了一会儿，然后学得更认真了。',
+      eff:(s,a)=>{
+        const d = (s.disciples || [])[0];
+        if (d){ d.loyalty = Math.min(100, (d.loyalty||50) + 6); d.cult = (d.cult||0) + 10; }
+        return null; } },
+
+    { id:'ask_home', name:'问他家里的事', min:20,
+      say:'「我娘让我别修了。」他说。\n\n「你怎么想？」\n\n「我想修。」他抬起头，「但我不知道为什么想。」\n\n「那就先修着。」你说，「知道了再告诉我。」',
+      eff:(s,a)=>{ a.favor(2); return null; } },
+
+    { id:'afraid', name:'问他怕不怕', min:34,
+      say:'「怕。」他答得很快。\n\n「怕什么？」\n\n「怕你哪天不在了。」\n\n你没有安慰他。你只是说：\n\n「那你要练得快一点。」',
+      eff:(s,a)=>{
+        const d = (s.disciples || [])[0];
+        if (d) d.loyalty = Math.min(100, (d.loyalty||50) + 8);
+        a.karma(-2);
+        return null; } },
+
+    { id:'name_him', name:'给他起个字', min:50, once:true,
+      say:'他愣住了。\n\n「给我？」\n\n「嗯。」\n\n他把那两个字念了两遍，念得很轻。\n\n然后他朝你深深鞠了一躬 —— 比拜师那次还深。',
+      eff:(s,a)=>{
+        const d = (s.disciples || [])[0];
+        if (d) d.loyalty = 100;
+        a.flag('named_disciple');
+        a.favor(4);
+        return null; } },
+
+    { id:'silent', name:'什么都不说，看他练', min:0,
+      say:'你在台阶上坐下来。\n\n他练了一遍又一遍，没有过来打扰你。\n\n太阳偏西的时候，他收功，朝你这边看了一眼，\n然后接着练。',
+      eff:(s,a)=>{ return null; } }
+  ]
+}
+
+];
+
+/* ---------------- 取用 ---------------- */
+
+G.npcById = function(id){ return G.NPC.find(n => n.id === id) || null; };
+
+/* 这个人现在开放哪些话题。
+   ⚠️ 与 pickEvent 同一条规矩：`when` 抛错就 fail-closed **跳过这一条**，
+      绝不让异常冒到界面（那会让整个面板空白 —— 第 32 轮踩过）。
+
+   ⚠️⚠️ 这里必须和 engine 的 npcCanTalk() **判据一致**。
+      第一版只在 npcCanTalk 里挡了「弟子那一档要有徒弟」，
+      而 npcTopics 不知道这件事 —— 于是「没徒弟」时话题列表**看起来是有的**，
+      点下去却说「你还没有收徒」。两个函数各判各的，
+      必然会在某个角落分叉。被 dev/verify-dialogue.js 第 7 节抓到
+      （它同时调两个，发现「在可选列表里却说不出口」）。
+      所以渠道只有一个：谁能聊、能聊什么，都在这里判。 */
+G.npcTopics = function(id, s){
+  const n = G.npcById(id);
+  if (!n) return [];
+  /* 弟子那一档：没徒弟就没有这个人 */
+  if (n.dynamic === 'disciples' && !((s && s.disciples) || []).length) return [];
+  /* 不在宗门了，宗门里的人也说不上话 */
+  if (s && s.chapter && s.chapter !== 'zongmen') return [];
+  const rec = ((s && s.npc) || {})[id] || { aff:0, seen:[] };
+  const seen = rec.seen || [];
+  const aff = (typeof rec.aff === 'number' && isFinite(rec.aff)) ? rec.aff : 0;
+  return n.topics.filter(t => {
+    if (aff < (t.min || 0)) return false;
+    if (t.once && seen.indexOf(t.id) >= 0) return false;
+    if (t.when){
+      try { if (!t.when()) return false; }
+      catch(e){ return false; }
+    }
+    return true;
+  });
+};
+
+/* 这个人现在说不说得出话（好感太低 / 话题都被聊完了）
+   —— 界面用它显示「他今天没什么要说的」，而不是给一个空列表。 */
+G.npcHasAnything = function(id, s){
+  return G.npcTopics(id, s).length > 0;
 };
 
 
@@ -13441,6 +13976,17 @@ function newRun(lots, seed){
     sectActions: 0,          // 累计宗门行动（决定月俸与主线推进）
     storyStage: 0,           // 《三月初七》推进到第几幕
 
+    /* 对话系统（第 37 轮）
+       { master:{ aff, talked, lastAt, seen:[] }, … }
+         aff      好感度 0~100
+         talked   一共聊过几次
+         lastAt   上一次聊天时的行动数（用来判「太久没来」）
+         seen     聊过哪些话题 id（用来判 once 与重复衰减）
+       ⚠️ disciple 那一档只有在真收了徒弟时才会被用到 —— 不预建，
+          否则「没徒弟却有聊天记录」会让界面误判。 */
+    npc: {},
+    npcTalkedAt: -1,         // 上一次聊天是第几次行动（每次行动最多聊一次）
+
     // 建筑
     buildings: { lingtian:0, danfang:0, cangjing:0, jiangjing:0, dazhen:0, zushi:0 },
 
@@ -15095,7 +15641,9 @@ function makeActions(hook){
       const pool = Object.keys(G.CARDS).filter(k=>!G.CARDS[k].hidden);
       return pool[Math.floor(Math.random()*pool.length)];
     },
-    challenge(cfg){ api._pendingChallenge = cfg; }
+    challenge(cfg){ api._pendingChallenge = cfg; },
+    /* 第 37 轮：对话里要能开平行支线（师父那条线由话题推进） */
+    openStory2(){ return openStory2(); }
   };
   return api;
 }
@@ -17364,6 +17912,12 @@ function loadRun(){
        注意：补的时机是读档那一刻，所以「这一局读档时元层是什么等级」
        就固定下来了 —— 与「新开一局的快照」是同一条规则。 */
     if (!s.upSnap) s.upSnap = upSnapshot();
+    /* 第 37 轮：对话系统的运行态。
+       老存档没有 → 补空的。**不预建任何人的记录** ——
+       「没聊过」和「聊过但好感 0」是两件事（npcPending 靠 lastAt<0 区分）。 */
+    if (!s.npc || typeof s.npc !== 'object') s.npc = {};
+    if (typeof s.npcTalkedAt !== 'number') s.npcTalkedAt = -1;
+    if (s.story2Stage === undefined) s.story2Stage = null;
     /* 第 34 轮：s.place / s.visited 也是这一轮才有的。
        老存档没有 → 补回「家里」，行为与旧版完全一致
        （旧版没有位置概念，等价于一直在宗门）。 */
@@ -18128,6 +18682,182 @@ function storyLenFrom(st){
   }
   return n;
 }
+/* ============================================================
+   对话系统（第 37 轮）
+   ------------------------------------------------------------
+   玩家原话：「新增一个能与游戏中相遇的 npc 对话的功能（由于目前的内容
+   多数集中在宗门这块，所以就先做与宗门内成员的对话吧，玩家可以主动选择
+   是否与他们对话，以及与他们对话中可能会发生什么）」
+
+   数据在 src/dialogue.js（人物表与话题表），这里只管运行态与结算。
+
+   ── 四条规矩 ─────────────────────────────────────
+   ① **不烧寿元、不占行动** —— 聊天不该要命。
+      代价是「每次行动最多聊一次」（npcTalkedAt），否则可以无限刷好感。
+   ② **好感度可解释**：每次加减都能说出理由（有效对话 +2 / 重复聊 +0 /
+      业障高时师父 −、执事 +）。不做隐藏的随机数。
+   ③ **宗门气运衰败时，好感上限降低** —— 他们自己也不好过。
+      这不是惩罚玩家，是让「宗门要散了」这件事有体感。
+   ④ **超过 missDays 次行动没聊过，他会主动来找你** ——
+      不扣好感（不惩罚），但会变成一个事件（见 npcPending）。
+   ============================================================ */
+
+function npcRec(id){
+  if (!s.npc) s.npc = {};
+  if (!s.npc[id]) s.npc[id] = { aff:0, talked:0, lastAt:-1, seen:[] };
+  const r = s.npc[id];
+  if (!Array.isArray(r.seen)) r.seen = [];
+  if (typeof r.aff !== 'number' || !isFinite(r.aff)) r.aff = 0;
+  return r;
+}
+/* 好感上限：宗门气运衰败时会降下来 */
+function npcAffCap(){
+  const qi = (typeof s.sectQi === 'number') ? s.sectQi : 100;
+  const R = G.NPC_RULES || { affMax:100, lowQiCap:60 };
+  /* 气运 < 30 就算「衰败」—— 与 SECT_TIERS 的「衰败」档（15）接得上 */
+  if (qi < 30) return Math.min(R.affMax, R.lowQiCap);
+  return R.affMax;
+}
+function npcAff(id){ return npcRec(id).aff; }
+
+/* 这个人现在能不能聊。
+   返回 { ok, why } —— 界面要**写清为什么不能聊**，而不是给一个点不动的按钮
+   （第 33 轮雷池那条死路的教训）。 */
+function npcCanTalk(id){
+  const R = G.NPC_RULES || { missDays:40 };
+  const n = G.npcById ? G.npcById(id) : null;
+  if (!n) return { ok:false, why:'没有这个人' };
+  if (challenge && challenge.active) return { ok:false, why:'架还没打完' };
+  if (s.chapter !== 'zongmen') return { ok:false, why:'你已经不在宗门了' };
+  if (n.dynamic === 'disciples' && !(s.disciples||[]).length)
+    return { ok:false, why:'你还没有收徒' };
+  if ((s.npcTalkedAt|0) === (s.actions|0) && s.npcTalkedAt >= 0)
+    return { ok:false, why:'这一趟你已经跟人聊过了' };
+  const topics = (G.npcTopics ? G.npcTopics(id, s) : []);
+  if (!topics.length) return { ok:false, why:'他今天没什么要说的' };
+  return { ok:true, topics:topics };
+}
+
+/* 人物页要显示的那些人 */
+function npcList(){
+  const order = {};
+  (G.NPC || []).forEach(n => { order[n.id] = n.order || 99; });
+  return (G.NPC || []).slice().sort((a,b) => (order[a.id] - order[b.id])).map(n => {
+    const rec = npcRec(n.id);
+    const can = npcCanTalk(n.id);
+    const tier = G.npcAffTier ? G.npcAffTier(rec.aff) : { name:'', color:'' };
+    const isDisc = (n.dynamic === 'disciples');
+    const d = isDisc ? (s.disciples||[])[0] : null;
+    return {
+      id:n.id, name:n.name, who:n.who, where:n.where,
+      aff: rec.aff, affCap: npcAffCap(), tier: tier.name, tierColor: tier.color,
+      talked: rec.talked,
+      can: !!can.ok, why: can.why || '',
+      topics: can.topics || [],
+      /* 弟子那一档把徒弟的名字与忠诚带上，界面才说得具体 */
+      disciple: d ? { name:d.name, loyalty:d.loyalty, trait:(d.trait||{}).n || '' } : null
+    };
+  });
+}
+
+/* 跟他聊一句。
+   返回 { ok, said, aff, affDelta, topics } ——
+   ⚠️ `said` 是**结算之后**的文案，界面直接印。
+      与事件同一条规矩：数值变动一律用 a.xxx() 的返回值拼，
+      界面不再自己算一遍（第 20 轮的教训：界面自己算 = 界面会说谎）。 */
+function npcTalk(id, topicId){
+  const chk = npcCanTalk(id);
+  if (!chk.ok) return { ok:false, msg: chk.why };
+  const n = G.npcById(id);
+  const t = (chk.topics || []).filter(x => x.id === topicId)[0];
+  if (!t) return { ok:false, msg:'这个话题现在说不了' };
+
+  const rec = npcRec(id);
+  const R = G.NPC_RULES || { perTalk:2, repeatDecay:0, affMax:100 };
+  const first = rec.seen.indexOf(t.id) < 0;
+
+  /* ① 结算：话题自己的 eff（给线索 / 数值 / 推进剧情） */
+  let extra = null;
+  if (typeof t.eff === 'function'){
+    const api = makeActions({});
+    try { t.eff(s, api); }
+    catch(e){
+      /* fail-closed：话题结算抛错不该把整页弄崩 */
+      console.warn('对话结算失败：', id, t.id, e && e.message);
+    }
+    /* 把这一句里真的发生的事收出来（界面照实显示） */
+    extra = api._npcNote || null;
+  }
+
+  /* ② 好感度：第一次聊 +perTalk；重复聊 +repeatDecay（默认 0） */
+  const delta = first ? (R.perTalk || 0) : (R.repeatDecay || 0);
+  const cap = npcAffCap();
+  /* ⚠️ 上下限必须显式取好再传 —— 这里踩过一次坑：
+     `R.affMin != null ? R.affMin : 0` 在 affMin 正好是 0 时算出来是 0，
+     而 0 是**假值**，如果写成 `R.affMin || 0` 倒也没事，
+     但第一版把它塞进 clamp(v, lo, hi) 时 hi 用了 `cap` 而 cap 可能是 undefined
+     （npcAffCap 早期版本没有返回值），于是 clamp 返回 undefined，
+     玩家会看到「好感 undefined」。被 verify-dialogue 第 3 节当场抓住。 */
+  const lo = (typeof R.affMin === 'number') ? R.affMin : 0;
+  const hi = (typeof cap === 'number' && isFinite(cap)) ? cap : ((typeof R.affMax === 'number') ? R.affMax : 100);
+  const before = rec.aff;
+  rec.aff = clamp(rec.aff + delta, lo, hi);
+  if (typeof rec.aff !== 'number' || !isFinite(rec.aff)) rec.aff = before;   // 兜底：绝不让它变成 NaN
+  rec.talked = (rec.talked || 0) + 1;
+  rec.lastAt = s.actions | 0;
+  if (first) rec.seen.push(t.id);
+  s.npcTalkedAt = s.actions | 0;
+
+  /* ③ 说法：say 可以是字符串或函数 */
+  let said = '';
+  const sv = (typeof t.say === 'function') ? (function(){ try{ return t.say(s); }catch(e){ return ''; } })() : t.say;
+  said = (sv == null) ? '' : String(sv);
+
+  log('你跟' + n.name + '说了会儿话。');
+  return { ok:true, id:id, name:n.name, topic:t.id, topicName:t.name,
+           said:said, extra:extra,
+           aff: rec.aff, affBefore: before, affDelta: rec.aff - before,
+           affCap: cap, first:first,
+           topics: (G.npcTopics ? G.npcTopics(id, s) : []) };
+}
+
+/* 有没有人「主动来找你」。
+   ------------------------------------------------------------
+   判据：超过 missDays 次行动没跟他说过话，而且他现在有话说。
+   ⚠️ 不扣好感、不惩罚 —— 只是给这件事一个**发生的时机**。
+      玩家可以选择立刻去见他（界面给一个按钮），也可以不管。 */
+function npcPending(){
+  if (s.chapter !== 'zongmen') return null;
+  const R = G.NPC_RULES || { missDays:40 };
+  const list = (G.NPC || []).filter(n => !n.dynamic);   // 弟子不主动来（他是你徒弟）
+  for (let i = 0; i < list.length; i++){
+    const n = list[i];
+    const rec = npcRec(n.id);
+    if (rec.lastAt < 0) continue;                        // 从没聊过的不算「很久没来」
+    const gap = (s.actions|0) - rec.lastAt;
+    if (gap < R.missDays) continue;
+    const can = npcCanTalk(n.id);
+    if (!can.ok) continue;
+    return { id:n.id, name:n.name, gap:gap,
+             line: n.name + '有阵子没见你了。' };
+  }
+  return null;
+}
+
+/* 平行支线《山门外的第三个名字》的入口（第 37 轮 · P4 补全内容）
+   ⚠️ 这里只做状态；剧情页在 P4 写进 G.SECT_STORY2。
+      没有内容时返回一个明确的失败，而不是静默什么都不做。 */
+function openStory2(){
+  if (!G.SECT_STORY2 || !(G.SECT_STORY2.stages||[]).length){
+    log('（这条线还没有被写出来。）');
+    return { ok:false, msg:'这条线还没有被写出来' };
+  }
+  if (s.story2Stage) return { ok:false, msg:'已经开始了' };
+  s.story2Stage = G.SECT_STORY2.start || (G.SECT_STORY2.stages[0] || {}).id;
+  note('story', '师父托你记住一个名字。');
+  return { ok:true, stage:s.story2Stage };
+}
+
 function storyProgress(){
   const next = storyStage();
   const done = s.storyDone || 0;
@@ -18994,6 +19724,8 @@ G.Engine = {
   sectTier, sectBlessing, sectRank, sectContrib, gainContrib,
   shopPrice, canBuyShop, buyFromShop, doSectTask, paySalary,
   storyStage, storyReady, advanceStory, storyProgress, storyLenFrom,
+  /* 第 37 轮：对话系统 */
+  npcList, npcTalk, npcAff, npcCanTalk, npcPending, npcAffCap, openStory2,
 
   /* 比武大会（第 22 轮） */
   tourneyBracket, tourneyReady, startTourney, tourneyNextOpponent,
@@ -20122,6 +20854,48 @@ function showMap(){
     return out.join('');
   })();
 
+  /* ---- 第 37 轮加厚的四层（玩家反馈「地图过于简陋」）---- */
+
+  /* ① 经纬网格：极淡的方格。作用是「这张图是量过的」，不是「这是一张方格纸」 */
+  const grid = (S.grid && S.grid.lines || []).map(l =>
+    `<line x1="${l.x1}" y1="${l.y1}" x2="${l.x2}" y2="${l.y2}" class="map-grid"/>`
+  ).join('');
+
+  /* ② pattern 定义（冰原点纹 / 荒漠横纹）。必须放在 <defs> 里 */
+  const defs = `<defs>` + (S.patterns || []).map(pt =>
+    `<pattern id="${pt.id}" width="${pt.w}" height="${pt.h}" patternUnits="userSpaceOnUse">
+       <g class="map-tex-mark">${pt.marks}</g>
+     </pattern>`
+  ).join('') + `</defs>`;
+  const textures = (S.textures || []).map(t =>
+    `<path d="${t.d}" fill="url(#${t.pattern})" class="map-tex"/>`
+  ).join('');
+
+  /* ③ 地貌：山脊与河。河要绕开地点坐标（不然地名压在河上） */
+  const terrain = (S.terrain || []).map(t =>
+    `<path d="${t.d}" class="map-${t.kind === 'river' ? 'river' : 'peak'}"/>`
+  ).join('');
+
+  /* ④ 路网：由坐标算（最小生成树 + 特别近的补环路）。
+        去过两头的画实线，只去过一头的画虚线 —— 「路」是走出来的。 */
+  const visitedIds = {};
+  drawn.forEach(p => { if (p.visited) visitedIds[p.id] = 1; });
+  const roads = G.mapRoads().map(r => {
+    const a = G.placeById(r.a).pos, b = G.placeById(r.b).pos;
+    const both = visitedIds[r.a] && visitedIds[r.b];
+    const half = visitedIds[r.a] || visitedIds[r.b];
+    const cls = both ? 'map-road on' : (half ? 'map-road half' : 'map-road');
+    return `<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" class="${cls}"/>`;
+  }).join('');
+
+  /* ⑤ 雾：没去过的地方压一层暗（**排在点之前** ——
+        这样点与地名仍然清楚，雾只负责说「这块地你没踏过」）。
+        半径 5.5：盖住那一带的地貌，但不盖住自己的点。 */
+  const fogs = drawn.filter(p => !p.visited && !p.here).map(p => {
+    const d = G.placeById(p.id).pos;
+    return `<circle cx="${d[0]}" cy="${d[1]}" r="5.5" class="map-fog"/>`;
+  }).join('');
+
   const regions = S.regions.map(rg => {
     const r = G.regionById(rg.id);
     const on = rg.id === cur.region;
@@ -20136,7 +20910,13 @@ function showMap(){
      </div>
      <div class="map-canvas">
        <svg viewBox="${S.viewBox}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="舆图">
+         ${defs}
+         ${grid}
          ${regions}
+         ${textures}
+         ${terrain}
+         ${roads}
+         ${fogs}
          ${trails}
          ${dots}
        </svg>
@@ -20148,6 +20928,7 @@ function showMap(){
        <span><i class="lg far"></i>境界不够</span>
        <span><i class="lg shut"></i>路还没通</span>
        <span><i class="lg trail"></i>走过的路</span>
+       <span><i class="lg fog"></i>没踏过的地方</span>
      </div>
      <div class="map-list"></div>`;
 
@@ -22799,6 +23580,146 @@ function afterDeath(dead){
 }
 
 /* ============================================================
+   人 · 对话（第 37 轮）
+   ------------------------------------------------------------
+   玩家原话：「我希望这个游戏中能新增一个能与游戏中相遇的 npc 对话的功能
+   （由于目前的内容多数集中在宗门这块，所以就先做与宗门内成员的对话吧，
+   玩家可以主动选择是否与他们对话，以及与他们对话中可能会发生什么）」
+
+   这一页是个**人名册**：谁在、好感多少、还能聊什么。
+   点一个人 → 他的话题列表 → 点一个话题 → 他说一段话 + 结算。
+
+   ⚠️ 三条规矩：
+     · 说不了的人要**写清为什么**（「你还没有收徒」/「你已经不在宗门了」），
+       不给一个点不动的按钮 —— 第 33 轮雷池那条死路的教训。
+     · 数值变动一律用 npcTalk() 的返回值拼，界面不自己算
+       （第 20 轮的教训：界面自己算 = 界面会说谎）。
+     · 好感度不是隐藏数字：档位、进度、上限都摆出来。
+   ============================================================ */
+function showNpc(){
+  const list = G.Engine.npcList();
+  const body = el('div','npc-wrap');
+
+  /* 顶部：有没有人「主动来找你」。
+     超过 40 次行动没聊过，他会来找你 —— 不扣好感，只是给这件事一个时机。 */
+  const pend = G.Engine.npcPending ? G.Engine.npcPending() : null;
+  if (pend){
+    const box = el('div','npc-call');
+    box.innerHTML =
+      `<div class="npc-call-h">有人来找你</div>` +
+      `<div class="npc-call-t">${pend.line}\n（你已经 ${pend.gap} 次行动没跟他说过话了。）</div>`;
+    body.appendChild(box);
+  }
+
+  if (!list.length){
+    body.appendChild(el('div','arc-empty','宗门里现在没有你能说上话的人。'));
+    sheet('人', body, []);
+    return;
+  }
+
+  list.forEach(n => {
+    const card = el('div','npc-card' + (n.can ? '' : ' off'));
+    const pct = Math.round(100 * n.aff / Math.max(1, n.affCap));
+    const disc = n.disciple
+      ? `<div class="npc-disc">你的弟子 <b>${n.disciple.name}</b>` +
+        (n.disciple.trait ? `（${n.disciple.trait}）` : '') +
+        `　忠诚 ${n.disciple.loyalty}</div>`
+      : '';
+    card.innerHTML =
+      `<div class="npc-top">
+         <span class="npc-name">${n.name}</span>
+         <span class="npc-aff" style="color:${n.tierColor}">${n.tier}　${n.aff} / ${n.affCap}</span>
+       </div>
+       <div class="npc-bar"><div class="npc-fill" style="width:${pct}%;background:${n.tierColor}"></div></div>
+       <div class="npc-who">${n.who}</div>
+       <div class="npc-where">常在：${n.where}` +
+         (n.talked ? `　聊过 ${n.talked} 次` : '　（还没说过话）') + `</div>` +
+       disc +
+       (n.can ? '' : `<div class="npc-why">${n.why}</div>`);
+
+    if (n.can){
+      const b = el('button','npc-go','跟他说说话');
+      b.addEventListener('click', ()=>showNpcTopics(n.id));
+      card.appendChild(b);
+    }
+    body.appendChild(card);
+  });
+
+  sheet('人', body, []);
+}
+
+/* 一个人的话题列表 */
+function showNpcTopics(id){
+  const all = G.Engine.npcList();
+  const n = all.filter(x => x.id === id)[0];
+  if (!n) return;
+  const body = el('div','npc-wrap');
+
+  const pct = Math.round(100 * n.aff / Math.max(1, n.affCap));
+  body.innerHTML =
+    `<div class="npc-top">
+       <span class="npc-name">${n.name}</span>
+       <span class="npc-aff" style="color:${n.tierColor}">${n.tier}　${n.aff} / ${n.affCap}</span>
+     </div>
+     <div class="npc-bar"><div class="npc-fill" style="width:${pct}%;background:${n.tierColor}"></div></div>
+     <div class="npc-who">${n.who}</div>` +
+    (n.disciple ? `<div class="npc-disc">你的弟子 <b>${n.disciple.name}</b>　忠诚 ${n.disciple.loyalty}</div>` : '');
+
+  const listBox = el('div','npc-topics');
+  if (!n.topics.length){
+    listBox.appendChild(el('div','arc-empty','他今天没什么要说的。'));
+  } else {
+    n.topics.forEach(t => {
+      const b = el('button','npc-topic');
+      b.innerHTML = `<span class="npc-tname">${t.name}</span>` +
+        (t.once ? `<span class="npc-tag">只有一次</span>` : '') +
+        (t.min ? `<span class="npc-tmin">好感 ${t.min}</span>` : '');
+      b.addEventListener('click', ()=>{
+        const r = G.Engine.npcTalk(id, t.id);
+        if (!r.ok){ toast(r.msg || '说不了', 'bad'); return; }
+        showNpcSaid(r);
+      });
+      listBox.appendChild(b);
+    });
+  }
+  body.appendChild(listBox);
+
+  sheet(n.name, body, [ btn('‹ 返 回', 'btn-main', ()=>showNpc()) ]);
+}
+
+/* 他说了什么 —— 对话的结算屏 */
+function showNpcSaid(r){
+  const body = el('div','npc-said');
+
+  /* ① 他说的那段话：逐段浮现，和事件正文同一套排版 */
+  const saidBox = el('div','npc-line');
+  body.appendChild(saidBox);
+
+  /* ② 好感度的变化要**当场看得见** —— 不做隐藏数字 */
+  if (r.affDelta !== 0){
+    body.appendChild(el('div','npc-delta',
+      `${r.name}　好感 +${r.affDelta}　（${r.affBefore} → ${r.aff}）` +
+      (r.aff >= r.affCap ? '　已到上限' : '')));
+  } else if (!r.first){
+    body.appendChild(el('div','npc-delta dim',
+      `${r.name}　（这个话题聊过了，好感不再涨）`));
+  }
+
+  /* ③ 结算出来的东西（线索 / 数值）—— 由 npcTalk 决定，界面照实印 */
+  if (r.extra) body.appendChild(el('div','npc-delta', r.extra));
+
+  const foot = [ btn('再 说 一 句', 'btn-main', ()=>showNpcTopics(r.id)) ];
+  const list = G.Engine.npcList();
+  const n = list.filter(x => x.id === r.id)[0];
+  if (n && n.can) foot.push(btn('说 完 了', 'btn-go btn-main', ()=>showNpc()));
+  else foot.push(btn('说 完 了', 'btn-go btn-main', ()=>showNpc()));
+  sheet(r.name, body, foot);
+
+  /* 正文逐段浮现（复用主线那套 renderStoryText 的节奏感） */
+  renderStoryText(saidBox, r.said, 110);
+}
+
+/* ============================================================
    初始化
    ============================================================ */
 function init(){
@@ -22878,6 +23799,7 @@ function init(){
   }
 
   $('btnAttr').addEventListener('click', showAttrs);
+  if ($('btnNpc')) $('btnNpc').addEventListener('click', showNpc);
   $('btnDeck').addEventListener('click', showDeck);
   $('btnBag').addEventListener('click', showBag);
   $('btnRank').addEventListener('click', showRank);
@@ -22944,6 +23866,8 @@ G.UI.__dev = {
   showLog,
   /* 第 34 轮：舆图与远行 —— 这些必须能被测到（地图要真的渲染出点来） */
   showMap, showPlaceCard, doTravel,
+  /* 第 37 轮：人物与对话 */
+  showNpc, showNpcTopics, showNpcSaid,
   /* 第 36 轮：页面导航 —— 测「点了地图是不是真的跳到一个独立页面」 */
   openPage, leavePage, closeCurrent, PAGE_TITLES,
   get navStack(){ return NAV.stack.slice(); }

@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta name="build" content="2026/10/3 17:20:39">
-<!-- build: 2026/10/3 17:20:39 -->
+<meta name="build" content="2026/10/3 19:26:41">
+<!-- build: 2026/10/3 19:26:41 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#0d0b0a">
@@ -3906,6 +3906,299 @@ G.clueById = function(id){
       || (G.LORE.notes||[]).find(c=>c.id===id)
       || null;
 };
+
+
+/* ===== data2.js ===== */
+/* ============================================================
+   《记忆修复局》剧情 · 第二部（第 37 轮新增）
+   ------------------------------------------------------------
+   玩家原话：「特殊事件中好像也只有《三月初七》没有别的事件了
+   （甚至三月初七的内容量极低，完全没有它作为特殊事件应有的格调）」
+
+   《三月初七》讲的是**过去**：宗门的历史被反复重写，每一次抹掉一个人。
+   这一部讲的是**现在**：那个正在被抹掉的人，此刻还在山上。
+
+   名字的来源：主线里你读到过一句话 ——
+   「无者，非无人。人不载。」（白鹿书院的碑）
+   这一部就是这个「不载」的人。
+
+   ── 与主线的关系 ────────────────────────────────
+   · 独立推进（s.story2Stage），与主线互不阻塞
+   · 入口只有一个：**跟师父把「心结」聊出来**（好感 52 的那个话题）
+     —— 这是玩家说的「与 NPC 对话中可能会发生什么」的答案之一
+   · 8 页，两条分支
+
+   ── 写法约定（与 data.js 的主线一致）─────────────
+     contrib  需要多少累计宗门贡献才能翻到这一页
+     choices  2~4 个；`next` 写在选项上就是岔路
+     next     整页固定走向；`next:()=>null` 是**收束**（不是「没写」）
+     eff      收益一律用 a.xxx() 的返回值拼文案
+   ============================================================ */
+
+G.STORY2 = {
+  title:'山门外的第三个名字',
+  start:'sp1',
+  stages:[
+
+/* ==================== 第一幕 ==================== */
+{
+  id:'sp1', name:'第一页 · 他数错了',
+  contrib:0,
+  text:'师父把册子推过来的时候，手指还按在封皮上。\n\n「你先别翻。」他说。\n\n「为什么？」\n\n「因为我要你先听我说一句话。」\n\n他想了很久。久到屋里的灯芯爆了一下。\n\n「山门上的名册，」他说，「昨天多了一个人。」\n\n「多是好事。」\n\n「不是多。」他摇头，「是**换**。」\n\n他把册子翻开，推到灯底下：\n\n「你看这一页。二十七个人。\n上个月也是二十七个人。」\n\n「那怎么了？」\n\n「上个月的第二十七个，」他说，\n「叫**周平**。」',
+  choices:[
+    { label:'「这一页上没有周平。」',
+      hint:'你读了一遍，确实没有',
+      eff:(s,a)=>{
+        a.flag('sp_checked');
+        a.karma(-2);
+        const g = a.cult(40,'mid');
+        return '你把二十七个名字从头读到尾，读了两遍。\n\n没有周平。\n\n「他在这儿待了十一年。」师父说。\n「十一年，每天扫院子。你肯定见过他。」\n\n你想了想。\n\n**你想不起来。**\n\n不是「记不清」——是那个位置空着。\n像一本书里少了一页，而书还是合得上的。\n\n业障 −2　修为 +'+g; } },
+
+    { label:'「周平是谁？」',
+      hint:'先问清楚',
+      eff:(s,a)=>{
+        a.flag('sp_asked');
+        a.clue('clue_erased');
+        const g = a.cult(35,'mid');
+        return '师父看了你很久。\n\n「你问得对。」他说，「这才是该问的。」\n\n他站起来，走到门口，把门推开一条缝，\n朝外面看了一会儿，又关上。\n\n「周平，」他坐下来说，\n「是扫院子的。中等个头。左手小指断了一截。」\n\n「你怎么记得这么清楚？」\n\n「因为，」他说，「**他是我师弟。**」\n\n线索 +1　修为 +'+g; } },
+
+    { label:'把手按在册子上，不让他翻',
+      hint:'你不太想往下听',
+      eff:(s,a)=>{
+        a.flag('sp_stopped');
+        a.karma(-1);
+        return '你把手按上去。\n\n他没有挣。他把自己那只手收了回去，放在膝盖上。\n\n「也好。」他说。\n\n你们就这样坐了一会儿。\n\n灯芯又爆了一下。\n\n「它不会因为我今天不说就停下。」他终于开口，\n「我只是想找个人说。」\n\n业障 −1'; } }
+  ],
+  next:()=>'sp2'
+},
+
+/* ==================== 第二幕 ==================== */
+{
+  id:'sp2', name:'第二页 · 你去看了看',
+  contrib:30,
+  text:'你按他说的，去了周平扫的那片院子。\n\n院子是真的。扫帚靠在墙角，是真的。\n\n扫帚杆被手磨得发亮，有一段特别亮——\n那是握了很多年才有的形状。\n\n地上有一圈印子。\n扫帚立着放久了，会在地上压出一个浅圆的痕。\n\n那个痕是新的。',
+  choices:[
+    { label:'把扫帚拿起来，试试合不合手',
+      eff:(s,a)=>{
+        a.flag('sp_broom');
+        const g = a.cult(35,'mid');
+        return '你握上去。\n\n手的位置对不上——那段最亮的地方，\n比你的握位要低两指。\n\n他比你矮一点。\n\n你把扫帚放回原处，摆成刚才的样子。\n摆完你退后一步看了看，觉得还是差了一点。\n\n修为 +'+g; } },
+
+    { label:'问院子里其他人：周平呢？',
+      eff:(s,a)=>{
+        a.flag('sp_polled');
+        a.clue('clue_erased');
+        a.karma(-2);
+        const g = a.cult(45,'high');
+        return '你问了四个人。\n\n第一个说：「谁？」\n第二个说：「你说的是前院那个吧。」\n第三个人想了很久，说：「好像有这么个人。」\n\n第四个人是伙房的老师傅。\n\n他停下手里的活，看了你一眼：\n\n「你今天第二个来问他的。」\n\n「第一个是谁？」\n\n「你师父。」\n\n业障 −2　线索 +1　修为 +'+g; } },
+
+    { label:'在院子里站到天黑',
+      eff:(s,a)=>{
+        a.flag('sp_waited');
+        a.lifeBy(-0.02);
+        const g = a.cult(30,'mid');
+        return '你站在墙角，看着那片院子。\n\n太阳一寸一寸地移过去。\n\n天快黑的时候，你听见有人扫地。\n\n沙，沙，沙。\n\n你回头——没有人。\n扫帚还在墙角，一动不动。\n\n声音是从**更远的地方**来的。\n\n修为 +'+g; } }
+  ],
+  next:()=>'sp3'
+},
+
+/* ==================== 第三幕：分岔 ==================== */
+{
+  id:'sp3', name:'第三页 · 你决定怎么做',
+  contrib:60,
+  text:'师父听完，把册子合上。\n\n「现在你信了。」他说。不是问句。\n\n「信了。」\n\n「那你想怎么做？」\n\n他把册子放在桌上，推到你们中间。\n\n「我可以告诉你三件事。」他说。\n\n「第一件：把周平的名字写回去。\n第二件：什么都不做。\n第三件……」\n\n他停了一下。\n\n「第三件是，你自己去名册上看看，\n**你还在不在。**」',
+  choices:[
+    { label:'把周平的名字写回去', hint:'你说得出他是什么人吗',
+      eff:(s,a)=>{
+        a.flag('sp_write');
+        a.flag('story2_route_a');
+        a.karma(-3);
+        const g = a.cult(60,'high');
+        return '你拿起笔。\n\n「等一下。」师父说，「你要写他是什么人？」\n\n你想了很久。\n\n「扫院子的。」你说。\n「十一年。左手小指断了一截。」\n\n「就这些？」\n\n「就这些。」\n\n他点点头：「够了。名册上的人，也就这些。」\n\n你把「周平」两个字写在第二十八行。\n\n笔尖落下的时候，纸**吸了一下**——\n像很久没喝水的东西。\n\n业障 −3　修为 +'+g; },
+      next:'sp4a' },
+
+    { label:'什么都不做', hint:'你怕写下去会出事',
+      eff:(s,a)=>{
+        a.flag('sp_nothing');
+        a.flag('story2_route_b');
+        const g = a.cult(50,'high');
+        return '你把笔放下了。\n\n「为什么？」他问。\n\n「因为我不确定，」你说，\n「写回去的，是不是原来那个周平。」\n\n师父没有说话。\n\n过了很久，他说：「你想得比我远。」\n\n他站起来，把册子收进柜子。\n\n「那就算了。」他说。\n\n**他的声音比平常轻。**\n\n修为 +'+g; },
+      next:'sp4b' },
+
+    { label:'去看名册上还有没有自己的名字',
+      hint:'第三件',
+      eff:(s,a)=>{
+        a.flag('sp_self');
+        a.flag('story2_route_c');
+        a.clue('clue_name');
+        a.karma(-2);
+        const g = a.cult(55,'high');
+        return '你走到名册架子前，抽出最近的一册。\n\n翻到你入外门那一年。\n\n**你在。**\n\n你往后翻，一年一页，你都在。\n\n一直翻到最新的一页——\n\n你也在。\n\n然后你看见了下一行。\n\n那一行是空的，但**日期填好了**。\n\n是今天。\n\n业障 −2　线索 +1　修为 +'+g; },
+      next:'sp4c' }
+  ]
+},
+
+/* ==================== 第四幕（三路） ==================== */
+{
+  id:'sp4a', name:'第四页 · 写回去之后',
+  contrib:105,
+  text:'第二天早上，院子里有人在扫地。\n\n你站在廊下看了很久。\n\n沙，沙，沙。\n\n是个中等个头的男人，背对着你。\n左手小指断了一截。\n\n他扫得很慢，一圈一圈，\n扫到墙角的时候会停一下，把扫帚立起来。\n\n立起来的地方，地上压出一个浅圆的痕。',
+  choices:[
+    { label:'过去跟他说话',
+      eff:(s,a)=>{
+        a.flag('sp_talked_ping');
+        a.karma(-3);
+        const g = a.cult(70,'high');
+        return '你走过去。\n\n他停下来，抬头看你。\n\n「早。」他说。\n\n「早。」\n\n他想了想，问：「你是……」\n\n你报了名字。\n\n他点点头，接着扫地。\n扫了两下，他又停下来：\n\n「我好像认识你。」他说，「想不起来了。」\n\n「没关系。」你说。\n\n**你说这句话的时候，声音很稳。**\n\n业障 −3　修为 +'+g; } },
+
+    { label:'远远看着，不去打扰',
+      eff:(s,a)=>{
+        a.deed('sp_ping','watched');
+        const g = a.cult(55,'high');
+        return '你站在廊下，看了整整一个上午。\n\n他扫完了院子，去伙房打水，\n回来把墙角那块松了的砖重新垫平。\n\n中午他坐在台阶上吃饭，吃得很慢。\n\n下午接着扫。\n\n**他和别人没有区别。**\n这就是你写回去的东西：\n一个和别人没有区别的人。\n\n修为 +'+g; } },
+
+    { label:'去告诉师父：他回来了',
+      eff:(s,a)=>{
+        a.favor(2);
+        a.karma(-2);
+        const g = a.cult(60,'high');
+        return '你回到那间小屋。\n\n师父坐在桌边，手边放着那本册子，没打开。\n\n「他回来了。」你说。\n\n他「嗯」了一声。\n\n「你不去看看？」\n\n「不去。」他说。\n\n「为什么？」\n\n他低头看自己的手。\n\n「因为他现在不认得我了。」他说，\n「而我认得他。这不公平。」\n\n人情 +2　业障 −2　修为 +'+g; } }
+  ],
+  /* 第四幕三条路都接回同一页尾声 —— 这样 sp5 才是可达的。
+     ⚠️ 第一版这里写的是 `next:()=>null`（三条都收束），
+        而 sp5 是单独一页 —— 它永远走不到。
+        「一页写了却到不了」正是这个项目反复在抓的那类问题，
+        dev/verify-story2.js 断言「每一页都从起点可达」。 */
+  next:()=>'sp5'
+},
+
+{
+  id:'sp4b', name:'第四页 · 什么都不做之后',
+  contrib:105,
+  text:'三天。\n\n三天里，山上没有任何变化。\n\n院子还是那个院子，扫帚还在墙角，\n地上的浅圆痕一天比一天淡。\n\n第四天早上，痕不见了。\n\n你去问伙房的老师傅。\n\n「前院那个扫地的？」他说，「哪个扫地的？」\n\n**这一次，他是真的不知道。**',
+  choices:[
+    { label:'去问师父：你还记得周平吗',
+      eff:(s,a)=>{
+        a.karma(-3);
+        a.clue('clue_erased');
+        const g = a.cult(75,'high');
+        return '他正在写字。\n\n听到那两个字，他的手停了一下，\n笔尖在纸上洇出一个小黑点。\n\n「记得。」他说。\n\n「你记得他什么？」\n\n他想了很久。久到那个黑点干透了。\n\n「……我不记得了。」他说。\n\n他把那张纸揉掉，重新铺了一张。\n\n业障 −3　线索 +1　修为 +'+g; } },
+
+    { label:'自己把「周平」记下来',
+      hint:'写在别的地方，不写在名册上',
+      eff:(s,a)=>{
+        a.deed('sp_ping','wrote');
+        a.karma(-4);
+        const g = a.cult(65,'high');
+        return '你找了张纸。\n\n你不知道他长什么样，只写下师父说的那几句：\n\n**周平。扫院子。十一年。左手小指断了一截。**\n\n写完你把纸折好，塞进床板底下。\n\n第二天早上你去看，纸还在。\n\n字也还在。\n\n你把它重新折好，塞回去。\n\n业障 −4　修为 +'+g; } },
+
+    { label:'就这样吧',
+      eff:(s,a)=>{
+        a.deed('sp_ping','let_go');
+        return '你转身走了。\n\n走到院子口，你回头看了一眼那片空地。\n\n什么都没有。\n\n你继续走。\n\n**这是你这一世做的选择之一。**'; } }
+  ],
+  /* 第四幕三条路都接回同一页尾声 —— 这样 sp5 才是可达的。
+     ⚠️ 第一版这里写的是 `next:()=>null`（三条都收束），
+        而 sp5 是单独一页 —— 它永远走不到。
+        「一页写了却到不了」正是这个项目反复在抓的那类问题，
+        dev/verify-story2.js 断言「每一页都从起点可达」。 */
+  next:()=>'sp5'
+},
+
+{
+  id:'sp4c', name:'第四页 · 那一行日期',
+  contrib:105,
+  text:'你把那一册名册抱回了屋里，摊在桌上。\n\n最后一页的第二十八行。\n\n名字那一栏是空的。\n日期那一栏写着今天。\n\n你盯着看了一夜。\n\n天亮的时候，那一行下面**多了一行**。\n\n也是空的。\n日期是明天。',
+  choices:[
+    { label:'在明天那一行上先写下自己的名字',
+      hint:'抢在它前面',
+      eff:(s,a)=>{
+        a.flag('sp_wrote_self');
+        a.karma(-3);
+        const g = a.cult(80,'high');
+        return '你写下自己的名字。\n\n墨干得很快。\n\n你等了很久，等那一行变空。\n\n它没有变。\n\n天黑了，你点起灯。\n\n灯亮起来的时候，你看见那一行下面——\n\n**又多了两行。**\n\n日期是后天，和大后天。\n\n业障 −3　修为 +'+g; } },
+
+    { label:'把这一页撕下来',
+      eff:(s,a)=>{
+        a.flag('sp_tore_page');
+        a.deed('sp_page','tore');
+        a.karma(2);
+        const g = a.cult(60,'high');
+        return '你捏住那一页，撕了下来。\n\n撕口很毛。\n\n你把纸叠好，塞进怀里，\n然后把册子合上，放回架子，\n摆得和原来一模一样。\n\n第二天你去看，册子还在原来的位置。\n\n翻开——\n\n**那一页是好的。**\n\n业障 +2　修为 +'+g; } },
+
+    { label:'拿去给师父看',
+      eff:(s,a)=>{
+        a.flag('sp_showed_master');
+        a.karma(-2);
+        a.clue('clue_page');
+        const g = a.cult(70,'high');
+        return '你把册子摊在他面前。\n\n他看了很久。\n\n然后他做了一件你没想到的事——\n\n他伸出手，把那一页**合上了**。\n\n「别看。」他说。\n\n「为什么？」\n\n「因为看着它的人，」他说，\n「会被它记住。」\n\n业障 −2　线索 +1　修为 +'+g; } }
+  ],
+  /* 第四幕三条路都接回同一页尾声 —— 这样 sp5 才是可达的。 */
+  next:()=>'sp5'
+},
+
+/* ==================== 尾声 ==================== */
+{
+  id:'sp5', name:'第五页 · 师父说的最后一句',
+  contrib:160,
+  text:'不管你怎么做的，这一天的傍晚，\n师父都会叫你过去一次。\n\n他坐在桌边，桌上没有册子。\n\n「我要跟你说一件事。」他说。\n\n「你说。」\n\n「我这一辈子，」他说，\n「记过很多人。有些记在册子上，有些记在心里。」\n\n他停了一下。\n\n「现在我心里那些，开始往下掉了。」',
+  choices:[
+    { label:'「那我替你记。」',
+      eff:(s,a)=>{
+        a.flag('sp_carry');
+        a.karma(-4);
+        const g = a.cult(90,'high');
+        return '他看着你，看了很久。\n\n「你知道你在答应什么吗。」\n\n「知道。」\n\n「你不知道。」他说，「但是没关系。」\n\n他站起来，从柜子最上层拿下一本很薄的册子，\n放在你手里。\n\n「这本里只有三个名字。」他说。\n\n「另外两个是谁？」\n\n「一个是周平。」他说，\n「另一个，我也忘了。」\n\n业障 −4　修为 +'+g; } },
+
+    { label:'「记不住就算了。」',
+      eff:(s,a)=>{
+        a.flag('sp_let_go');
+        a.karma(-1);
+        const g = a.cult(60,'high');
+        return '他笑了一下。\n\n「你说得轻巧。」\n\n「本来就轻巧。」你说，「记不住的人，\n他自己也不知道自己被忘了。」\n\n「那倒是。」\n\n他把手放回膝盖上，看着窗外。\n\n「那倒是。」他又说了一遍。\n\n修为 +'+g; } },
+
+    { label:'不接话，给他倒了一杯水',
+      eff:(s,a)=>{
+        a.flag('sp_water');
+        a.favor(3);
+        a.karma(-2);
+        return '你把水递过去。\n\n他接了，喝了一口，放下。\n\n「好。」他说。\n\n就这一个字。\n\n你在旁边坐下来，两个人一起看着窗外。\n\n天一点点暗下去。\n\n人情 +3　业障 −2'; } }
+  ],
+  /* ⚠️ 这里是**全篇的收束**（不是「没写 next」）——
+     写成 `next:()=>null` 是明确地说「这条路到此为止」。
+     第一版补丁脚本曾把这一行误改成指向 sp5（自己指自己），
+     那样故事就永远走不完 —— 现在 verify-story2 会断言
+     「每一页都从起点可达」并且「收束页确实是收束」。 */
+  next:()=>null
+}
+
+]};
+
+/* ============================================================
+   收束哨兵
+   ------------------------------------------------------------
+   ⚠️⚠️ 第 37 轮 · 一个**真踩到的坑**，写在这里当路标：
+
+   这一节原来放着 story2Stage / story2Ready / story2LenFrom /
+   story2Progress / advanceStory2 —— 也就是第二部的推进逻辑。
+   它们全都直接读 `s`（局内状态）。
+
+   而 **`s` 是 engine.js 里的 `let s = null`，它是那个脚本的作用域里的变量**，
+   data2.js 看不到它。后果不是「崩掉」，是更坏的一种：
+     · story2LenFrom 里那个 try/catch 把 ReferenceError 吃掉了，
+       于是每一页都数出「1 页」—— 静默算错，没有报错；
+     · story2Stage / story2Ready 直接抛 ReferenceError，
+       被 verify-story2 抓到才暴露。
+
+   规矩（这个项目已经吃过几次同类亏了）：
+     **碰局内状态 `s` 的代码只能写在 engine.js 里。**
+     src/geography.js / src/dialogue.js 之所以能自己带逻辑，
+     是因为它们的函数都**把状态当参数收**（G.npcTopics(id, s)）——
+     那是正确写法。data2.js 只放**数据**。
+   推进逻辑现在在 engine.js 的「第二部剧情」那一节。
+   ============================================================ */
+G.STORY2_DONE = '__story2_done__';
 
 
 /* ===== geography.js ===== */
@@ -13986,6 +14279,8 @@ function newRun(lots, seed){
           否则「没徒弟却有聊天记录」会让界面误判。 */
     npc: {},
     npcTalkedAt: -1,         // 上一次聊天是第几次行动（每次行动最多聊一次）
+    /* 事件链进度（第 37 轮）：{ chainId: 走到第几步 } */
+    chains: {},
 
     // 建筑
     buildings: { lingtian:0, danfang:0, cangjing:0, jiangjing:0, dazhen:0, zushi:0 },
@@ -15297,6 +15592,94 @@ function evTextOf(v){
   try { const r = v(s); return r == null ? '' : String(r); } catch(e){ return ''; }
 }
 
+/* ============================================================
+   事件正文的统一出口 + 状态变体（第 37 轮）
+   ------------------------------------------------------------
+   为什么要有这一层：玩家说事件「还是不够」，而实测的瓶颈不是数量本身 ——
+   一局要抽 133 次事件，可抽池 373 个、可重复的只有 201 个，
+   所以一局重复率 40.3%。**加内容**只是解法之一，另一条更省的路是：
+   **让同一个事件在不同局面下读到不同的正文。**
+
+   ⚠️ 关键约束：现有 201 个可重复事件**一行都不用改**。
+      没写 variants 的走原来的路（evTextOf），所以这是一个纯加法。
+
+   写法：
+     { id:'…', text:'默认正文',
+       variants:[
+         { when:()=>deedPick('thief')==='let_go', text:'你放走过一个人…' },
+         { when:()=>evAttr('shenshi') >= evPeer('shenshi')*1.2, text:'你看得见…' }
+       ] }
+
+   ⚠️ `when` 与事件自己的 when 同规矩：**在全局作用域求值**，
+      只能读引擎发布到 window 的助手（flagAge / deedPick / evAttr…），
+      拿不到 s。写 s.xxx 会 ReferenceError。
+      这里对抛错做 fail-closed：跳过这个变体，继续试下一个 ——
+      绝不让异常冒到界面把整个事件渲染成空白（第 32 轮踩过）。 */
+function resolveVariant(e){
+  if (!e || !e.variants || !e.variants.length) return null;
+  for (let i = 0; i < e.variants.length; i++){
+    const v = e.variants[i];
+    if (!v) continue;
+    if (v.when){
+      try { if (!v.when()) continue; }
+      catch(err){ continue; }
+    }
+    return v;
+  }
+  return null;
+}
+/* 事件某一栏的最终文案：变体优先，没变体就用它自己。
+   field 省略时取 text。 */
+function eventTextOf(e, field){
+  field = field || 'text';
+  if (!e) return '';
+  const v = resolveVariant(e);
+  if (v && v[field] != null) return evTextOf(v[field]);
+  return evTextOf(e[field]);
+}
+
+/* ============================================================
+   事件链（第 37 轮）
+   ------------------------------------------------------------
+   第 32 轮的「选择记录」能表达「你做过 A，所以 B 变了」，
+   但表达不了「A → B → C → 终局」这种**三步以上**的线：
+   链上的每一环都该是一次性的、而且顺序不能乱。
+
+   写法：
+     { id:'ch_rain_1', chain:{ id:'rain', step:1 }, … }
+     { id:'ch_rain_2', chain:{ id:'rain', step:2 }, when:()=>chainStep('rain')===1, … }
+
+   pickEvent 里给「下一步还没走的链」开一个优先档 ——
+   复用第 32 轮 deed 优先档的同一套写法，不新造机制。
+
+   s.chains = { rain: 2 }   // 走到第几步
+   ============================================================ */
+function chainStep(id){ return ((s && s.chains) || {})[id] || 0; }
+/* 这个事件现在能不能抽：链上第 N 步要求已经走到 N−1 */
+function chainAllows(e){
+  if (!e.chain) return true;
+  const st = e.chain.step || 1;
+  const cur = chainStep(e.chain.id);
+  if (st === 1) return cur === 0;      // 第一步：还没开始才抽得到
+  return cur === st - 1;               // 后续步：上一步走完才抽得到
+}
+/* 走了一步（事件结算时调）。返回新的步数。 */
+function chainAdvance(e){
+  if (!e || !e.chain) return 0;
+  if (!s.chains) s.chains = {};
+  const id = e.chain.id, st = e.chain.step || 1;
+  s.chains[id] = Math.max(chainStep(id), st);
+  return s.chains[id];
+}
+/* 这条链走完了没有（最后一步有没有标记 end）
+   —— 界面与测试用它显示「这条线你走完了」 */
+function chainDone(id){
+  const steps = (G.EVENTS || []).filter(e => e.chain && e.chain.id === id);
+  if (!steps.length) return false;
+  const last = Math.max.apply(null, steps.map(e => e.chain.step || 1));
+  return chainStep(id) >= last;
+}
+
 /* ---------------- 长期因果（第 18 轮） ----------------
    有些选择会在若干次行动后才回来找你。                          */
 function addDebt(cfg){
@@ -15928,13 +16311,25 @@ function pickEvent(){
        那会让「在某地」变成「别处内容变少」，与「加内容」的初衷正好相反。
        特殊值 '*travel'：只在「刚赶完路」的那一步出现。 */
     if (!placeAllows(e, s.place, !!s.travelled)) return false;
+    /* ⑤ 事件链（第 37 轮）：链上第 N 步要求已经走到 N−1。
+       没写 chain 的事件不受影响（纯加法，与前面几层同一套写法）。 */
+    if (!chainAllows(e)) return false;
     return true;
   });
   if (!pool.length) return null;
 
+  /* ⓪ 链优先（第 37 轮）：链是**顺序**的，错过了就接不上 ——
+     所以它比回响与串联都更该被先抽到。
+     池子里没有「下一步该走的链」时老实退回，不凭空造事件。 */
+  let pickChain = null;
+  {
+    const nextChain = pool.filter(function(e){ return e.chain && chainAllows(e); });
+    if (nextChain.length) pickChain = nextChain;
+  }
+
   /* ④ 回响优先：因果的兑现，比新内容更该被看见 */
-  let pick = pool;
-  if (s.rng() < callbackChance()){
+  let pick = pickChain || pool;
+  if (!pickChain && s.rng() < callbackChance()){
     const tgt = causeTargets();
     const pending = pool.filter(function(e){ return tgt[e.id]; });
     if (pending.length) pick = pending;
@@ -17918,6 +18313,8 @@ function loadRun(){
     if (!s.npc || typeof s.npc !== 'object') s.npc = {};
     if (typeof s.npcTalkedAt !== 'number') s.npcTalkedAt = -1;
     if (s.story2Stage === undefined) s.story2Stage = null;
+    if (typeof s.story2Done !== 'number') s.story2Done = 0;
+    if (!s.chains || typeof s.chains !== 'object') s.chains = {};
     /* 第 34 轮：s.place / s.visited 也是这一轮才有的。
        老存档没有 → 补回「家里」，行为与旧版完全一致
        （旧版没有位置概念，等价于一直在宗门）。 */
@@ -18667,20 +19064,66 @@ function advanceStory(choice){
 /* 从某一页出发、沿着 next 走到头，一共有多少页。
    给「第 N / 共 M 页」用 —— 岔路之后两条路线的 M 可能不同，
    所以按当前这条路算，而不是按整个数组的长度。 */
+/* 从这一页往后还有几页。
+   ------------------------------------------------------------
+   🔴 第 37 轮修的一个**潜伏 bug**：
+      这里原来只看 `cur.next`（整页固定的走向），
+      而 advanceStory() 的优先级是**① 选项自己的 next → ② 整页的 next → ③ 顺着数组往后**。
+      也就是说「岔路写在选项上」时，这个函数数出来的页数**和玩家真正走的路不是同一条**。
+
+      为什么以前没暴露：三条路线（st4a/4b/4c 起）页数恰好一样，
+      所以取哪条都对。加第 4 条路线之后页数不同，进度分母立刻会算错。
+      （这一条在第 36 轮的计划里就标了「潜伏 bug，没有测试，本轮一并修掉」。）
+
+   现在的算法：**取所有可能路线里最长的那条**。
+   把每个选项的 next 和整页的 next 都当成分支，逐个走到底，取最大步数。 */
 function storyLenFrom(st){
   const stages = G.SECT_STORY.stages;
   if (!st) return 0;
-  let n = 1, cur = st, guard = 0;
-  while (guard++ < 32){
-    let nx = null;
-    if (typeof cur.next === 'function'){ try{ nx = cur.next(s); }catch(e){ nx = null; } }
-    else { const i = stages.indexOf(cur); nx = (i>=0 && i+1<stages.length) ? stages[i+1].id : null; }
-    if (!nx) break;
-    const f = stages.filter(x=>x.id===nx)[0];
-    if (!f) break;
-    n++; cur = f;
+
+  const byId = id => stages.filter(x => x.id === id)[0] || null;
+  const seenGuard = 40;                       // 防环（故事图理论上无环，但要有兜底）
+
+  /* 从某一页出发，最远还能走几页（含这一页） */
+  function depth(page, guard){
+    if (!page || guard > seenGuard) return 0;
+    const outs = [];
+    /* ① 选项上的 next（岔路写在这里） */
+    (page.choices || []).forEach(c => {
+      if (!c || c.next == null) return;
+      let nx = c.next;
+      if (typeof nx === 'function'){ try { nx = nx(s); } catch(e){ nx = null; } }
+      if (nx) outs.push(nx);
+    });
+    /* ② 整页的 next
+       ⚠️ 必须区分「没写 next」和「写了 next，但它返回 null」——
+          这正是 advanceStory 里那条注释说的同一件事：
+          `next:()=>null` 是**收束**（这条路到此为止），不是「没写」。
+          第一版这里只看返回值，于是「返回 null」被当成了「没写」，
+          掉进下面的③「顺数组往后」——
+          实测 st5a 因此接上了数组里的 st4b，整条线的页数从 5 被数成 **9**。
+          被 dev/verify-story 的「页数必须等于真走一遍」抓到。 */
+    let declaredNext = (page.next != null);
+    if (declaredNext){
+      let nx = page.next;
+      if (typeof nx === 'function'){ try { nx = nx(s); } catch(e){ nx = null; } }
+      if (nx) outs.push(nx);
+    }
+    /* ③ 没写 next、也没写选项 next → 顺着数组往后（与 advanceStory 的回落一致） */
+    if (!outs.length && !declaredNext){
+      const i = stages.indexOf(page);
+      if (i >= 0 && i + 1 < stages.length) outs.push(stages[i+1].id);
+    }
+    if (!outs.length) return 1;
+    let best = 0;
+    outs.forEach(id => {
+      const nx = byId(id);
+      const d = nx ? depth(nx, guard + 1) : 0;
+      if (d > best) best = d;
+    });
+    return 1 + best;
   }
-  return n;
+  return depth(st, 0);
 }
 /* ============================================================
    对话系统（第 37 轮）
@@ -18848,14 +19291,121 @@ function npcPending(){
    ⚠️ 这里只做状态；剧情页在 P4 写进 G.SECT_STORY2。
       没有内容时返回一个明确的失败，而不是静默什么都不做。 */
 function openStory2(){
-  if (!G.SECT_STORY2 || !(G.SECT_STORY2.stages||[]).length){
+  if (!G.STORY2 || !(G.STORY2.stages||[]).length){
     log('（这条线还没有被写出来。）');
     return { ok:false, msg:'这条线还没有被写出来' };
   }
   if (s.story2Stage) return { ok:false, msg:'已经开始了' };
-  s.story2Stage = G.SECT_STORY2.start || (G.SECT_STORY2.stages[0] || {}).id;
+  s.story2Stage = G.STORY2.start || (G.STORY2.stages[0] || {}).id;
   note('story', '师父托你记住一个名字。');
   return { ok:true, stage:s.story2Stage };
+}
+
+/* ============================================================
+   第二部剧情《山门外的第三个名字》（第 37 轮）
+   ------------------------------------------------------------
+   数据在 src/data2.js（**只有数据**），推进逻辑在这里。
+
+   ⚠️ 为什么不放在 data2.js：那些函数全都要读局内状态 `s`，
+      而 `s` 是**本文件**的 `let s = null` —— 另一个脚本看不到它。
+      第一版放在 data2.js 里的后果不是崩，是更坏的一种：
+      story2LenFrom 的 try/catch 把 ReferenceError 吃掉，
+      于是每一页都静默数出「1 页」。被 dev/verify-story2.js 抓到。
+      规矩：**碰 `s` 的代码只能写在 engine.js 里。**
+
+   与主线的关系：**字段独立、互不阻塞**。
+   不复用主线的函数是因为它们写死了 s.storyStage 与 G.SECT_STORY，
+   硬改成通用故事机会动到已经被 3 个测试守着的主线。
+   ============================================================ */
+function story2Stage(){
+  const cur = s.story2Stage;
+  if (cur === G.STORY2_DONE) return null;
+  const stages = G.STORY2.stages;
+  /* 没开始 / 老存档存的是下标（数字）→ 都当成第一页 */
+  if (cur == null || typeof cur === 'number') return stages[0] || null;
+  return stages.filter(x => x.id === cur)[0] || null;
+}
+function story2Need(st){
+  if (!st) return 0;
+  if (typeof st.contrib === 'number') return st.contrib;
+  return st.at || 0;
+}
+/* 这一页现在能不能翻（贡献够了才算「准备好了」） */
+function story2Ready(){
+  const st = story2Stage();
+  if (!st) return null;
+  if (s.chapter !== 'zongmen') return null;
+  if (sectContribTotal() < story2Need(st)) return null;
+  return st;
+}
+/* 从某一页往后还有几页（与 storyLenFrom 同一套算法，含「写没写 next」的区分） */
+function story2LenFrom(st){
+  const stages = G.STORY2.stages;
+  if (!st) return 0;
+  const byId = id => stages.filter(x => x.id === id)[0] || null;
+  function depth(page, guard){
+    if (!page || guard > 40) return 0;
+    const outs = [];
+    (page.choices || []).forEach(c => {
+      if (!c || c.next == null) return;
+      let nx = c.next;
+      if (typeof nx === 'function'){ try { nx = nx(s); } catch(e){ nx = null; } }
+      if (nx) outs.push(nx);
+    });
+    const declared = (page.next != null);
+    if (declared){
+      let nx = page.next;
+      if (typeof nx === 'function'){ try { nx = nx(s); } catch(e){ nx = null; } }
+      if (nx) outs.push(nx);
+    }
+    if (!outs.length && !declared){
+      const i = stages.indexOf(page);
+      if (i >= 0 && i + 1 < stages.length) outs.push(stages[i+1].id);
+    }
+    if (!outs.length) return 1;
+    let best = 0;
+    outs.forEach(id => { const nx = byId(id); const d = nx ? depth(nx, guard+1) : 0; if (d > best) best = d; });
+    return 1 + best;
+  }
+  return depth(st, 0);
+}
+function story2Progress(){
+  const next = story2Stage();
+  const done = s.story2Done || 0;
+  const total = done + story2LenFrom(next);
+  const have = sectContribTotal();
+  return { done:done, total:total, next:next,
+           have:have,
+           need: next ? Math.max(0, story2Need(next) - have) : 0,
+           needAll: next ? story2Need(next) : 0,
+           stageId: next ? next.id : null,
+           started: !!s.story2Stage };
+}
+/* 翻一页。优先级与主线一致：选项的 next → 整页的 next → 顺数组往后。
+   返回**刚读完的那一页**。 */
+function advanceStory2(choice){
+  const st = story2Stage();
+  if (!st) return null;
+  const stages = G.STORY2.stages;
+  const resolve = fn => { try { const v = fn(s); return (v === undefined) ? null : v; } catch(e){ return null; } };
+  let nextId = null, decided = false;
+  if (choice && choice.next != null){
+    nextId = (typeof choice.next === 'function') ? resolve(choice.next) : choice.next;
+    decided = true;
+  }
+  if (!decided && st.next != null){
+    nextId = (typeof st.next === 'function') ? resolve(st.next) : st.next;
+    decided = true;
+  }
+  if (!decided){
+    const i = stages.indexOf(st);
+    nextId = (i >= 0 && i + 1 < stages.length) ? stages[i+1].id : null;
+  }
+  s.story2Stage = nextId || G.STORY2_DONE;
+  s.story2Done = (s.story2Done || 0) + 1;
+  gainContrib(8);
+  note('story', `《山门外的第三个名字》翻过一页：${st.name}`);
+  return st;
 }
 
 function storyProgress(){
@@ -19724,8 +20274,12 @@ G.Engine = {
   sectTier, sectBlessing, sectRank, sectContrib, gainContrib,
   shopPrice, canBuyShop, buyFromShop, doSectTask, paySalary,
   storyStage, storyReady, advanceStory, storyProgress, storyLenFrom,
+  /* 第 37 轮：第二部剧情《山门外的第三个名字》（状态字段独立，与主线互不阻塞） */
+  story2Stage, story2Ready, advanceStory2, story2Progress, story2LenFrom, story2Need,
   /* 第 37 轮：对话系统 */
   npcList, npcTalk, npcAff, npcCanTalk, npcPending, npcAffCap, openStory2,
+  /* 第 37 轮：事件正文统一出口 / 状态变体 / 事件链 */
+  eventTextOf, resolveVariant, chainStep, chainAllows, chainAdvance, chainDone,
 
   /* 比武大会（第 22 轮） */
   tourneyBracket, tourneyReady, startTourney, tourneyNextOpponent,
@@ -21688,6 +22242,12 @@ function afterActionFlow(){
   const story = G.Engine.storyReady();
   if (story){ setTimeout(()=>showSectStory(), 320); return; }
 
+  /* 《山门外的第三个名字》（第 37 轮）：第二部，与主线**互不阻塞**。
+     两条线各自攒各自的贡献，谁先够了谁先弹 —— 所以这里不是 else if，
+     而是各自独立地问一次。玩家把两条线同时推着走也不会卡住。 */
+  const story2 = G.Engine.story2Ready();
+  if (story2){ setTimeout(()=>showStory2(), 320); return; }
+
   /* ---- 秘境：大众型的时钟（第 27 轮）----
      「到了时间秘境自动会开启，到时候会引发广大修士的注意」。
      所以它排在这里：天地异动的公告比随机事件重要，
@@ -21903,6 +22463,15 @@ function showEvent(ev){
       const r = c.eff(st.raw, api);
       // 关闭事件，显示结果
       closeSheet();
+      /* 第 37 轮：事件链要**在玩家真的选了之后**才往前走。
+         ⚠️ 不能在 pickEvent 里推进 —— 那只是「抽到了」，
+            玩家还没做选择，链的下一步就已经开了。
+            第一版就是在抽的时候推进的，被 verify-eventvolume 抓到
+            （它发现链可以跳过中间一环直接走到底）。 */
+      if (ev.chain){
+        try { G.Engine.chainAdvance(ev); } catch(e){}
+        autoSave();                       // 链的进度要落盘
+      }
       /* ⚠️ 第 33 轮：**运行时守卫**。
          「灵石 +undefined」那一族 bug 修过两轮（第 32 轮 22 处、第 33 轮 4 处），
          每一次都是靠人肉对账才发现的，而玩家可能已经看了好几天假数字。
@@ -23248,11 +23817,21 @@ function renderStoryText(container, text, baseDelay){
   });
 }
 
-function showSectStory(){
-  const st = G.Engine.storyReady();
+/* ⚠️ 第 37 轮修：这里原来用的是 `G.SECT_STORY.stages.length`（**整个故事图**的页数），
+   而玩家走的只是其中**一条路线**。三条路线页数恰好一样时看着没问题，
+   加了第 4 条路线（页数不同）之后，封面上的「共 M 页」就会和实际走到的页数对不上。
+   现在用 pr.total —— 那是 storyLenFrom 从**当前这一页**起算出来的这一条路的长度。
+   （这一段说明搬到了下面的通用阅读器里，因为它对两条剧情线都成立。） */
+
+function showStoryArc(arc){
+  const st = arc.ready();
   if (!st) return;
-  const pr = G.Engine.storyProgress();
-  const total = G.SECT_STORY.stages.length;
+  const pr = arc.progress();
+  renderStoryArc(arc, st, pr);
+}
+
+function renderStoryArc(arc, st, pr){
+  const total = pr.total;
   const pageNo = total - pr.total + pr.done + 1;   // 这一页是第几页
 
   const body = el('div','story-body');
@@ -23260,7 +23839,7 @@ function showSectStory(){
   /* ① 封面条：章节号 / 页码 / 标题 */
   const cover = el('div','story-cover');
   cover.innerHTML =
-    `<div class="story-kicker">宗 门 主 线 · 第 ${pageNo} 页 / 共 ${total} 页</div>` +
+    `<div class="story-kicker">${arc.kicker} · 第 ${pageNo} 页 / 共 ${total} 页</div>` +
     `<div class="story-title">${st.name}</div>`;
   body.appendChild(cover);
 
@@ -23285,25 +23864,27 @@ function showSectStory(){
       /* ⚠️ 第 31 轮：必须把**玩家点的那个选项**传给 advanceStory。
          岔路信息写在选项的 next 上（第三页的三个选项各通向不同的一页），
          只传空的话引擎只能回落到「顺着数组往后」——
-         三个选项全都会走到同一条路，分叉静默失效。 */
+         三个选项全都会走到同一条路，分叉静默失效。
+         第 37 轮把它做成参数化的：两条剧情线都走这一条路。 */
       const r = c.eff(G.Engine.raw, api2);
-      G.Engine.advanceStory(c);
+      arc.advance(c);
       autoSave();
       /* ④ 结果卡：把「发生了什么」单独演一屏，而不是塞进 toast */
       const gained = (G.Engine.raw.clues||[]).filter(x=>beforeClues.indexOf(x)<0);
-      showStoryResult(st, r, gained);
+      showStoryResultArc(arc, st, r, gained);
       renderRun();
     });
     wrap.appendChild(b);
   });
 
-  sheet('◆ 三 月 初 七', body, []);
+  sheet(arc.sheet, body, []);
 }
 
-/* 结果卡：这一页的收束。
-   普通事件给的是 toast（一闪而过），主线给的是一屏 —— 这就是区别。 */
-function showStoryResult(st, text, gainedClues){
-  const pr = G.Engine.storyProgress();
+function showSectStory(){ showStoryArc(STORY_ARC1); }
+function showStory2(){ showStoryArc(STORY_ARC2); }
+
+function showStoryResultArc(arc, st, text, gainedClues){
+  const pr = arc.progress();
   const body = el('div','story-body');
 
   const cover = el('div','story-cover done');
@@ -23316,7 +23897,7 @@ function showStoryResult(st, text, gainedClues){
   renderStoryText(box, text || '（你没有说什么。）', 80);
   body.appendChild(box);
 
-  /* 线索：主线最实在的产出，必须单独列出来 */
+  /* 线索：剧情最实在的产出，必须单独列出来 */
   if (gainedClues && gainedClues.length){
     const clues = el('div','story-clues');
     clues.style.animationDelay = '420ms';
@@ -23333,20 +23914,26 @@ function showStoryResult(st, text, gainedClues){
   foot.style.animationDelay = '560ms';
   foot.innerHTML = pr.next
     ? `下一页：<b>${pr.next.name}</b>　还需累计贡献 <b>${pr.need}</b>（现有 ${pr.have}）`
-    : '《三月初七》到这里就写完了。剩下的在别处。';
+    : arc.endLine;
   body.appendChild(foot);
 
   const wrap2 = el('div','story-choices');
   wrap2.style.marginTop = '12px';
   const go = btn(pr.next ? '翻 到 下 一 页' : '合 上 册 子','btn-main btn-go',()=>{
     closeSheet();
-    setTimeout(()=>showSectStory(), 260);
+    setTimeout(()=>showStoryArc(arc), 260);
   });
   wrap2.appendChild(go);
   body.appendChild(wrap2);
 
-  sheet('◆ 三 月 初 七', body, []);
+  sheet(arc.sheet, body, []);
 }
+
+/* 旧名保留：老代码与几个测试用 showStoryResult（主线专用） */
+function showStoryResult(st, text, gainedClues){
+  return showStoryResultArc(STORY_ARC1, st, text, gainedClues);
+}
+
 
 function showLog(){
   const raw = G.Engine.state().raw;
@@ -23860,7 +24447,7 @@ G.UI = { init, toast, show, renderMeta, renderRun, showEnding, openPage, leavePa
 G.UI.__dev = {
   rarityTag, renderChallenge, showRank, showBag, sheet, closeSheet,
   startTianjiaoFlow, renderRun, showDeck, showAttrs, doNurtureFlow,
-  showTianjiaoCompass, showEvent, showSectStory, showStoryResult, renderStoryText,
+  showTianjiaoCompass, showEvent, showSectStory, showStory2, showStoryResult, renderStoryText,
   showMijingNotice, showMijingEnter, showMijingFloor, resolveMijingPick, showMijingExit,
   showMijingBook, doDivineMijing, renderArchive, showClue, showSect, showBag, startChallengeFlow,
   showLog,

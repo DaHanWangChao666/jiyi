@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta name="build" content="2026/10/3 01:45:46">
-<!-- build: 2026/10/3 01:45:46 -->
+<meta name="build" content="2026/10/3 15:34:52">
+<!-- build: 2026/10/3 15:34:52 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#0d0b0a">
@@ -288,16 +288,26 @@ button:disabled{opacity:.35;cursor:not-allowed}
 .act-desc{font-size:12px;color:var(--ink3);margin-top:4px;line-height:1.65}
 .act-meta{font-size:11px;color:var(--jade);margin-top:5px}
 
-/* 底栏（第 25 轮改成会换行的 4 列网格）
+/* 底栏（第 36 轮：分成「常看」与「翻开」两组）
    ------------------------------------------------------------
-   加了「榜」之后是 7 个按钮。旧样式是 flex 不换行 + flex:1，
-   在 360px 的手机上每个只剩 ~40px —— 「储物袋」三个字就会被切掉。
-   现在允许换行、每行 4 个：窄屏排成 4 + 3，宽屏（520px 上限）也还是 4 + 3，
-   每个按钮 ~118px，中文标签放得下。 */
+   第 25 轮改成会换行的 4 列网格时是 7 个按钮；到第 34 轮加了「舆图」
+   变成 8 个，第 36 轮再加「人」就是 9 个。
+   9 个铺在 375px 上每个只剩 ~75px —— 「储物袋」加个计数就放不下。
+
+   现在按**用的频率**分两组，中间用一条细线隔开：
+     第一组（常看）：属性 · 牌组 · 人 · 舆图
+     第二组（翻开）：储物袋 · 榜 · 秘境 · 宗门 · 线索 · 记事
+   窄屏（≤420px）改成两列一行、按钮变矮，把纵向还给内容。 */
 .run-foot{
   display:flex;flex-wrap:wrap;gap:8px;padding:9px 15px calc(9px + env(safe-area-inset-bottom));
   border-top:1px solid var(--line);background:var(--bg2);
 }
+.foot-group{display:flex;flex-wrap:wrap;gap:8px;width:100%}
+.foot-group + .foot-group{
+  padding-top:8px;border-top:1px dashed var(--line);
+}
+.foot-group.wide .foot-btn{flex:1 1 21%}
+.foot-group.narrow .foot-btn{flex:1 1 14%}
 .foot-btn{
   flex:1 1 21%;min-width:0;padding:10px 0;border-radius:8px;font-size:12.5px;
   color:var(--ink2);background:var(--panel);border:1px solid var(--line);letter-spacing:.1em;
@@ -305,6 +315,8 @@ button:disabled{opacity:.35;cursor:not-allowed}
 }
 .foot-btn:active{background:var(--panel2)}
 .foot-btn em{font-style:normal;color:var(--gold);font-size:11px;margin-left:3px}
+/* 高频的那四个给一点存在感（它们是玩家最常点的） */
+.foot-group.wide .foot-btn{border-color:var(--line2);color:var(--ink)}
 
 /* ============================================================
    舆图 · 远行（第 34 轮）
@@ -359,6 +371,13 @@ button:disabled{opacity:.35;cursor:not-allowed}
   animation:mapBreath 2.6s ease-in-out infinite;
 }
 .map-dot.here .map-label{fill:var(--gold2)}
+
+/* 你走过的路（第 36 轮）：把去过的地方连起来，让地图留下足迹。
+   虚线 —— 「路」不是实体的东西，是有人走过才有的。 */
+.map-trail{
+  stroke:var(--gold);stroke-width:.35;stroke-dasharray:1.6 2.4;
+  opacity:.32;stroke-linecap:round;
+}
 @keyframes mapBreath{
   0%,100%{r:2.6px;opacity:.9}
   50%{r:4.2px;opacity:.25}
@@ -378,6 +397,10 @@ button:disabled{opacity:.35;cursor:not-allowed}
 .map-legend .lg.new{background:var(--gold);border-color:var(--gold)}
 .map-legend .lg.far{background:#4a4239;border-color:#3b342d}
 .map-legend .lg.shut{background:#2e2822;border-color:#2e2822}
+.map-legend .lg.trail{
+  background:none;border:none;width:14px;height:0;
+  border-top:1px dashed var(--gold);opacity:.5;
+}
 
 .map-list{display:flex;flex-direction:column;gap:7px}
 .map-row{
@@ -438,9 +461,50 @@ button:disabled{opacity:.35;cursor:not-allowed}
 }
 .end-wrap .btn-main{width:100%}
 
+/* ============================================================
+   面板页（第 36 轮）
+   ------------------------------------------------------------
+   玩家反馈：九个面板全是弹层，舆图把「一张地图 + 一份列表」
+   塞进 86vh 的弹层里，手机上必然挤。
+   现在它们是独立页面：整页、从右滑入、带返回。
+   与弹层的分工：
+     · 页面 = 「让你翻一页」（舆图 / 属性 / 牌组 / …）
+     · 弹层 = 「问你一句话」（结算 / 选卡 / 战斗 / 确认）
+   ============================================================ */
+.screen-page{
+  z-index:40;
+  /* ⚠️ 必须 overflow:hidden —— 不然 translateX(100%) 会把页面推到右边，
+     在 #app 上撑出一条横向滚动条（手机上会看到整页能往左拖）。 */
+  overflow:hidden;
+  transform:translateX(100%);
+  transition:transform .28s cubic-bezier(.2,.8,.3,1);
+}
+.screen-page.active{transform:none}
+.page-head{
+  display:flex;align-items:center;gap:10px;flex:none;
+  padding:calc(11px + env(safe-area-inset-top)) 14px 11px;
+  border-bottom:1px solid var(--line);background:var(--bg2);
+}
+.page-back{
+  flex:none;padding:7px 12px;border-radius:8px;font-size:13px;
+  border:1px solid var(--line2);background:var(--panel);color:var(--gold2);
+  letter-spacing:.06em;font-family:inherit;
+}
+.page-back:active{background:var(--panel2)}
+.page-title{
+  flex:1;text-align:center;font-size:14px;color:var(--gold2);letter-spacing:.18em;
+}
+.page-head-pad{flex:none;width:59px}     /* 和返回按钮等宽，让标题真正居中 */
+.page-body{flex:1;overflow-y:auto;padding:15px 16px;overscroll-behavior:contain}
+.page-foot{
+  padding:11px 16px calc(13px + env(safe-area-inset-bottom));
+  border-top:1px solid var(--line);display:flex;gap:8px;flex:none;
+}
+.page-foot:empty{display:none}
+.page-foot .btn-main{flex:1;padding:11px}
+
 /* ================= 弹层 ================= */
-.overlay{
-  position:fixed;inset:0;background:rgba(4,3,3,.82);
+.overlay{  position:fixed;inset:0;background:rgba(4,3,3,.82);
   display:flex;align-items:flex-end;justify-content:center;
   z-index:50;backdrop-filter:blur(2px);
   animation:fade .18s;
@@ -1153,6 +1217,38 @@ button:disabled{opacity:.35;cursor:not-allowed}
   .wheel-wrap{width:170px;height:170px;margin:12px auto 10px}
 }
 
+/* ============================================================
+   窄屏断点（第 36 轮新增）
+   ------------------------------------------------------------
+   在这之前，整个样式表**只有**一个 max-height:640px 断点，
+   没有任何针对屏幕宽度的适配 —— 也就是说 375px 的手机和 520px 的
+   桌面窗口用的是同一套排版。这是玩家说的「移动端更明显」的直接原因。
+
+   这里只做三件事（不重新设计视觉）：
+     ① 底栏按钮变矮变窄，把纵向还给内容
+     ② 面板页的内边距收一点
+     ③ 地图那一屏在手机上让地图更矮、列表更好点
+   ============================================================ */
+@media (max-width:420px){
+  .run-foot{padding:7px 11px calc(7px + env(safe-area-inset-bottom));gap:6px}
+  .foot-group{gap:6px}
+  .foot-group + .foot-group{padding-top:6px}
+  .foot-group.wide .foot-btn{flex:1 1 46%}
+  .foot-group.narrow .foot-btn{flex:1 1 30%}
+  .foot-btn{padding:8px 0;font-size:12px;letter-spacing:.04em}
+  .page-body{padding:12px 12px}
+  .page-head{padding:calc(9px + env(safe-area-inset-top)) 11px 9px}
+  .page-back{padding:6px 9px;font-size:12.5px}
+  .page-head-pad{width:52px}
+  /* 舆图：地图矮一点，列表留出可点的高度 */
+  .map-canvas{padding:2px}
+  .map-row{padding:9px 10px}
+  .map-legend{gap:3px 9px;font-size:10px}
+  /* 事件与行动列表：手机上把行距收一点，一屏能多看两条 */
+  .ev-text{line-height:1.9}
+  .act{padding:10px 12px}
+}
+
 /* ================= 存档导出 / 导入 ================= */
 .io-box{
   display:block;width:100%;min-height:76px;margin-bottom:9px;
@@ -1271,15 +1367,21 @@ button{touch-action:manipulation;}
     <main class="run-main" id="runMain"></main>
 
     <footer class="run-foot">
-      <button class="foot-btn" id="btnAttr">属性</button>
-      <button class="foot-btn" id="btnDeck">牌组 <em id="deckCount">0</em></button>
-      <button class="foot-btn" id="btnBag">储物袋 <em id="bagCount">0</em></button>
-      <button class="foot-btn" id="btnRank">榜</button>
-  <button class="foot-btn" id="btnMap">舆图</button>
-      <button class="foot-btn" id="btnMijing">秘境</button>
-      <button class="foot-btn" id="btnSect">宗门</button>
-      <button class="foot-btn" id="btnClue">线索 <em id="clueCount">0</em></button>
-      <button class="foot-btn" id="btnLog">记事</button>
+      <!-- 第一组：常看的四个（第 36 轮分组，见 style.css 里 .run-foot 的说明） -->
+      <div class="foot-group wide">
+        <button class="foot-btn" id="btnAttr">属性</button>
+        <button class="foot-btn" id="btnDeck">牌组 <em id="deckCount">0</em></button>
+        <button class="foot-btn" id="btnMap">舆图</button>
+        <button class="foot-btn" id="btnSect">宗门</button>
+      </div>
+      <!-- 第二组：翻开的六个 -->
+      <div class="foot-group narrow">
+        <button class="foot-btn" id="btnBag">储物袋 <em id="bagCount">0</em></button>
+        <button class="foot-btn" id="btnRank">榜</button>
+        <button class="foot-btn" id="btnMijing">秘境</button>
+        <button class="foot-btn" id="btnClue">线索 <em id="clueCount">0</em></button>
+        <button class="foot-btn" id="btnLog">记事</button>
+      </div>
     </footer>
   </section>
 
@@ -1292,6 +1394,24 @@ button{touch-action:manipulation;}
       <div class="end-gain" id="endGain"></div>
       <button class="btn-main btn-go" id="btnBackMeta">回 到 桌 前</button>
     </div>
+  </section>
+
+  <!-- ============ 面板页（第 36 轮） ============
+       以前这九个面板都是**弹层**（fixed + 底部升起 + max-height:86vh），
+       舆图把「一张地图 + 一份八九行列表」塞进弹层里，手机上必然挤，
+       而且窄屏下连底栏九个按钮都放不下。
+
+       现在它们是**独立页面**：从右侧滑入、整页、带返回。
+       ⚠️ 内容仍然由 ui.js 里原有的 showXxx() 渲染 —— 页面只是一个新的容器，
+         这样「内容」和「容器」分开，以后改布局不会再动到内容逻辑。 -->
+  <section id="screen-page" class="screen screen-page">
+    <header class="page-head">
+      <button class="page-back" id="btnPageBack">‹ 返回</button>
+      <span class="page-title" id="pageTitle">标 题</span>
+      <span class="page-head-pad"></span>
+    </header>
+    <div class="page-body" id="pageBody"></div>
+    <div class="page-foot" id="pageFoot"></div>
   </section>
 </div>
 
@@ -1609,6 +1729,43 @@ G.REALM_TABLE_VERSION = 2;
 /* 大境界名（用于敌人境界显示与位份判断） */
 G.MAJOR_REALMS = G.MAJOR_DEFS.map(function(m){ return m.name; }).concat(['渡劫']);
 G.MAJOR_SPAN = 9;
+
+/* ============================================================
+   遁速（第 36 轮新增）
+   ------------------------------------------------------------
+   玩家报的问题：「境界的提升在常规视角来看必然速度是更快的吧，
+   为什么在你给出的方案中，随着境界的提升，到达地图的某处
+   所要花费的寿元反而更多了？」
+
+   查出来根因是**定价基准选错了**，不是数值调反了：
+   旧的赶路价 = 一次行动消耗 × 距离系数，而一次行动消耗的定义是
+   「寿元上限 ÷ 52」—— 也就是说赶路的价格**锚在「你命有多长」上**，
+   而不是「你走得有多快」。境界高了寿元池变大，行动价跟着涨，
+   赶路价就跟着涨。**整张表里没有任何一项在表示「修士飞得更快」。**
+
+   所以补上这一项：**遁速**。它是一个「每天赶路要花的命」的减免倍率，
+   随大境界跳涨（不是随小境界缓缓涨 —— 「学会飞」是质变不是量变）。
+
+     炼气   ×1.00   靠两条腿
+     筑基   ×1.75   御物代步
+     金丹   ×2.80   御剑飞行
+     元婴   ×4.20   元婴出窍，日行千里
+     化神   ×6.00   神识覆盖百里
+     炼虚   ×8.50
+     合体   ×12.0
+     大乘   ×17.0
+     渡劫   ×22.0
+
+   ⚠️ 只在**赶路**上生效，不影响战斗与行动消耗 ——
+     免得「境界越高，日常行动也越便宜」把「寿元是唯一硬约束」这条铁律买掉。 */
+G.MAJOR_ESCAPE = [1.00, 1.75, 2.80, 4.20, 6.00, 8.50, 12.0, 17.0, 22.0];
+
+/* 某个境界档位的遁速倍率 */
+G.escapeSpeedAt = function(realmIdx){
+  const r = G.REALMS[realmIdx];
+  if (!r) return 1;
+  return G.MAJOR_ESCAPE[r.major - 1] || 1;
+};
 
 /* ============================================================
    境界上限（第 21 轮新增）
@@ -3748,7 +3905,7 @@ G.PLACE_ENV = {
    ============================================================ */
 G.PLACES = [
   /* ---- 你的宗门：起点。任何一局都从这儿开始 ---- */
-  { id:'home', name:'无名小山', region:'zhonghuan', kind:'home',
+  { id:'home', name:'无名小山', region:'zhonghuan', kind:'home', pos:[46,53],
     you:'你的宗门。山不高，灵脉不厚，没人管。\n它本来就不该存在。',
     gate:{ major:0 },
     env:null,
@@ -3757,7 +3914,7 @@ G.PLACES = [
     open:true },
 
   /* ---- 中寰 ---- */
-  { id:'taixuan', name:'太玄门', region:'zhonghuan', kind:'sect',
+  { id:'taixuan', name:'太玄门', region:'zhonghuan', kind:'sect', pos:[57,43],
     you:'天下正道之首。山门高得看不见顶，石阶一直铺到云里。',
     gate:{ major:4 },                       // 元婴才配上山
     env:'awe',
@@ -3767,7 +3924,7 @@ G.PLACES = [
     open:false,                             // 本批不开放，地图上可见
     openNote:'这条路还没有被写出来。' },
 
-  { id:'xuehe', name:'血河宗', region:'zhonghuan', kind:'sect', hidden:true,
+  { id:'xuehe', name:'血河宗', region:'zhonghuan', kind:'sect', pos:[39,60], hidden:true,
     you:'以杀证道。入口在中寰的暗处——白天找不到，得靠感觉。',
     gate:{ major:3, shenshi:1.15 },         // ← 神识专属：看得见才找得到
     env:null,
@@ -3777,7 +3934,7 @@ G.PLACES = [
     openNote:'这条路还没有被写出来。' },
 
   /* ---- 北寰：体魄的主场 ---- */
-  { id:'beiming', name:'北冥剑冢', region:'beihuan', kind:'sect',
+  { id:'beiming', name:'北冥剑冢', region:'beihuan', kind:'sect', pos:[45,11],
     you:'葬尽天下剑。冰原上插着成千上万把剑，像一片倒着长的林子。',
     gate:{ major:1 },
     env:'cold',                             // ← 体魄抗
@@ -3787,7 +3944,7 @@ G.PLACES = [
     open:true },
 
   /* ---- 东寰：悟性的主场 ---- */
-  { id:'bailu', name:'白鹿书院', region:'donghuan', kind:'sect',
+  { id:'bailu', name:'白鹿书院', region:'donghuan', kind:'sect', pos:[86,43],
     you:'记录天下事。山道上全是碑，碑上刻着别人记下来的事。',
     gate:{ major:1 },
     env:null,
@@ -3797,7 +3954,7 @@ G.PLACES = [
     open:true },
 
   /* ---- 南寰：根骨的主场 ---- */
-  { id:'wanyao', name:'万药谷', region:'nanhuan', kind:'sect',
+  { id:'wanyao', name:'万药谷', region:'nanhuan', kind:'sect', pos:[53,88],
     you:'悬壶济世。整条谷都是药田，空气是甜的。\n甜得有点过头。',
     gate:{ major:1 },
     env:'plague',                           // ← 根骨抗
@@ -3807,7 +3964,7 @@ G.PLACES = [
     open:true },
 
   /* ---- 其余：地图上可见，本批不开放 ---- */
-  { id:'wuliang', name:'无量寺', region:'xihuan', kind:'sect',
+  { id:'wuliang', name:'无量寺', region:'xihuan', kind:'sect', pos:[13,55],
     you:'度尽众生。寺建在荒漠最高的那座山顶上，只有一条路上去。',
     gate:{ major:2 },
     env:'desert',
@@ -3816,7 +3973,7 @@ G.PLACES = [
     tianjiao:['tj_wuyin'],
     open:false, openNote:'这条路还没有被写出来。' },
 
-  { id:'guixu', name:'归墟宗', region:'youhuan', kind:'sect',
+  { id:'guixu', name:'归墟宗', region:'youhuan', kind:'sect', pos:[44,79],
     you:'镇压万古凶物。他们住在地底，入口是一道裂缝。',
     gate:{ major:3 },
     env:'dark',
@@ -3825,7 +3982,7 @@ G.PLACES = [
     tianjiao:['tj_moyuan'],
     open:false, openNote:'这条路还没有被写出来。' },
 
-  { id:'tianji', name:'天机阁', region:'huanghuan', kind:'sect',
+  { id:'tianji', name:'天机阁', region:'huanghuan', kind:'sect', pos:[75,20],
     you:'推演天机。在云上，要爬很久。他们算得出所有人，除了一个。',
     gate:{ major:4 },
     env:'thin',
@@ -3865,24 +4022,127 @@ G.MAP_SVG = {
 G.placeById = function(id){ return G.PLACES.find(p => p.id === id) || null; };
 G.regionById = function(id){ return G.REGIONS.find(r => r.id === id) || null; };
 
-/* 两地距离（格）。⚠️ 必须由坐标算，不许手写 ——
-   手写的距离会在改坐标之后悄悄失准，而且不报错。 */
+/* 两地距离（格）。
+   ⚠️ 必须由坐标算，不许手写 —— 手写的距离会在改坐标之后悄悄失准，而且不报错。
+
+   🔴 第 36 轮修的一个真 bug：这里原来用的是 **region.pos**，
+      于是同一个寰里的所有地方**坐标完全相同**。
+      中寰有 3 个地方（无名小山 / 太玄门 / 血河宗）→ 距离恒为 0 →
+      地图上三个点、三个地名**叠在同一个像素上**。
+      现在改用 `place.pos`（每个地方自己的坐标）。
+      `region.pos` 只剩一个用途：画「寰」的名字标签。 */
 G.travelDist = function(fromId, toId){
   const a = G.placeById(fromId), b = G.placeById(toId);
   if (!a || !b) return 0;
-  const ra = G.regionById(a.region), rb = G.regionById(b.region);
-  if (!ra || !rb) return 0;
-  const dx = ra.pos[0] - rb.pos[0], dy = ra.pos[1] - rb.pos[1];
-  const d = Math.sqrt(dx*dx + dy*dy) / 10;      // 归一化成「格」，同寰 = 0
+  const pa = a.pos, pb = b.pos;
+  if (!pa || !pb) return 0;
+  const dx = pa[0] - pb[0], dy = pa[1] - pb[1];
+  const d = Math.sqrt(dx*dx + dy*dy) / 10;      // 归一化成「格」
   return Math.round(d * 10) / 10;
 };
 
-/* 每「格」的赶路价（单位 = 一次行动的消耗）。跨两寰约 3~4 个行动量。 */
+/* ============================================================
+   地标布局：算标签该放哪儿
+   ------------------------------------------------------------
+   为什么要有这个：地图上的地名是**文字**，文字有宽度。
+   第一版把标签固定放在 `y + 5.4`（点的正下方），
+   于是**任何两个靠得近的点，地名必然叠在一起** ——
+   而这是必然发生的：中寰本来就挤了三个地方。
+
+   所以标签位置不能写死，要**算**：
+     ① 每个点试八个候选方位（下 / 上 / 左 / 右 / 四个斜角）
+     ② 按「与已经放好的标签框的重叠面积」打分，取最小的
+     ③ 全都重叠 → 把标签往外推，直到不撞（有迭代上限）
+   纯几何，不依赖 DOM —— 所以测试能量它（verify-geography 有硬断言）。
+   ============================================================ */
+G.LABEL = { w:11, h:4.6, pad:1.0 };     // 标签框的估算尺寸（viewBox 单位）
+
+/* 两个矩形的重叠面积 */
+function rectOverlap(a, b){
+  const ox = Math.min(a.x+a.w, b.x+b.w) - Math.max(a.x, b.x);
+  const oy = Math.min(a.y+a.h, b.y+b.h) - Math.max(a.y, b.y);
+  return (ox > 0 && oy > 0) ? ox * oy : 0;
+}
+
+/* 给一批点算标签位置。places = [{id, pos:[x,y]}]，返回 {id:{x,y}}（标签中心） */
+G.mapLayout = function(places){
+  const L = G.LABEL;
+  const out = {};
+  const boxes = [];
+  /* 候选偏移：优先正下方（最自然），然后上下左右，最后四个斜角 */
+  const offs = [
+    [0, 5.4], [0, -4.0], [7.0, 1.4], [-7.0, 1.4],
+    [5.6, 5.0], [-5.6, 5.0], [5.6, -3.6], [-5.6, -3.6]
+  ];
+  /* ⚠️ 先放「重要的」：当前地 → 已开放 → 其余。
+     否则一个不重要的点可能把小山的地名挤走。 */
+  const sorted = places.slice().sort((a, b) => (b.pri || 0) - (a.pri || 0));
+
+  sorted.forEach(p => {
+    let best = null, bestScore = Infinity;
+    for (let push = 0; push <= 3 && !best; push++){
+      for (let i = 0; i < offs.length; i++){
+        const ox = offs[i][0] * (1 + push * 0.45);
+        const oy = offs[i][1] * (1 + push * 0.45);
+        const cx = p.pos[0] + ox, cy = p.pos[1] + oy;
+        const box = { x:cx - L.w/2, y:cy - L.h/2, w:L.w, h:L.h };
+        /* 出界要罚 */
+        let score = 0;
+        if (box.x < 0.5) score += (0.5 - box.x) * 40;
+        if (box.y < 0.5) score += (0.5 - box.y) * 40;
+        if (box.x + L.w > 99.5) score += (box.x + L.w - 99.5) * 40;
+        if (box.y + L.h > 99.5) score += (box.y + L.h - 99.5) * 40;
+        boxes.forEach(b => { score += rectOverlap(box, b) * 10; });
+        /* 别盖住自己的点 */
+        const dx = cx - p.pos[0], dy = cy - p.pos[1];
+        if (Math.sqrt(dx*dx + dy*dy) < 3.2) score += 30;
+        /* 同分时优先靠前的候选（更自然） */
+        score += i * 0.01;
+        if (score < bestScore){ bestScore = score; best = { x:cx, y:cy, box:box }; }
+      }
+      if (best && bestScore < 0.5) break;      // 完全不撞就收工
+    }
+    out[p.id] = { x:best.x, y:best.y };
+    boxes.push(best.box);
+  });
+  return { labels:out, boxes:boxes.length };
+};
+
+/* ============================================================
+   赶路定价（第 36 轮重做）
+   ------------------------------------------------------------
+   🔴 玩家报的问题：「境界的提升必然速度更快吧，为什么随着境界提升，
+      到达地图某处要花的寿元反而更多了？」
+
+   查出来的根因不是「数值调反了」，而是**定价基准选错了**：
+     旧公式：赶路消耗 = 一次行动消耗 × 距离系数
+     而一次行动消耗的定义是 `寿元上限 ÷ 52`
+     → 也就是说**赶路的价格锚在「你的寿元有多少」上，而不是「你走得有多快」**。
+       境界高了寿元池变大 → 行动价跟着涨 → 赶路价跟着涨。
+       **全程没有任何一项在表示「修士飞得更快」。**
+
+   新公式：赶路消耗 = 寿元上限 × 每天占比 × 天数 × (1 − 遁速减免)
+     每天占比 = 0.6%（走一天路要花的命，占**寿元池**的比例）
+     天数     = 按距离与身法算（遁速还能再压天数）
+     遁速减免 = 随大境界跳涨（见 realms.js 的 G.MAJOR_ESCAPE）
+
+   ⚠️ 这里有一个**关键取舍**，值得写下来：
+     第一版我写的是「天数 × actionCost() × (1−遁速)」—— 想复用现成的行动价。
+     实测出来炼气一层要花寿元池的 **8.0%**，炼气九层 **18.3%** —— 太重了。
+     根因是 `actionCost()` 本身在炼气段就占寿元池的 1%~2.4%，
+     而赶路要走好几天，几天乘起来就爆了。
+     所以改成**锚在寿元池的百分比上**，不用行动价：
+       · 平台无关（炼气池小、元婴池大，比例才有意义）
+       · 而且它天然满足玩家要的那条性质 —— 遁速涨 → 比例降
+   ============================================================ */
 G.TRAVEL = {
-  perGrid: 0.6,
-  shenfaPer: 0.004,     // 身法每点减免，见 engine 的 travelCost
-  shenfaCap: 0.50,      // 身法最多省掉一半
-  minUnits: 1           // 再近也要花一次行动的寿元
+  baseDays: 3,          // 起步天数（收拾行装、出山门）
+  perGrid: 1.2,         // 每「格」加几天
+  minDays: 1,
+  shenfaPer: 0.004,     // 身法每点减免天数
+  shenfaCap: 0.40,      // 身法最多省掉四成天数（再快也得走）
+  dayPct: 0.006,        // 走一天路 = 寿元上限的 0.6%
+  escapeCap: 0.72       // 遁速最多省掉七成每天耗损（不让赶路变成免费）
 };
 
 /* 环境代价的减免量（0~cap）。写在数据层，界面与引擎都读它。 */
@@ -14919,17 +15179,54 @@ function canTravelTo(id){
   if (s.life - cost <= 0) return { ok:false, msg:`寿元不够（要 ${cost}，你还有 ${s.life}）` };
   return { ok:true, cost:cost };
 }
-/* 赶路消耗。
-   ⚠️ 公式是唯一真源 —— 界面必须调用它来显示，不许自己算一遍
-     （第 20 轮的教训：界面自己算 = 界面会说谎）。 */
-function travelCost(id){
+/* 赶路消耗（第 36 轮重做，见 geography.js 里 G.TRAVEL 的说明）
+   ------------------------------------------------------------
+   🔴 旧公式：赶路 = actionCost() × 距离系数。
+      而 actionCost() 的定义是「寿元上限 ÷ 52」——
+      于是赶路的价**锚在「你命有多长」上**，境界越高反而越贵。
+      实测（去北冥剑冢）：炼气一层占寿元池 3.0%，筑基前期反而 8.8%。
+      玩家一眼就看出来了：「境界高了不是该走得更快吗」。
+
+   新公式：寿元上限 × 每天占比 × 天数 × (1 − 遁速减免)
+     · 每天占比 —— 寿元上限的 0.6%（走一天路要花的命）
+     · 天数     —— 由距离与身法决定；遁速**再压一次**天数
+     · 遁速减免 —— 随**大境界**跳涨（G.MAJOR_ESCAPE），这是「学会飞」的质变
+   于是境界越高 → 天数更少 + 每天更省 → 占寿元池的比例**单调递减**。
+   dev/verify-geography.js 从筑基起逐档钉死这条单调性。
+
+   ⚠️ 第一版用的是 `actionCost()`（复用现成的行动价），实测炼气九层要花
+      寿元池的 18.3% —— 因为在炼气段行动价本身就占池子的 1%~2.4%，
+      而赶路要走好几天，几天乘起来就爆了。改成锚在百分比上才对。
+      （这也是「平台无关」的写法：炼气池小、元婴池大，只有比例能比。） */
+function escapeSpeedCut(){
+  const sp = (G.escapeSpeedAt ? G.escapeSpeedAt(s.realmIdx) : 1);
+  /* 把倍率换算成减免：×1.00 → 不减免；×4.20 → 减免 1−1/4.2 ≈ 76%
+     封顶 escapeCap，免得高境界把赶路变成免费（那会让地图失去分量）。 */
+  const raw = 1 - 1 / Math.max(1, sp);
+  return Math.min(G.TRAVEL.escapeCap, raw);
+}
+/* 赶路要几天（未取整）。取整会让「天数」在 2~8 之间抖 —— 见 travelDays 的说明。 */
+function travelDaysRaw(id){
   const dist = G.travelDist(s.place, id);
-  const base = actionCost();
-  const units = Math.max(G.TRAVEL.minUnits, G.TRAVEL.minUnits + dist * G.TRAVEL.perGrid);
-  const raw = base * units;
-  /* 身法折扣：走得快的人少烧一点。封顶 −50%，不让它把距离抹平。 */
-  const cut = Math.min(G.TRAVEL.shenfaCap, evAttr('shenfa') * G.TRAVEL.shenfaPer);
-  return Math.max(base, Math.round(raw * (1 - cut)));
+  const base = G.TRAVEL.baseDays + dist * G.TRAVEL.perGrid;
+  const shenfaCut = Math.min(G.TRAVEL.shenfaCap, evAttr('shenfa') * G.TRAVEL.shenfaPer);
+  const speedCut = 1 / Math.sqrt(Math.max(1, G.escapeSpeedAt ? G.escapeSpeedAt(s.realmIdx) : 1));
+  return Math.max(G.TRAVEL.minDays, base * (1 - shenfaCut) * speedCut);
+}
+/* 赶路要几天（界面显示用，取整） */
+function travelDays(id){
+  return Math.max(G.TRAVEL.minDays, Math.round(travelDaysRaw(id)));
+}
+/* 赶路要多少寿元。
+   ⚠️ 内部用**未取整**的天数算：整数天数只有 2~8 这个量级，
+      在元婴段 maxLife 涨得比天数快得多，于是「先取整再算比例」会抖
+      （实测元婴中期 0.33% → 后期 0.33% → 巅峰 0.34%，出现回升）。
+      玩家看到的仍然是一个整数，但**比例**是连续的 →
+      「修为越高、天涯越近」这条性质才能严格成立。
+      （第一版就是先取整，被 verify-geography 第 11 节当场抓住。） */
+function travelCost(id){
+  const perDay = s.maxLife * G.TRAVEL.dayPct * (1 - escapeSpeedCut());
+  return Math.max(1, Math.round(travelDaysRaw(id) * perDay));
 }
 /* 环境代价：在这个地方做一次行动，额外扣多少寿元。
    返回 { amount, env, discount } —— 界面要显示「这里在耗你多少」。 */
@@ -14949,6 +15246,11 @@ function travelTo(id){
   const p = G.placeById(id);
   const from = currentPlace();
   const first = (s.visited || []).indexOf(id) < 0;
+  /* ⚠️ 天数要在**换地方之前**算 —— travelDays 读的是 s.place（你现在在哪），
+     换完再算就变成「从新地方到新地方」= 0 天了。
+     （第 36 轮：以前这里用 G.travelDist 冒充「天」，单位对不上，
+       日志会说「走了 4 天的路」而界面显示「路 5 天」。） */
+  const days = travelDays(id);
 
   s.actions++;                       // 赶路自己就是一次行动
   s.life -= chk.cost;
@@ -14958,7 +15260,7 @@ function travelTo(id){
   if (s.visited.indexOf(id) < 0) s.visited.push(id);
   /* 到了别处，宗门的日常事务暂时做不了 —— 这件事在 availableActions 里体现，
      不在这里扣任何隐藏数值（玩家不该被暗算）。 */
-  log(`你走了 ${G.travelDist(from.id, id)} 天的路，到了${p.name}。`);
+  log(`你走了 ${days} 天的路，到了${p.name}。`);
   if (first) note('place', `第一次到${p.name}。`);
   else note('place', `又回了一趟${p.name}。`);
 
@@ -14968,9 +15270,9 @@ function travelTo(id){
 
   if (s.life <= 0){
     const d = endRun('life');
-    return { ok:true, place:p, cost:chk.cost, first:first, from:from.id, dead:d };
+    return { ok:true, place:p, cost:chk.cost, days:days, first:first, from:from.id, dead:d };
   }
-  return { ok:true, place:p, cost:chk.cost, first:first, from:from.id };
+  return { ok:true, place:p, cost:chk.cost, days:days, first:first, from:from.id };
 }
 /* 地图要画的那些点（含「看得见但进不去」的） */
 function visiblePlaces(){
@@ -18684,6 +18986,8 @@ G.Engine = {
   /* 地理 · 远行（第 34 轮） */
   currentPlace, visiblePlaces, canTravelTo, travelTo, travelCost, placeEnvCost,
   isPlaceKnown, placeDiscovered,
+  /* 第 36 轮：赶路改成「按天计费 + 遁速减免」，这几个也导出来给界面与测试用 */
+  travelDays, travelDaysRaw, escapeSpeedCut,
   // 世界线
   worldStage, checkWorldEnding,
   // 宗门（第 15 轮）
@@ -18890,6 +19194,79 @@ function show(id){
   target.scrollTop = 0;
 }
 
+/* ============================================================
+   导航：面板页（第 36 轮新增）
+   ------------------------------------------------------------
+   玩家原话：「我希望你能好好优化一下游戏页面的排版，最好能用页面
+   跳转的形式来呈现（例如点击『地图』功能时，能跳转到地图页面上），
+   当前的页面有些拥挤了（移动端更明显，甚至出现了地图部分重叠的现象）」
+
+   现状：全游戏只有 4 个屏幕（桌前 / 抽签 / 局内 / 结算），
+   而**九个面板全是弹层** —— `fixed` + 底部升起 + `max-height:86vh`。
+   舆图把「一张地图 + 一份八九行列表」塞进这个弹层里，手机上必然挤。
+
+   做法：加一层真正的导航。
+     · **面板页**（舆图 / 属性 / 牌组 / 储物袋 / 榜 / 宗门 / 线索 / 记事 / 人）
+       走 `openPage()` —— 独立的 `#screen-page`，整页、从右滑入、带返回
+     · **交互时刻**（结算 / 选卡 / 战斗 / 确认）继续走 `sheet()` 弹层
+
+   ⚠️ 三个刻意的实现选择：
+     ① **不动那七个 showXxx() 的内容逻辑**。它们原来结尾都调
+        `sheet(标题, body, foot)`。现在 `sheet()` 变成一个**分派器**：
+        标题在「页面名单」里 → 走 openPage；不在 → 保持原来的弹层行为。
+        这样内容一行都不用改，容器与内容彻底分开。
+     ② **栈自己维护**，不依赖 window.history ——
+        `dev/uidom.js` 的假 DOM 里**没有 history、也没有 window.addEventListener**，
+        依赖它会让导航完全测不了。history 只在能力存在时顺手接一下（守卫式），
+        接上之后浏览器后退键能用。
+     ③ 返回时 `show()` 回到 `screen-run`（面板只能从局内打开），
+        这样不用记「我是从哪个屏幕点进来的」。 */
+/* 「面板页」名单：标题 → 页面 id。
+   ⚠️ 只有**浏览型**的面板进这张表。
+      交互时刻（结算 / 选卡 / 战斗 / 确认 / 秘境一层层的探索过程）
+      仍然走弹层 —— 那些是「问你一句话」，不是「让你翻一页」。 */
+const PAGE_TITLES = {
+  '舆 图':'map', '属 性':'attrs', '牌 组':'deck', '储 物 袋':'bag',
+  '榜':'rank', '宗 门':'sect', '线 索 · 案 卷':'clue', '记 事':'log',
+  '秘 境':'mijing', '人':'npc'
+};
+const NAV = { stack: [] };
+
+function openPage(id, title, bodyNode, footNodes){
+  const t = title || (Object.keys(PAGE_TITLES).filter(k => PAGE_TITLES[k] === id)[0]) || '';
+  $('pageTitle').textContent = t;
+  const body = $('pageBody');
+  body.innerHTML = '';
+  if (typeof bodyNode === 'string') body.innerHTML = bodyNode;
+  else if (bodyNode) body.appendChild(bodyNode);
+  const foot = $('pageFoot');
+  foot.innerHTML = '';
+  (footNodes||[]).forEach(n=>foot.appendChild(n));
+  body.scrollTop = 0;
+  show('screen-page');
+  NAV.stack.push(id);
+  /* 浏览器后退键：只在能力存在时接（假 DOM 里没有 history） */
+  try {
+    if (window.history && window.history.pushState) window.history.pushState({ page:id }, '');
+  } catch(e){}
+}
+/* 从面板页退出来 */
+function leavePage(){
+  NAV.stack.pop();
+  const back = NAV.stack[NAV.stack.length - 1];
+  if (back){ show('screen-page'); }
+  else { show('screen-run'); renderRun(); }
+}
+/* 给面板内容用的「关闭」：弹层就关弹层，页面就退页面。
+   面板底部那些「关 上」按钮原来写的是 closeSheet()，
+   页面化之后必须换成这个，否则点了没反应。 */
+function closeCurrent(){
+  if (sheetOpen()) closeSheet();
+  else if ($('screen-page').classList.contains('active')) leavePage();
+  else closeSheet();
+}
+function isPage(id){ return NAV.stack.indexOf(id) >= 0 || $('screen-page').classList.contains('active'); }
+
 /* ---------------- Toast ---------------- */
 let toastTimer = null;
 function toast(text, kind){
@@ -18900,8 +19277,13 @@ function toast(text, kind){
   setTimeout(()=>{ t.classList.add('fade'); setTimeout(()=>t.remove(), 420); }, 2200);
 }
 
-/* ---------------- 弹层 ---------------- */
-function sheet(title, bodyNode, footNodes){
+/* ---------------- 弹层 ----------------
+   ⚠️ 第 36 轮：`sheet()` 现在是**分派器**。
+   标题在 PAGE_TITLES 名单里的（九个面板）走 openPage() 独立页面；
+   其余（结算 / 选卡 / 战斗 / 确认）保持原来的底部弹层行为。
+   这样七个 showXxx() 的内容逻辑一行都不用改 —— 容器与内容分开。
+   原来的实现改名为 sheetRaw()。 */
+function sheetRaw(title, bodyNode, footNodes){
   $('sheetTitle').textContent = title;
   const body = $('sheetBody');
   body.innerHTML = '';
@@ -18912,6 +19294,24 @@ function sheet(title, bodyNode, footNodes){
   (footNodes||[]).forEach(n=>foot.appendChild(n));
   $('overlay').classList.remove('hidden');
   body.scrollTop = 0;
+}
+function sheet(title, bodyNode, footNodes){
+  const pid = PAGE_TITLES[title];
+  if (pid){
+    /* 页面模式下，面板底部那些「关 上」按钮要改成「返回」——
+       它们原来绑的是 closeSheet()，在页面上不会有效果。 */
+    const foot = (footNodes||[]).map(n => {
+      if (n && n.tagName === 'BUTTON' && /关\s*上|合\s*上/.test(n.textContent||'')){
+        const b = el('button','btn-main','‹ 返 回');
+        b.addEventListener('click', leavePage);
+        return b;
+      }
+      return n;
+    });
+    openPage(pid, title, bodyNode, foot);
+    return;
+  }
+  sheetRaw(title, bodyNode, footNodes);
 }
 function closeSheet(){ $('overlay').classList.add('hidden'); }
 function sheetOpen(){ return !$('overlay').classList.contains('hidden'); }
@@ -19680,18 +20080,47 @@ function showMap(){
   const S = G.MAP_SVG;
 
   const wrap = el('div','map-wrap');
-  /* SVG 用字符串拼 —— 假 DOM 里也能测（verify-panelscan 会扫这段 HTML） */
-  const dots = places.map(p => {
-    const r = G.regionById(p.region);
-    if (!r) return '';
-    const x = r.pos[0], y = r.pos[1];
+
+  /* ⚠️ 第 36 轮修：这里原来用的是 **region.pos**（区域的坐标），
+     于是同一个寰里的地方坐标完全相同 —— 中寰有 3 个地方
+     （无名小山 / 太玄门 / 血河宗），三个点、三个地名叠在同一个像素上。
+     玩家报的「地图部分重叠」就是这个。
+
+     现在：① 每个地方用自己的 `pos`
+           ② 地名位置交给 G.mapLayout() **算**出来（不写死偏移），
+              它会把标签推开到互不相交。
+     dev/verify-geography.js 第 10 节用硬断言钉住这两件事。 */
+  const drawn = places.filter(p => G.placeById(p.id) && G.placeById(p.id).pos);
+  const layout = G.mapLayout(drawn.map(p => ({
+    id:p.id, pos:G.placeById(p.id).pos,
+    pri: p.here ? 3 : (p.open !== false ? 2 : 1)     // 当前地最优先占位
+  })));
+
+  const dots = drawn.map(p => {
+    const def = G.placeById(p.id);
+    const x = def.pos[0], y = def.pos[1];
+    const lab = layout.labels[p.id] || { x:x, y:y + 5.4 };
     const tone = mapDotTone(p);
     return `<g class="map-dot ${tone}" data-place="${p.id}">
       <circle cx="${x}" cy="${y}" r="${p.kind==='home'?2.6:2.0}" class="map-halo"/>
       <circle cx="${x}" cy="${y}" r="${p.kind==='home'?1.5:1.1}" class="map-core"/>
-      <text x="${x}" y="${y + 5.4}" class="map-label">${p.name}</text>
+      <text x="${lab.x}" y="${lab.y + 1.1}" class="map-label">${p.name}</text>
     </g>`;
   }).join('');
+
+  /* 你已经走过的路：把它们连起来（第 36 轮加，让地图留下足迹）。
+     用虚线，因为「路」不是实体的东西 —— 是有人走过才有的。 */
+  const visited = places.filter(p => p.visited && G.placeById(p.id).pos);
+  const trails = (function(){
+    const out = [];
+    for (let i = 0; i < visited.length; i++){
+      for (let j = i+1; j < visited.length; j++){
+        const a = G.placeById(visited[i].id).pos, b = G.placeById(visited[j].id).pos;
+        out.push(`<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" class="map-trail"/>`);
+      }
+    }
+    return out.join('');
+  })();
 
   const regions = S.regions.map(rg => {
     const r = G.regionById(rg.id);
@@ -19708,6 +20137,7 @@ function showMap(){
      <div class="map-canvas">
        <svg viewBox="${S.viewBox}" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="舆图">
          ${regions}
+         ${trails}
          ${dots}
        </svg>
      </div>
@@ -19717,6 +20147,7 @@ function showMap(){
        <span><i class="lg new"></i>还没去过</span>
        <span><i class="lg far"></i>境界不够</span>
        <span><i class="lg shut"></i>路还没通</span>
+       <span><i class="lg trail"></i>走过的路</span>
      </div>
      <div class="map-list"></div>`;
 
@@ -19733,7 +20164,14 @@ function showMap(){
     if (p.here) bits.push('你现在在这儿');
     else if (!p.open) bits.push(p.openNote || '路还没通');
     else if (!p.reach) bits.push(`要到第 ${(G.placeById(p.id).gate||{}).major} 个大境界`);
-    else bits.push(`${p.dist} 天　寿元 −${p.cost}`);
+    else {
+      /* 第 36 轮：赶路改成「几天」+「多少寿元」两件事分开说 ——
+         以前只有一个 dist（格），玩家看不懂。
+         ⚠️ 天数与消耗都必须调引擎的 travelDays / travelCost，
+         界面不许自己算一遍（第 20 轮的教训：界面自己算 = 界面会说谎）。 */
+      const days = G.Engine.travelDays(p.id);
+      bits.push(`路 ${days} 天　寿元 −${p.cost}`);
+    }
     if (p.env) bits.push((G.PLACE_ENV[p.env]||{}).name || '');
     b.innerHTML =
       `<div class="map-row-top"><span class="map-row-name">${p.name}</span>
@@ -19800,7 +20238,7 @@ function showPlaceCard(id){
      ${extra}
      <div class="place-line"><span class="pk">赶路</span><span class="pv">` +
        (p.here ? '你已经在这儿了'
-               : `路 ${p.dist} 天　寿元 −${cost}${p.visited?'　（去过）':'　（第一次去）'}`) +
+               : `路 ${G.Engine.travelDays(id)} 天　寿元 −${cost}${p.visited?'　（去过）':'　（第一次去）'}`) +
      `</span></div>
      ${(!p.open && !p.here) ? `<div class="place-warn">${p.openNote||'这条路还没有被写出来。'}</div>` : ''}
      ${(!p.reach && !p.here) ? `<div class="place-warn">境界不够：要走到第 ${(G.placeById(id).gate||{}).major} 个大境界才上得去。这一步先记着。</div>` : ''}
@@ -19821,7 +20259,7 @@ function doTravel(id){
   if (!r.ok){ toast(r.msg || '走不了','bad'); return; }
   const p = r.place;
   const region = G.regionById(p.region);
-  toast(`走了 ${G.travelDist(r.from, id)} 天，到了${region?region.name+'·':''}${p.name}　寿元 −${r.cost}`, 'good');
+  toast(`走了 ${r.days} 天，到了${region?region.name+'·':''}${p.name}　寿元 −${r.cost}`, 'good');
   if (r.dead){ afterDeath(r.dead); return; }
   /* ⚠️ 这里**不要**再写一行记事 —— engine 的 travelTo() 已经写了
      （`log(...)` + `note('place', ...)`）。第一版在这里又写了一次，
@@ -22423,6 +22861,22 @@ function init(){
   $('btnSheetClose').addEventListener('click', closeSheet);
   $('overlay').addEventListener('click', e=>{ if (e.target.id==='overlay') closeSheet(); });
 
+  /* 面板页的返回（第 36 轮） */
+  if ($('btnPageBack')) $('btnPageBack').addEventListener('click', leavePage);
+  /* 浏览器后退键：只在能力存在时接。假 DOM 里没有 window.addEventListener，
+     所以要判一下 —— 否则整个 init() 在这里就崩了。 */
+  if (typeof window.addEventListener === 'function'){
+    window.addEventListener('popstate', function(){
+      if ($('screen-page').classList.contains('active')) leavePage();
+    });
+  }
+  /* Esc：面板页返回（弹层的 Esc 在键盘那一段里处理） */
+  if (typeof document.addEventListener === 'function'){
+    document.addEventListener('keydown', function(e){
+      if (e.key === 'Escape' && $('screen-page').classList.contains('active')) leavePage();
+    });
+  }
+
   $('btnAttr').addEventListener('click', showAttrs);
   $('btnDeck').addEventListener('click', showDeck);
   $('btnBag').addEventListener('click', showBag);
@@ -22473,7 +22927,7 @@ function init(){
   }
 }
 
-G.UI = { init, toast, show, renderMeta, renderRun, showEnding };
+G.UI = { init, toast, show, renderMeta, renderRun, showEnding, openPage, leavePage };
 
 /* 开发期测试钩子（第 25 轮）。
    ------------------------------------------------------------
@@ -22487,8 +22941,12 @@ G.UI.__dev = {
   showTianjiaoCompass, showEvent, showSectStory, showStoryResult, renderStoryText,
   showMijingNotice, showMijingEnter, showMijingFloor, resolveMijingPick, showMijingExit,
   showMijingBook, doDivineMijing, renderArchive, showClue, showSect, showBag, startChallengeFlow,
+  showLog,
   /* 第 34 轮：舆图与远行 —— 这些必须能被测到（地图要真的渲染出点来） */
-  showMap, showPlaceCard, doTravel
+  showMap, showPlaceCard, doTravel,
+  /* 第 36 轮：页面导航 —— 测「点了地图是不是真的跳到一个独立页面」 */
+  openPage, leavePage, closeCurrent, PAGE_TITLES,
+  get navStack(){ return NAV.stack.slice(); }
 };
 
 document.addEventListener('DOMContentLoaded', init);

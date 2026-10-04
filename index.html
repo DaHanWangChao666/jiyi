@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta name="build" content="2026/10/4 13:36:37">
-<!-- build: 2026/10/4 13:36:37 -->
+<meta name="build" content="2026/10/5 00:50:28">
+<!-- build: 2026/10/5 00:50:28 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#0d0b0a">
@@ -218,24 +218,42 @@ button:disabled{opacity:.35;cursor:not-allowed}
 .draw-actions{display:flex;gap:10px;padding:12px 0 4px}
 .draw-actions .btn-main{flex:1}
 
-/* ================= 局内 HUD ================= */
+/* ================= 局内 HUD（第 39 轮压缩） =================
+   ------------------------------------------------------------
+   玩家反馈：「主页面给人的感觉太无趣了，内容冗杂很难让玩家找到可玩点」。
+
+   实测：原来的 HUD 约 **217px**（境界行 22 + 寿元 61 + 5 个资源格 37 +
+   修为/战力 23 + 内景 16 + 丹力 16 + 主线 18 + 内边距 24）。
+   在 375×667 的手机上，剩给内容区只有 360px，9 个行动按钮一屏只看得到 5 个。
+
+   现在压成**一条状态带约 60px**，只留 境界 / 寿元 / 修为（玩家选的「只留三样」）。
+   省下的 157px 全部还给内容区。
+
+   ⚠️ 移走的东西没有丢，只是换了地方：
+       战力 / 内景  → 属性面板（并且这里保留节点，只是 CSS 隐藏）
+       资源 5 格    → 排成一条紧凑串（不再各占一块）
+   ============================================================ */
 #screen-run{background:var(--bg)}
 .hud{
-  padding:13px 15px 11px;
+  padding:9px 15px 8px;
   background:linear-gradient(180deg,#191512,#121010);
   border-bottom:1px solid var(--line);
+  flex:none;
 }
-.hud-row{display:flex;align-items:center;justify-content:space-between}
-.hud-realm{font-size:16px;color:var(--gold2);letter-spacing:.14em}
+.hud-row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.hud-realm{font-size:15px;color:var(--gold2);letter-spacing:.12em;min-width:0}
+/* 身份行现在是一句会变的话（identityLine），可能比原来长 —— 允许换行、不撑破 */
 .hud-role{
-  font-size:10px;color:var(--ink3);letter-spacing:.1em;
-  border:1px solid var(--line);border-radius:4px;padding:1px 6px;margin-left:8px;
-  vertical-align:middle;
+  font-size:10px;color:var(--ink3);letter-spacing:.06em;
+  border:1px solid var(--line);border-radius:4px;padding:1px 6px;margin-left:6px;
+  vertical-align:middle;display:inline-block;max-width:100%;
+  white-space:normal;line-height:1.5;
 }
-.hud-life{margin:11px 0 9px}
-.life-label{display:flex;justify-content:space-between;font-size:12px;color:var(--ink2);margin-bottom:5px}
-.life-label span:first-child{letter-spacing:.24em;color:var(--ink3)}
-.life-bar{height:9px;background:#0a0908;border-radius:5px;overflow:hidden;border:1px solid #2a2320}
+/* 寿元：标签、条、代价挤在一行 —— 原来 61px，现在 26px */
+.hud-life{margin:6px 0 5px}
+.life-label{display:flex;justify-content:space-between;align-items:baseline;font-size:11.5px;color:var(--ink2);margin-bottom:4px}
+.life-label span:first-child{letter-spacing:.2em;color:var(--ink3)}
+.life-bar{height:8px;background:#0a0908;border-radius:5px;overflow:hidden;border:1px solid #2a2320}
 .life-fill{
   height:100%;width:100%;border-radius:5px;
   background:linear-gradient(90deg,#7a2f28,#c05a48);
@@ -244,30 +262,49 @@ button:disabled{opacity:.35;cursor:not-allowed}
 .life-fill.warn{background:linear-gradient(90deg,#8a6a1e,#d9a72e);animation:lifePulse 1.1s infinite}
 .life-fill.danger{background:linear-gradient(90deg,#6a1f1a,#e04a3a);animation:lifePulse .6s infinite}
 @keyframes lifePulse{0%,100%{opacity:1}50%{opacity:.55}}
-.life-cost{font-size:11px;color:var(--ink3);text-align:right;margin-top:4px}
+/* 代价不再单独占一行：并到标签那一行的右边 */
+.life-cost{
+  font-size:10.5px;color:var(--ink3);text-align:right;
+  margin-top:-17px;position:relative;pointer-events:none;
+}
 .life-cost span{color:var(--blood)}
 
-.hud-res{display:flex;gap:7px;margin-bottom:9px}
-.res{
-  flex:1;display:flex;align-items:center;justify-content:center;gap:4px;
-  background:#100e0d;border:1px solid var(--line);border-radius:7px;padding:6px 2px;
-  font-size:13px;
-}
-.res i{
-  font-style:normal;font-size:10px;color:var(--ink3);
-  border:1px solid var(--line2);border-radius:3px;padding:0 3px;line-height:1.4;
-}
-.res span{color:var(--ink);font-weight:700;font-size:14px}
-.res.up span{color:var(--jade)}
-.res.down span{color:var(--blood)}
-
-.hud-prog{font-size:11px}
-.prog-bar{height:4px;background:#0a0908;border-radius:3px;overflow:hidden;margin-bottom:4px}
+/* 修为：条 + 一行小字（战力已搬走） */
+.hud-prog{font-size:11px;margin-bottom:5px}
+.prog-bar{height:3px;background:#0a0908;border-radius:3px;overflow:hidden;margin-bottom:3px}
 .prog-fill{height:100%;background:linear-gradient(90deg,#4a6d5c,#7fc9a5);transition:width .4s}
 .prog-text{color:var(--ink3);text-align:right}
 .prog-text > span{color:var(--jade)}
 .prog-text .pow{color:var(--gold);margin-right:10px}
 .prog-text .pow.strong{color:var(--gold2);font-weight:700}
+
+/* 5 个资源：一条紧凑串（原来是 5 个各占一块的方块，37px） */
+.hud-res{display:flex;gap:4px;margin-bottom:0}
+.res{
+  flex:1;display:flex;align-items:center;justify-content:center;gap:2px;
+  background:transparent;border:none;border-radius:0;padding:0;
+  font-size:12px;min-width:0;
+}
+.res i{
+  font-style:normal;font-size:9px;color:var(--ink3);
+  border:none;border-radius:0;padding:0;line-height:1.4;
+}
+.res span{color:var(--ink);font-weight:700;font-size:12.5px}
+.res.up span{color:var(--jade)}
+.res.down span{color:var(--blood)}
+
+/* 战力 / 内景：搬去了属性面板。这里**保留节点**（renderRun 仍要写它们），
+   只是不显示 —— 删掉节点会让 $('powText') 变 null。
+   ⚠️ 两条分开写：`.daoji-text` 原来在 .hud-prog 里是**可见**的，
+      不显式隐藏的话它会跟着状态带一起出现，等于白压。 */
+.hud-pow{display:none}
+.hud .daoji-text{display:none}
+
+/* 丹力：有丹才出现，压在状态带最下面一行 */
+.hud .pill-boost{font-size:10.5px;margin-top:3px}
+
+/* 主线：保留原来的样子与 id，只是现在住在状态带里 */
+.hud .story-hud{margin-top:4px}
 
 /* ================= 行动区 ================= */
 .run-main{flex:1;overflow-y:auto;padding:14px 15px 8px}
@@ -287,6 +324,106 @@ button:disabled{opacity:.35;cursor:not-allowed}
 .act-cost{font-size:11.5px;color:var(--blood);flex:none}
 .act-desc{font-size:12px;color:var(--ink3);margin-top:4px;line-height:1.65}
 .act-meta{font-size:11px;color:var(--jade);margin-top:5px}
+
+/* ============================================================
+   日志体（第 39 轮）
+   ------------------------------------------------------------
+   玩家选的呈现模式：从「计分板 + 菜单」变成「每天翻开一页日志」。
+
+   三块东西，从上到下：
+     .focus-card  今天值得做 —— 全页**唯一**的重心
+     .chron       这一世（最近几条记事）
+     .mem-gauge   记忆刻度
+
+   ⚠️ 焦点卡必须在行动列表**上面**并压过它：现在 9 个行动按钮长得一样
+      （★舆图 与 修行 同样重），玩家说的「很难找到可玩点」就是这儿来的。
+   ============================================================ */
+
+/* ---- 今天值得做 ---- */
+.focus-card{
+  flex:none;margin:10px 15px 0;
+  animation:fadeUp .4s ease both;
+}
+.focus-card[hidden]{display:none}
+.fc{
+  display:block;width:100%;text-align:left;
+  background:linear-gradient(135deg,#241d10,#1a1614);
+  border:1px solid var(--gold);border-radius:var(--r);
+  padding:12px 14px;transition:.14s;
+  box-shadow:0 0 0 1px rgba(201,162,39,.12), 0 6px 18px -12px rgba(201,162,39,.5);
+}
+.fc:not(.blocked):active{transform:scale(.985);background:linear-gradient(135deg,#2b2213,#201b17)}
+/* 平淡的一天（兜底的「修行」）：不抢眼，但也不消失 */
+.fc.plain{
+  background:var(--panel);border-color:var(--line2);box-shadow:none;
+}
+/* 点不动的卡：变暗、**不绑点击**，理由写在卡面上 */
+.fc.blocked{opacity:.72;border-color:var(--line2);box-shadow:none;cursor:default}
+.fc-k{
+  font-size:9.5px;letter-spacing:.34em;color:var(--gold);
+  margin-bottom:6px;opacity:.85;
+}
+.fc.plain .fc-k{color:var(--ink3)}
+.fc-top{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.fc-title{font-size:17px;color:var(--gold2);letter-spacing:.06em}
+.fc.plain .fc-title{font-size:15px;color:var(--ink)}
+.fc.blocked .fc-title{color:var(--ink2)}
+.fc-cost{font-size:11.5px;color:var(--blood);flex:none}
+.fc-why{
+  font-size:12.5px;color:var(--ink2);margin-top:6px;line-height:1.7;
+}
+.fc-block{
+  font-size:11.5px;color:#d9a24a;margin-top:6px;
+  background:rgba(201,162,39,.07);border-radius:7px;padding:6px 9px;
+}
+
+/* ---- 提醒行（旧账快到期）---- */
+.notice-row{
+  flex:none;margin:8px 15px 0;
+  font-size:11.5px;color:#d9a24a;line-height:1.7;
+  background:rgba(201,162,39,.07);border:1px solid rgba(201,162,39,.22);
+  border-radius:8px;padding:7px 10px;
+}
+.notice-row[hidden]{display:none}
+.notice-row .nt-k{margin-right:5px}
+
+/* ---- 这一世（记事流水）---- */
+.chron{
+  flex:none;margin:10px 15px 0;padding-top:9px;
+  border-top:1px dashed var(--line);
+}
+.chron-h{
+  font-size:9.5px;letter-spacing:.34em;color:var(--ink3);margin-bottom:6px;
+}
+.chron-empty{font-size:12px;color:var(--ink3);font-style:italic}
+.chron-i{
+  display:flex;gap:8px;font-size:12.5px;line-height:1.7;color:var(--ink2);
+  padding:2px 0;
+}
+.chron-n{flex:none;font-size:10.5px;color:var(--ink3);min-width:52px;padding-top:2px}
+.chron-t{flex:1;min-width:0}
+/* 不同种类的记事给一点点色差 —— 让流水看得出「这是哪一类的事」 */
+.chron-i.k-place  .chron-t{color:#a9c9b8}
+.chron-i.k-people .chron-t{color:#c9b8a9}
+.chron-i.k-realm  .chron-t{color:var(--gold2)}
+.chron-i.k-story  .chron-t{color:#c9a9c9}
+.chron-i.k-fight  .chron-t{color:#d9a24a}
+.chron-more{
+  display:block;margin-top:5px;padding:3px 0;
+  font-size:11px;color:var(--ink3);letter-spacing:.1em;font-family:inherit;
+}
+.chron-more:active{color:var(--gold2)}
+
+/* ---- 记忆刻度 ---- */
+.mem-gauge{
+  flex:none;margin:9px 15px 0;padding-top:8px;
+  border-top:1px dashed var(--line);
+  font-size:11.5px;color:var(--ink3);line-height:1.75;
+}
+.mem-gauge[hidden]{display:none}
+.mg-row b{color:var(--gold2);font-size:13px}
+.mg-who{color:var(--jade)}
+.mg-who.none{color:var(--ink3);font-style:italic}
 
 /* 底栏（第 36 轮：分成「常看」与「翻开」两组）
    ------------------------------------------------------------
@@ -1349,6 +1486,17 @@ button:disabled{opacity:.35;cursor:not-allowed}
   /* 事件与行动列表：手机上把行距收一点，一屏能多看两条 */
   .ev-text{line-height:1.9}
   .act{padding:10px 12px}
+  /* ---- 日志体（第 39 轮）：手机上把三块都收窄，纵向留给行动 ---- */
+  .focus-card,.chron,.mem-gauge,.notice-row{margin-left:12px;margin-right:12px}
+  .focus-card{margin-top:8px}
+  .fc{padding:10px 12px}
+  .fc-title{font-size:15.5px}
+  .fc-why{font-size:12px;margin-top:5px}
+  .chron{margin-top:8px;padding-top:7px}
+  .chron-n{min-width:46px;font-size:10px}
+  .chron-i{font-size:12px}
+  .mem-gauge{margin-top:7px;padding-top:6px;font-size:11px}
+  .run-main{padding:11px 12px 6px}
 }
 
 /* ================= 存档导出 / 导入 ================= */
@@ -1425,6 +1573,21 @@ button{touch-action:manipulation;}
 
   <!-- ============ 局内：宗门 ============ -->
   <section id="screen-run" class="screen">
+    <!-- ============================================================
+         顶部状态带（第 39 轮压缩）
+         ------------------------------------------------------------
+         玩家反馈：「当前的主页面给人的感觉太无趣了，内容冗杂很难让
+         玩家找到可玩点」。实测：顶部原来 8 行、约 **217px**，
+         手机上 375×667 只剩 360px 给内容区，9 个行动按钮一屏只看得到 5 个。
+
+         现在压成 **3 行约 60px**，只留 境界 / 寿元 / 修为 这三样
+         （玩家选的就是「只留三样」）。省下来的 157px 全部还给内容区。
+
+         ⚠️ 移走的信息一个都没丢，只是换了地方：
+             战力 / 内景 → 「属性」面板
+             5 个资源    → 这一条状态带的末行（紧凑串）+ 属性面板
+             主线进度    → 这一条状态带（保留 #storyHud，两处代码依赖这个 id）
+         ============================================================ -->
     <header class="hud">
       <div class="hud-row">
         <div class="hud-realm">
@@ -1433,6 +1596,8 @@ button{touch-action:manipulation;}
         </div>
         <button class="btn-icon" id="btnMenu">≡</button>
       </div>
+
+      <!-- 寿元：保留 lifeText / lifeFill / lifeCost 三个 id（renderRun 与测试都读） -->
       <div class="hud-life">
         <div class="life-label">
           <span>寿 元</span>
@@ -1441,6 +1606,15 @@ button{touch-action:manipulation;}
         <div class="life-bar"><div class="life-fill" id="lifeFill"></div></div>
         <div class="life-cost">每次行动 <span id="lifeCost">−3</span></div>
       </div>
+
+      <!-- 修为：保留 cultFill / cultNeed -->
+      <div class="hud-prog">
+        <div class="prog-bar"><div class="prog-fill" id="cultFill"></div></div>
+        <div class="prog-text">距突破还需 <span id="cultNeed">100</span> 修为</div>
+      </div>
+
+      <!-- 5 个资源：还是 5 个 .res 格子（setRes() 要给 .res 加闪烁类），
+           但排成一条紧凑串，不再各占一块。 -->
       <div class="hud-res">
         <div class="res" title="灵石"><i>石</i><span id="resStone">0</span></div>
         <div class="res" title="修为"><i>修</i><span id="resCult">0</span></div>
@@ -1448,23 +1622,47 @@ button{touch-action:manipulation;}
         <div class="res" title="人情"><i>情</i><span id="resFavor">0</span></div>
         <div class="res" title="宗门气运"><i>运</i><span id="resSect">0</span></div>
       </div>
-      <div class="hud-prog">
-        <div class="prog-bar"><div class="prog-fill" id="cultFill"></div></div>
-        <div class="prog-text">
-          <span class="pow" id="powText">战力 0 · 手无寸铁</span>
-          距突破还需 <span id="cultNeed">100</span> 修为
-        </div>
-        <!-- 丹药加成条（第 25 轮）：永久丹与剩余场次的限时丹。空的时候整条隐藏 -->
-        <div class="pill-boost" id="pillBoost" style="display:none"></div>
-        <!-- 内景（第 26 轮）：境界养成的层数与全属性加成。紧挨着修为条 -->
-        <div class="daoji-text" id="daoJiText"></div>
-        <!-- 主线进度（第 29 轮）：玩家反馈「主线过于模糊」——
-             以前《三月初七》只活在「宗门」面板里，不进那个面板就不知道
-             有这条线。现在把它摆到主界面上，只报进度、不催、不弹窗。
-             点一下才能展开看详情，不想走这条线的人可以完全无视它。 -->
-        <div class="story-hud" id="storyHud" style="display:none"></div>
-      </div>
+
+      <!-- 丹力：有丹才出现（空的时候整条隐藏） -->
+      <div class="pill-boost" id="pillBoost" style="display:none"></div>
+
+      <!-- 主线进度：压成一行，仍然保留 id="storyHud"
+           ⚠️ ui.js:3991 给它绑了点击（点开案卷），dev/verify-story.js:47 也读它。
+              所以这一行**必须留在这个 DOM 里**，只是换到状态带里。 -->
+      <div class="story-hud" id="storyHud" style="display:none"></div>
+
+      <!-- 战力：渲染在这里但由 CSS 隐藏 —— 它搬去了「属性」面板。
+           ⚠️ 不删节点：renderRun 仍要写 powText，删了就取不到元素。 -->
+      <div class="hud-pow"><span class="pow" id="powText">战力 0 · 手无寸铁</span></div>
+      <!-- 内景：同上，搬去「属性」面板，这里留节点 -->
+      <div class="daoji-text" id="daoJiText"></div>
     </header>
+
+    <!-- ============================================================
+         日志体（第 39 轮）—— 主页面的**主体**，排在行动列表之前
+         ------------------------------------------------------------
+         玩家选的呈现模式：「从『计分板 + 菜单』变成『每天翻开一页日志』」。
+
+         ⚠️ 顺序是关键，第一版排错了：
+            我一开始把这三块放在行动列表**后面** —— 结果 8 个行动按钮
+            把页面占满，焦点卡与记事流水全在折叠线以下，
+            非滚动不可才能看见。那等于没做。
+            现在顺序是：状态带 → 今天值得做 → 这一世 → 记忆刻度 → 还能做什么
+            （行动列表 flex:1 吃掉剩下的高度，自己滚）。
+
+         ⚠️ 焦点卡不是自动操作，也不加任何数值收益 ——
+            玩家不点它，照样走下面的次级列表（第 29 轮「不能强迫玩家」的延续）。
+         ============================================================ -->
+    <section class="focus-card" id="runFocus" hidden></section>
+
+    <!-- 提醒行（旧账快到期之类）。没有事的时候整行隐藏。 -->
+    <div class="notice-row" id="runNotice" hidden></div>
+
+    <!-- 这一世：最近几条记事。引擎早就写了 60 条，只是从来没拿到主界面上 -->
+    <section class="chron" id="runChron"></section>
+
+    <!-- 记忆刻度：你还剩多少「自己」 -->
+    <section class="mem-gauge" id="runMemory"></section>
 
     <main class="run-main" id="runMain"></main>
 
@@ -23872,6 +24070,141 @@ const ACT_FLAVOR = {
   nourish:['你用灵气缓缓走过四肢。','你试着把那一口气留在身体里。','很慢。但确实在变好。']
 };
 
+/* ============================================================
+   日志体 · 今天值得做 / 这一世 / 记忆刻度（第 39 轮）
+   ------------------------------------------------------------
+   玩家反馈：「当前的主页面给人的感觉太无趣了，内容冗杂很难让玩家找到可玩点」。
+   量的结果：顶部 8 行信息、底部 10 个按钮、中间 9 个长得一模一样的行动按钮
+   —— 它是一台**计算器**。而游戏叫《记忆修复局》，
+   主题是「记忆」和「修记忆要付什么代价」，主页上一个字都没体现。
+
+   这一组函数把第 38 轮做好的四个只读接口画出来：
+     mainSuggestion()  → 今天值得做（唯一有重心的东西）
+     chronicleTail(3)  → 这一世（最近 3 条记事）
+     memoryGauge()     → 记忆刻度
+     identityLine()    → 身份那一行（在状态带里）
+
+   ⚠️ 三条规矩（都是这个项目吃过亏的地方）：
+     ① **界面不许自己算数** —— 每个数字都来自引擎接口（第 20 轮的教训）
+     ② **点不动的卡不许给** —— blocked 的卡不绑点击，并写明为什么
+        （第 33 轮雷池那条死路的教训）
+     ③ **不许有空白区块** —— 没有内容就给一句空状态文案
+   ============================================================ */
+
+/* 焦点卡该派发到哪儿。
+   ⚠️ 为什么不直接调 onAction()：mainSuggestion 会返回几种
+      **在 availableActions() 里根本不存在**的 special
+      （story / story2 / npc 都没有对应的行动条目），
+      onAction 见到它们会一路落到 `doAction(undefined)`。
+      所以这里显式分派；有行动条目的那几种才转交 onAction。 */
+function dispatchFocus(f){
+  if (!f || f.blocked) return;
+  const sp = f.special;
+  if (sp === 'story'){ showSectStory(); return; }
+  if (sp === 'story2'){ showStory2(); return; }
+  if (sp === 'npc'){ showNpc(); return; }
+  if (sp === 'debt'){ showClue(); return; }      // 旧账去案卷里看
+  /* 其余（mijingEnter / mijingLeave / mijingDivine / map / break / 普通行动）
+     都在 onAction 里有通路 —— 转交给它，保证副作用只有一套实现。 */
+  onAction({ id:f.id, name:f.title, cost:f.cost||0,
+             special:sp || null, mijingId:f.mijingId });
+}
+
+function renderRunLog(){
+  const st = G.Engine.state();
+  if (!st) return;
+
+  /* ---------- ① 今天值得做 ---------- */
+  const box = $('runFocus');
+  if (box){
+    box.innerHTML = '';
+    let sug = null;
+    try { sug = G.Engine.mainSuggestion(); } catch(e){ sug = null; }
+    if (!sug){
+      box.hidden = true;
+    } else {
+      box.hidden = false;
+      const blocked = !!sug.blocked;
+      const card = el('button','fc' + (blocked ? ' blocked' : '')
+                                + (sug.plain ? ' plain' : ''));
+      card.innerHTML =
+        `<div class="fc-k">今 天 值 得 做</div>` +
+        `<div class="fc-top">
+           <span class="fc-title">${sug.title}</span>
+           <span class="fc-cost">${sug.cost > 0 ? '寿元 −' + sug.cost : '不耗寿元'}</span>
+         </div>` +
+        `<div class="fc-why">${sug.why || ''}</div>` +
+        (blocked ? `<div class="fc-block">现在做不了 —— 先养一养。</div>` : '');
+      /* ② 点不动的卡**不绑点击**，并且已经把理由写在卡面上 */
+      if (!blocked) card.addEventListener('click', ()=>dispatchFocus(sug));
+      box.appendChild(card);
+    }
+  }
+
+  /* ---------- ② 提醒行（不进焦点卡的那些次要提醒） ---------- */
+  const no = $('runNotice');
+  if (no){
+    no.innerHTML = '';
+    const due = ((st.raw && st.raw.debts) || []).filter(d => !d.done && (st.raw.actions||0) >= (d.at||0));
+    if (!due.length){
+      no.hidden = true;
+    } else {
+      no.hidden = false;
+      /* ⚠️ 这里**不做成按钮**：旧账的兑现是「你再走一步就演给你看」，
+         由 onAction → res.debts → showDebtPayoff 那条通路负责。
+         做成按钮点下去反而什么都不发生（第 33 轮雷池那条死路）。 */
+      no.innerHTML = `<span class="nt-k">⚠</span>` +
+        `有一笔旧账快到期了（${due.length} 件）　再走一步就会有下文。`;
+    }
+  }
+
+  /* ---------- ③ 这一世（最近几条记事） ---------- */
+  const ch = $('runChron');
+  if (ch){
+    ch.innerHTML = '';
+    /* 窄屏少显示一条，把纵向还给内容 */
+    const narrow = (typeof window !== 'undefined' && window.innerWidth && window.innerWidth <= 420);
+    const n = narrow ? 2 : 3;
+    let tail = [];
+    try { tail = G.Engine.chronicleTail(n); } catch(e){ tail = []; }
+    const h = el('div','chron-h','这 一 世');
+    ch.appendChild(h);
+    if (!tail.length){
+      ch.appendChild(el('div','chron-empty','这一世刚开始。'));
+    } else {
+      tail.forEach(c => {
+        const row = el('div','chron-i k-' + (c.kind||'choice'));
+        row.innerHTML = `<span class="chron-n">第 ${c.at} 次</span>` +
+                        `<span class="chron-t">${c.text}</span>`;
+        ch.appendChild(row);
+      });
+      const more = el('button','chron-more','看 全 部 ›');
+      more.addEventListener('click', showLog);
+      ch.appendChild(more);
+    }
+  }
+
+  /* ---------- ④ 记忆刻度 ---------- */
+  const mem = $('runMemory');
+  if (mem){
+    mem.innerHTML = '';
+    let g = null;
+    try { g = G.Engine.memoryGauge(); } catch(e){ g = null; }
+    if (!g){
+      mem.hidden = true;
+    } else {
+      mem.hidden = false;
+      const who = (g.who && g.who.length)
+        ? '还记得你的人：' + g.who.map(w => `${w.name}（${w.tier}）`).join('　')
+        : '还没有人记得你。';
+      mem.innerHTML =
+        `<div class="mg-row">你记得 <b>${g.known}</b> / ${g.total} 件事` +
+        `　做过 <b>${g.marks}</b> 个选择</div>` +
+        `<div class="mg-who${(g.who && g.who.length) ? '' : ' none'}">${who}</div>`;
+    }
+  }
+}
+
 function renderRun(){
   const st = G.Engine.state();
   if (!st) return;
@@ -23879,8 +24212,12 @@ function renderRun(){
 
   // HUD
   $('hudRealm').textContent = st.realmName;
-  $('hudRole').textContent = raw.roleName + ' · ' + raw.constName +
-    (st.chapter === 'sanxiu' ? ' · 散修' : '');
+  /* 身份行（第 39 轮）：原来是一句死文字「记名弟子 · 转世之身」，
+     现在由 identityLine() 按当前状态改写（师父还认不认得你、宗门还行不行、
+     知道了多少不该知道的事）。第 38 轮做的只读接口，这里才真正用上。 */
+  let idLine = '';
+  try { idLine = G.Engine.identityLine() || ''; } catch(e){ idLine = ''; }
+  $('hudRole').textContent = idLine || (raw.roleName + ' · ' + raw.constName);
 
   const pct = Math.max(0, Math.min(100, st.life / st.maxLife * 100));
   const fill = $('lifeFill');
@@ -23948,13 +24285,20 @@ function renderRun(){
     }
   }
 
-  /* ---- 主线进度（第 29 轮）----
-     玩家反馈「主线过于模糊」。实测确认：它以前只活在「宗门」面板里，
+  /* ---- 主线进度（第 29 轮加，第 39 轮搬进状态带）----
+     玩家反馈「主线过于模糊」。它以前只活在「宗门」面板里，
      不点开那个面板，主界面上完全看不出有这条线。
      这一行只做一件事：**让它看得见**。
-     ⚠️ 刻意不做成弹窗、不做成红点、不催——用户明确说了
+     ⚠️ 刻意不做成弹窗、不做成红点、不催 —— 用户明确说了
      「不能过于强迫玩家一定要走，因为可能会让玩家产生厌烦的心理」。
-     点了才展开，不点就当它不存在，走不走都不影响任何数值收益。 */
+     点一下展开案卷（ui.js 的 init 给它绑了 showClue），走不走都不影响数值。
+
+     ⚠️⚠️ 第 39 轮：位置从 hud-prog 内部搬到了状态带，但**一个字都没改**。
+        我第一版顺手把「第 1/9 页」缩成「1/9 页」、「可以往下查了」缩成
+        「可以往下查」—— 看着只是省了两个字符，实际上是把一句给玩家的话
+        改成了半句话，而且 dev/verify-story.js 逐字钉着这四句。
+        被它当场打红（三条断言同时失败）。
+        教训：**布局可以搬，文案不许顺手改。** */
   const shEl = $('storyHud');
   if (shEl){
     const pr = G.Engine.storyProgress ? G.Engine.storyProgress() : null;
@@ -23985,14 +24329,28 @@ function renderRun(){
   const main = $('runMain');
   main.innerHTML = '';
 
+  /* 日志体（焦点卡 / 记事流水 / 记忆刻度）在散修篇也要有 —— 先画它 */
+  renderRunLog();
+
   // 散修篇：换一套更松弛的行动表
   if (st.chapter === 'sanxiu'){ renderSanxiu(); return; }
 
-  const hint = el('div','act-hint', st.canBreak ? '修为已足。该破境了。' : '你还能做什么？');
+  /* ---- 次级行动列表（第 39 轮改）----
+     焦点卡已经挑了「现在最该做的那一件」并给它全部视觉重量，
+     所以这里：
+       · 标题从「你还能做什么？」改成「还能做什么」（少一点语气，像一行小标题）
+       · **挑中的那一条从列表里排除** —— 同一个东西出现两次只会让人犹豫
+         （兜底的「修行」也算：它已经在焦点卡上了）
+       · 不再给任何条目加 .primary 高亮 —— 一屏只该有一个重心 */
+  let focusId = null;
+  try { const s = G.Engine.mainSuggestion(); focusId = s ? s.id : null; } catch(e){}
+
+  const hint = el('div','act-hint', st.canBreak ? '修为已足。该破境了。' : '还能做什么');
   main.appendChild(hint);
 
   G.Engine.availableActions().forEach((a,i)=>{
-    const b = el('button','act' + (a.primary?' primary':''));
+    if (focusId && a.id === focusId) return;      // 焦点卡已经收了这一条
+    const b = el('button','act');
     b.style.animationDelay = (i*45)+'ms';
     if (a.disabled) b.disabled = true;
     b.innerHTML =

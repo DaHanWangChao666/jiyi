@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta name="build" content="2026/10/3 21:36:02">
-<!-- build: 2026/10/3 21:36:02 -->
+<meta name="build" content="2026/10/4 13:31:11">
+<!-- build: 2026/10/4 13:31:11 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#0d0b0a">
@@ -20910,14 +20910,95 @@ function miJingEnsure(){
 }
 function myMajorIdx(){ return (G.REALMS[s.realmIdx] || {major:1}).major; }
 
+/* ============================================================
+   秘境 · 「这一次进洞完了没有」（第 38 轮）
+   ------------------------------------------------------------
+   🔴 玩家报的 bug：「在秘境中明明已经探索完成了，但按钮显示我还是能
+      『进入』这个秘境（但实际进入不了，显示我已经在里面了），
+      这就导致玩家某种意义上被『困』在里面了，秘境这个页面又被牢牢占用了」
+
+   实测复现（两种失败模式都确认过）：
+
+     ① 走完最后一层、**还没点「走出去」**时
+          mijing.run  = {id:'mj_hanquan', floor:3}   ← 没清
+          mijing.done = []                           ← 没记
+          行动列表     = ★ 进入 · 寒泉洞               ← 入口还在
+          再点「进入」 = 「你已经在里面了」             ← 出不去
+
+     ② 读档回来（run.floor = 3 / total = 3）
+          miJingFloor() = null（走完了，没有这一层）
+          行动列表里有「离开秘境」吗 → ❌ 没有
+          于是**没有任何一条路能出去**。
+
+   根因：`miJingOpenList()` 用 `m.done` 过滤，而 `m.done` 只在 `leaveMijing()` 里写。
+   `miJingStatus().run` 会被算出来，但 `miJingOpenList()` 与 `enterMijing()`
+   **都不看它** —— 于是「走完了但还没走出去」这个状态，
+   在数据层算「不在里面」，在界面层算「在里面」。两边各说各话，玩家被夹在中间。
+
+   修法：**一个判据，只有一个写入口。**
+     · miJingRunDone(run) —— 这次进洞算不算完了（唯一判据）
+     · miJingFinalize()   —— 收尾（唯一的写入口，幂等）
+   ============================================================ */
+function miJingRunDone(run){
+  if (!run) return false;
+  const def = G.mijingById(run.id);
+  /* ⚠️ 洞口不存在也算「完了」——
+     数据里要是留着一个指向已删秘境的 run，玩家会被**永久**锁住。
+     当成作废处理，让他自愈。 */
+  if (!def) return true;
+  return (run.floor|0) >= def.plan.length;
+}
+
+/* 把这一次进洞结掉：记 done、清 run、写记事。**幂等** —— 可以放心重复调。 */
+function miJingFinalize(){
+  const m = miJing();
+  if (!m || !m.run) return null;
+  const def = G.mijingById(m.run.id);
+  const deepest = m.run.deepest || 0;
+  const finished = miJingRunDone(m.run);
+  if (m.done.indexOf(m.run.id) < 0) m.done.push(m.run.id);
+  if (finished && def) note('place', `从${def.name}最深处活着出来了。`);
+  /* 第 32 轮：秘境里走过的岔路也要留下痕迹 */
+  (function(){
+    const notes = G.MIJING_PATH_NOTES || {};
+    Object.keys(notes).forEach(function(f){
+      if ((s.flags||[]).indexOf(f) >= 0) note('place', notes[f]);
+    });
+  })();
+  const id = m.run.id;
+  m.run = null;
+  log(`你从「${def ? def.name : '秘境'}」里出来了（走到第 ${deepest} 层）。`);
+  saveRun();
+  return { def:def, deepest:deepest, finished:finished, id:id };
+}
+
 /* 现在能进哪些秘境 */
 function miJingOpenList(){
   const m = miJingEnsure();
   if (!m || !s || s.ended) return [];
   const out = [];
   const maj = myMajorIdx();
+
+  /* ---- 第 38 轮：把「你正在里面的那一次」也列出来 ----
+     🔴 这一条是「不再被困」在**界面层**的那一半。
+        原来这里只列「能进的洞口」，而正在进行的 run 一个字都不提 ——
+        于是玩家切出去再回来，只看到一个「进入」按钮，
+        点下去还被拒绝。现在进行中的洞口**自己也是一条**（带 run:true），
+        界面就能显示「继续 · 寒泉洞（第 2/3 层）」。
+        数据层与界面层从此看到同一件事。 */
+  if (m.run){
+    const rdef = G.mijingById(m.run.id);
+    if (rdef){
+      out.push({ def:rdef, via:'run', run:true,
+                 finished: miJingRunDone(m.run),
+                 floor: m.run.floor, deepest: m.run.deepest });
+    }
+  }
+
   (m.known||[]).forEach(id=>{
     if (m.done.indexOf(id) >= 0) return;
+    /* 正在里面的那一处不再重复列一次 */
+    if (m.run && m.run.id === id) return;
     const def = G.mijingById(id);
     if (!def) return;
     if (maj < (def.minMajor||1) || (def.maxMajor && maj > def.maxMajor)) return;
@@ -20926,6 +21007,7 @@ function miJingOpenList(){
   if (m.openId && (s.actions||0) < (m.openUntil||0)){
     const def = G.mijingById(m.openId);
     if (def && m.done.indexOf(def.id) < 0
+        && !(m.run && m.run.id === def.id)
         && maj >= (def.minMajor||1) && !(def.maxMajor && maj > def.maxMajor)){
       out.push({ def:def, via:'public', left: m.openUntil - (s.actions||0) });
     }
@@ -20994,9 +21076,37 @@ function tickMijingClock(){
 function enterMijing(id){
   const m = miJingEnsure();
   if (!m || !s || s.ended) return { ok:false, msg:'现在进不去' };
-  if (m.run) return { ok:false, msg:'你已经在里面了' };
-  const open = miJingOpenList().find(x=>x.def.id===id);
-  if (!open) return { ok:false, msg:'这处秘境现在进不去（境界不合，或者已经探索过了）' };
+
+  /* ---- 第 38 轮：先处理「已经有一次进洞没结掉」的两种情况 ----
+     ⚠️ 这里是「玩家被困住」的**根治点**。
+        原来只说一句「你已经在里面了」就什么都不做 ——
+        而入口按钮还在，玩家于是卡在一个进不去也出不来的页面上。 */
+
+  /* ① 在洞里、**没走完** → 继续爬。不扣寿元、不加行动数。
+        原来这一条也返回 ok:false，这就是 bug 的一半。 */
+  if (m.run && !miJingRunDone(m.run)){
+    const rdef = G.mijingById(m.run.id);
+    return { ok:true, resumed:true, def:rdef, via:'resume',
+             cost:0, floor:m.run.floor,
+             deepest:m.run.deepest, total:rdef ? rdef.plan.length : 0 };
+  }
+  /* ② 在洞里、**已经走完** → 先收尾（记 done、清 run），再按正常流程走。
+        这样「走完最后一层但没点走出去」不再是一个死状态。 */
+  if (m.run && miJingRunDone(m.run)) miJingFinalize();
+
+  const open = miJingOpenList().find(x => x.def.id === id && !x.run);
+  if (!open){
+    /* ⚠️ 第 38 轮：原来这里只有一句「境界不合，或者已经探索过了」——
+       而「你刚走完、还没出去」也会落进这一条，玩家看到的是
+       一句对不上情况的解释。现在把它说清楚。 */
+    if (m.done.indexOf(id) >= 0) return { ok:false, msg:'这一世已经探过这处秘境了' };
+    const def0 = G.mijingById(id);
+    if (!def0) return { ok:false, msg:'没有这处秘境' };
+    const maj0 = myMajorIdx();
+    if (maj0 < (def0.minMajor||1)) return { ok:false, msg:`境界不够（要 ${G.MAJOR_REALMS[(def0.minMajor||1)-1]}）` };
+    if (def0.maxMajor && maj0 > def0.maxMajor) return { ok:false, msg:'那道口子已经认不出你了（境界太高）' };
+    return { ok:false, msg:'这处秘境现在进不去' };
+  }
   const cost = actionCost();
   if (s.life - cost <= 0) return { ok:false, msg:'寿元不足' };
   gainLife(-cost);
@@ -21039,6 +21149,11 @@ function miJingPick(idx){
   const pending = { challenge: api._pendingChallenge, tianjiao: api._pendingTianjiao,
                     tourney: api._pendingTourney, ended: api._ended };
   saveRun();
+  /* ⚠️ 第 38 轮：**不要**在这里收尾。
+     收尾必须在玩家真的点了「走出去」之后（界面会调 leaveMijing）——
+     这一层的结果卡还没给玩家看，先把 run 清掉的话，
+     showMijingExit 拿不到 deepest / finished 了。
+     所以这里只把 finished 报上去，收尾交给 leaveMijing → miJingFinalize。 */
   return { ok:true, text:text, floor:m.run.floor, finished:finished,
            pending:pending, def:def };
 }
@@ -21047,28 +21162,11 @@ function miJingPick(idx){
 function leaveMijing(){
   const m = miJing();
   if (!m || !m.run) return null;
-  const def = G.mijingById(m.run.id);
-  const deepest = m.run.deepest;
-  const finished = def ? (m.run.floor >= def.plan.length) : false;
-  if (m.done.indexOf(m.run.id) < 0) m.done.push(m.run.id);
-  if (finished) note('place', `从${def ? def.name : '秘境'}最深处活着出来了。`);
-  /* 第 32 轮：秘境里走过的**岔路**也要留下痕迹。
-     审计发现 mijing.js 写了 10 个标记（mj_hanquan_circle 之类）却没人读 ——
-     而 dev/verify-linkage.js §8 的「断头标记」棘轮只扫 G.EVENTS 与主线，
-     扫不到秘境，所以它一直显示 0，README 里那句「一个新断头都不许有」
-     因此是**说过头了**。现在把这些岔路记进「这一世」的编年：
-     玩家至少能看见「那一趟我走过哪条路」，标记也就有了真正的读者。
-     表见 src/mijing.js 末尾的 G.MIJING_PATH_NOTES。 */
-  (function(){
-    const notes = G.MIJING_PATH_NOTES || {};
-    Object.keys(notes).forEach(function(f){
-      if ((s.flags||[]).indexOf(f) >= 0) note('place', notes[f]);
-    });
-  })();
-  m.run = null;
-  log(`你从「${def ? def.name : '秘境'}」里出来了（走到第 ${deepest} 层）。`);
-  saveRun();
-  return { def:def, deepest:deepest, finished:finished };
+  /* 第 38 轮：收尾统一走 miJingFinalize() ——
+     这里原来自己写了一遍 done / 记事 / 清 run，与 enterMijing 的恢复路径
+     是两份实现，于是「走完了但没走出去」那个中间状态两边判断不一致。
+     现在只有一个写入口。 */
+  return miJingFinalize();
 }
 
 /* 给界面用的一整块状态 */
@@ -21085,9 +21183,14 @@ function miJingStatus(){
     divinePool: div ? div.pool.map(d=>d.name) : [],
     open: open.map(x=>({ id:x.def.id, name:x.def.name, epithet:x.def.epithet,
                          via:x.via, left:x.left||0, floors:x.def.plan.length,
-                         minMajor:x.def.minMajor, maxMajor:x.def.maxMajor })),
+                         minMajor:x.def.minMajor, maxMajor:x.def.maxMajor,
+                         /* 第 38 轮：进行中的那一条 */
+                         run: !!x.run, finished: !!x.finished,
+                         floor: x.floor||0, deepest: x.deepest||0 })),
     run: m.run ? { id:m.run.id, name:runDef?runDef.name:'?', floor:m.run.floor,
-                   total:runDef?runDef.plan.length:0, deepest:m.run.deepest } : null,
+                   total:runDef?runDef.plan.length:0, deepest:m.run.deepest,
+                   /* 第 38 轮：界面据此显示「继续」而不是「进入」 */
+                   finished: miJingRunDone(m.run) } : null,
     publicAt: m.nextAt, publicLeft: Math.max(0, (m.nextAt||0) - (s?s.actions:0)),
     publicOpen: m.openId ? (G.mijingById(m.openId)||{}).name : null,
     done: (m.done||[]).slice(),
@@ -22467,6 +22570,29 @@ function availableActions(){
         });
       }
       mj.open.forEach(o=>{
+        /* ⚠️ 第 38 轮：进行中的那一条是「继续往下走」，不是「进入」。
+           原来它在这份列表里**根本不出现**，玩家切出面板再回来就
+           只看到一个点不动的「进入」—— 那就是被卡住的观感来源。 */
+        if (o.run && !o.finished){
+          list.push({
+            id:'mijingEnter:'+o.id, name:`★ 继续 · ${o.name}`, cost:0,
+            desc:`你还在里面。上一层的事还没做完。\n` +
+                 `第 ${o.floor+1} 层 / 共 ${o.floors} 层　（继续不花寿元）`,
+            meta:`已走到第 <b>${o.deepest||o.floor}</b> 层`,
+            primary:true, special:'mijingEnter', mijingId:o.id, resume:true
+          });
+          return;
+        }
+        if (o.run && o.finished){
+          /* 走完了但还没走出去 —— 给一条明确的出口，别让玩家无路可走 */
+          list.push({
+            id:'mijingLeave:'+o.id, name:`★ 走出 · ${o.name}`, cost:0,
+            desc:`你已经到了最深处。该出去了。`,
+            meta:`走到第 <b>${o.deepest||o.floor}</b> 层`,
+            primary:true, special:'mijingLeave', mijingId:o.id
+          });
+          return;
+        }
         list.push({
           id:'mijingEnter:'+o.id, name:`★ 进入 · ${o.name}`, cost:st.cost,
           desc:(G.mijingById(o.id)||{}).desc || '',
@@ -22763,6 +22889,8 @@ G.Engine = {
   // 秘境 第 27 轮
   miJingStatus, miJingOpenList, miJingCanDivine, divineMijing, enterMijing,
   miJingFloor, miJingPick, leaveMijing, gainMijingShard, tickMijingClock,
+  /* 第 38 轮：「这一次进洞完了没有」的唯一判据 + 唯一的收尾写入口 */
+  miJingRunDone, miJingFinalize,
   // 宗门主线（第 27 轮改成累计贡献）
   sectContribTotal,
   // 道途 · 大事记（第 28 轮）
@@ -23298,38 +23426,28 @@ function renderUpgrades(){
         if (G.Engine.buyUpgrade(u.id)){ toast(`${u.name} → ${G.Engine.upLevelLive(u.id)} 级`,'good'); renderMeta(); }
       });
 
-      /* ---- 降级「−」（第 33 轮 · 玩家要求）----
+      /* ---- 降级「−」（第 33 轮加，第 38 轮去掉确认层）----
          逐级降，退还这一级当时花的碎片（cost(lv-1)），所以不会赚也不会亏。
-         ⚠️ 确认层里必须写清两件事：
-           ① 退多少、效果会变成什么样（用 u.fmt 前后对比）
-           ② **只影响下一局** —— 玩家最怕的是「我一降，正在玩的这局也变弱了」 */
+
+         🔴 第 38 轮玩家反馈：
+         > 「我希望碎片提升那里点击『-』降级的时候不需要提醒，反正碎片全额返回，
+         >   提醒了也无用，反而会让玩家厌烦，这点你之前没有考虑周全」
+
+         玩家是对的，而且理由比「烦」更硬：**这个操作是可逆的** ——
+         退回来的碎片当场就能再点一次「修复」买回来，价格一模一样。
+         给一个可逆操作加确认层，等于把成本加在玩家身上、收益为零。
+         第 33 轮加它是想「写清退款与只影响下一局」，但那两件事
+         放进 toast 就够了，不需要玩家多点一次。
+
+         ⚠️ 不要再把确认层加回来。要提醒的话把话说进 toast 里。 */
       const dn = el('button','up-down','−');
       if (lv <= 0) dn.disabled = true;
       else dn.addEventListener('click', ()=>{
-        const refund = u.cost(lv-1);
-        const willFrag = m.frag + refund;
-        const body = el('div');
-        body.innerHTML =
-          `<div class="ev-text">把【${u.name}】从 <b>${lv}</b> 级降回 <b>${lv-1}</b> 级。\n\n` +
-          `会退还 <b style="color:#c9a227">◈ ${refund}</b> 碎片` +
-          `（这一级当时就是这个价）。\n` +
-          `退还后你一共有 <b>◈ ${willFrag}</b>。\n\n` +
-          `当前效果：<b>${u.fmt(lv)}</b>\n` +
-          `降级之后：<b>${u.fmt(lv-1)}</b></div>` +
-          `<div class="ev-flavor">这是永久升级：**已经打完的局不受影响**，\n` +
-          `改动从下一局开始生效。\n\n` +
-          `退回来的碎片可以重新花在别处；想变回来，再点一次「修复」就行。</div>`;
-        const foot = [
-          btn('确 认 降 级','btn-main',()=>{
-            const r = G.Engine.downUpgrade(u.id);
-            closeSheet();
-            if (!r){ toast('降级失败','bad'); renderMeta(); return; }
-            toast(`${r.name} → ${r.to} 级　退回 ◈ ${r.refund}`,'good');
-            renderMeta();
-          }),
-          btn('再 想 想','btn-main',()=>closeSheet())
-        ];
-        sheet('降 一 级 · ' + u.name, body, foot);
+        const r = G.Engine.downUpgrade(u.id);
+        if (!r){ toast('降级失败','bad'); renderMeta(); return; }
+        /* 退款与「只影响下一局」都在这一句里说清 —— 玩家看得到，但不用点确认 */
+        toast(`【${r.name}】${r.from} → ${r.to} 级　退回 ◈ ${r.refund}　（已打完的局不受影响）`,'good');
+        renderMeta();
       });
 
       // 等级进度条
@@ -23834,6 +23952,8 @@ function onAction(a){
   /* 秘境（第 27 轮）：推演入口不花寿元，进入要花一次行动 */
   if (a.special==='mijingDivine'){ doDivineMijing(); return; }
   if (a.special==='mijingEnter'){ showMijingEnter(a.mijingId); return; }
+  /* 第 38 轮：走完了但还没出去 —— 给一条明确的出口，别让玩家无路可走 */
+  if (a.special==='mijingLeave'){ doMijingLeave(); return; }
   if (a.special==='mijingInfo'){ showMijingBook(); return; }
   /* 舆图（第 34 轮）：打开地图本身不花寿元，走路才花 */
   if (a.special==='map'){ showMap(); return; }
@@ -24338,8 +24458,37 @@ function showMijingNotice(r){
 /* 进洞口：读开场 */
 function showMijingEnter(id){
   const r = G.Engine.enterMijing(id);
-  if (!r || !r.ok){ toast((r&&r.msg)||'进不去','bad'); return; }
+  if (!r || !r.ok){
+    /* 🔴 第 38 轮：失败时**不许只 toast 然后什么都不做**。
+       玩家报的 bug 就是死在这里：入口还在、点下去只说
+       「你已经在里面了」、也没有出口 —— 秘境这一页被牢牢占用。
+       现在无论如何都要把他送到一个**能继续走**的地方：
+         · 已经走完的那一次 → 引擎已自动收尾，直接给结果卡
+         · 没走完的那一次   → 直接回层里继续
+       两条都不是「弹一句错误然后把玩家留在原地」。 */
+    const mj = G.Engine.miJingStatus();
+    if (mj && mj.run && mj.run.id === id){
+      if (mj.run.finished){
+        /* 引擎在 enterMijing 里已经收尾了，这里补一张「走完了」的结果卡 */
+        showMijingExit({ def:G.mijingById(id), deepest:mj.run.deepest, finished:true });
+      } else {
+        toast(`接着往下走（第 ${mj.run.floor+1} 层）`,'');
+        showMijingFloor();
+      }
+      return;
+    }
+    toast((r&&r.msg)||'进不去','bad');
+    return;
+  }
+
   const def = r.def;
+  /* 第 38 轮：恢复进来的那一次，直接回到层里，不再演一遍开场 */
+  if (r.resumed){
+    toast(`接着往下走（第 ${(r.floor||0)+1} 层）`,'');
+    showMijingFloor();
+    return;
+  }
+
   const body = el('div','story-body');
 
   const cover = el('div','story-cover');
@@ -24469,6 +24618,17 @@ function resolveMijingPick(idx){
   sheet('◆ ' + r.def.name, body, []);
 }
 
+/* 第 38 轮：从秘境里走出来（行动列表里那条「走出 · XXX」）
+   ------------------------------------------------------------
+   为什么单独一条：走完最后一层之后，玩家可能切面板 / 刷新 / 关掉浏览器，
+   回来时「走出去」那个弹层已经没了 —— 原来就**没有任何入口**能出去。
+   现在它是一条常驻的行动，走完就出现，点了就结算。 */
+function doMijingLeave(){
+  const out = G.Engine.leaveMijing();
+  if (!out){ toast('你不在秘境里','bad'); renderRun(); return; }
+  showMijingExit(out);
+}
+
 /* 出洞结算 */
 function showMijingExit(out){
   if (!out || !out.def) { renderRun(); return; }
@@ -24528,12 +24688,22 @@ function showMijingBook(){
   } else {
     mj.open.forEach(o=>{
       const row = el('div','rank-row me');
+      /* ⚠️ 第 38 轮：进行中的那一条要单独写清楚（层数 + 「继续」），
+         否则玩家切出面板再回来，只看到一个「进入」按钮 ——
+         点下去才发现自己已经在里面了。 */
+      const meta = o.run
+        ? (o.finished
+            ? `<span class="rk-ok">已经走到最深处了</span>　共 ${o.floors} 层` +
+              `<div class="rr-meta"><span class="rk-ok">从行动列表走出去</span></div>`
+            : `<span class="rk-ok">你正在里面</span>　第 <b>${o.floor+1}</b> / ${o.floors} 层` +
+              `<div class="rr-meta"><span class="rk-ok">从行动列表接着往下走</span></div>`)
+        : (o.via==='public'
+            ? `大众型　还剩 <b>${o.left}</b> 次行动就关　共 ${o.floors} 层`
+            : `残片型　只有你知道它在哪　共 ${o.floors} 层`) +
+          `<div class="rr-meta"><span class="rk-ok">从主界面的行动列表进</span></div>`;
       row.innerHTML =
         `<div class="rr-name">${o.name}　<span class="rr-epi">${o.epithet}</span></div>
-         <div class="rr-meta">${o.via==='public'
-            ? `大众型　还剩 <b>${o.left}</b> 次行动就关`
-            : '残片型　只有你知道它在哪'}　共 ${o.floors} 层</div>
-         <div class="rr-meta"><span class="rk-ok">从主界面的行动列表进</span></div>`;
+         <div class="rr-meta">${meta}</div>`;
       body.appendChild(row);
     });
   }

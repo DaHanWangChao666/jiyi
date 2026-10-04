@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta name="build" content="2026/10/4 13:31:11">
-<!-- build: 2026/10/4 13:31:11 -->
+<meta name="build" content="2026/10/4 13:36:37">
+<!-- build: 2026/10/4 13:36:37 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#0d0b0a">
@@ -22545,6 +22545,260 @@ function state(){
   };
 }
 
+/* ============================================================
+   主页面用的四个**只读**接口（第 38 轮）
+   ------------------------------------------------------------
+   玩家反馈：「我希望再次优化当前的主页面布局，当前的主页面给人的感觉
+   太无趣了，内容冗杂很难让玩家找到可玩点」。
+
+   量的结果是：主页顶部 8 行信息、底部 10 个按钮、中间 9 个长得一模一样
+   的行动按钮 —— 它是一个**计算器**。而游戏叫《记忆修复局》，
+   主题是「记忆」和「修记忆要付什么代价」，主页上一个字都没体现。
+
+   这一组接口做两件事：
+     ① 让主页**有可读的东西**（记事流水）—— 引擎早就写了 60 条记事，
+        只是从来没拿到主页上
+     ② 让主页**说这个游戏自己的话**（记忆刻度 / 动态身份）
+
+   ⚠️ 全部只读：不改任何状态、不动任何数值平衡。
+      界面拿到的每个数字都来自这里，界面自己不许再算一遍
+      （第 20 轮的教训：界面自己算 = 界面会说谎）。
+   ============================================================ */
+
+/* 最近 n 条记事，**最新的在前**。
+   记事在引擎里是按时间顺序 push 的，主页要倒过来看。 */
+function chronicleTail(n){
+  const all = (s && s.chronicle) || [];
+  const k = Math.max(0, n|0);
+  return all.slice(Math.max(0, all.length - k)).reverse().map(c => ({
+    at: c.at|0, kind: c.kind || 'choice', text: c.text || '', realm: c.realm || ''
+  }));
+}
+
+/* 你还剩多少「自己」。
+   ------------------------------------------------------------
+   全部来自现有系统，不加新数值：
+     known   你记住的事（线索）—— 分子是「关键的那 7 条里拿到了几条」
+     total   关键线索总数
+     marks   你这一世做过的选择（选择记录）
+     who     还记得你的人（好感 ≥ 某档的 NPC + 忠诚高的弟子）
+   ⚠️ 老存档没有 npc / chronicle 时要给得出**说得通**的答案，
+      不能出现「0 / 0」这种假分数。 */
+function memoryGauge(){
+  if (!s) return null;
+  const KEY = ['clue_name','clue_book','clue_master','clue_disciple',
+               'clue_page','clue_dream','clue_xinmo'];
+  const clues = s.clues || [];
+  const known = KEY.filter(id => clues.indexOf(id) >= 0).length;
+
+  /* 做过的选择：deeds 表在 s.deeds 里（第 32 轮） */
+  let marks = 0;
+  try { marks = Object.keys(s.deeds || {}).length; } catch(e){ marks = 0; }
+
+  /* 还记得你的人：好感到「亲近」（45）以上的 NPC，加上忠诚 ≥70 的弟子 */
+  const who = [];
+  const npcRec = s.npc || {};
+  (G.NPC || []).forEach(n => {
+    if (n.dynamic === 'disciples') return;          // 弟子单独算
+    const rec = npcRec[n.id];
+    if (rec && typeof rec.aff === 'number' && rec.aff >= 45){
+      who.push({ name:n.name, aff:rec.aff,
+                 tier: (G.npcAffTier ? G.npcAffTier(rec.aff).name : '') });
+    }
+  });
+  (s.disciples || []).forEach(d => {
+    if ((d.loyalty||0) >= 70) who.push({ name:d.name, aff:d.loyalty, tier:'弟子' });
+  });
+
+  return { known:known, total:KEY.length, marks:marks, who:who,
+           clueCount: clues.length };
+}
+
+/* 主页那一句「你在这个世界里是什么状态」。
+   ------------------------------------------------------------
+   现在身份行是死的一行「记名弟子 · 转世之身」。
+   这里按现有状态改写成一句**说得出理由**的话。
+   ⚠️ 只读现有数据；不改任何东西。 */
+function identityLine(){
+  if (!s) return '';
+  const base = (s.roleName || '弟子');
+  const marks = [];
+
+  if (s.chapter === 'sanxiu') return '散修（没有人知道你在哪儿）';
+
+  /* 师父还认不认得你 —— 第 37 轮加了对话系统，这是最直接的一处 */
+  const mrec = (s.npc || {}).master;
+  const mAff = (mrec && typeof mrec.aff === 'number') ? mrec.aff : 0;
+  const qi = (typeof s.sectQi === 'number') ? s.sectQi : 100;
+  const karma = s.karma || 0;
+
+  if (mAff >= 70) marks.push('师父还叫你名字');
+  else if (mAff > 0 && mAff < 20) marks.push('师父看你的眼神有点生分');
+
+  const KEY = ['clue_name','clue_book','clue_master','clue_page','clue_xinmo'];
+  const knownKey = KEY.filter(id => (s.clues||[]).indexOf(id) >= 0).length;
+  if (knownKey >= 3) marks.push('你知道了一些不该知道的事');
+
+  if (qi < 30 && karma >= 8) marks.push('宗门里没人愿意跟你搭话');
+  else if (qi < 30) marks.push('宗门不太行了');
+
+  if (s.sectCollapsed) marks.push('宗门散了');
+
+  /* 收了徒弟 —— 这是「有人靠你活着」 */
+  if ((s.disciples||[]).length && (s.disciples[0].loyalty||0) >= 70)
+    marks.push('徒弟跟定你了');
+
+  if (!marks.length) return base + '（还没什么人说得出你的事）';
+  return base + '（' + marks.slice(0,2).join('　') + '）';
+}
+
+/* 「现在最值得做什么」。
+   ------------------------------------------------------------
+   ⚠️ 这不是自动操作，也不加任何数值收益 ——
+      只是把「该做什么」替玩家想一遍，并**说清理由**。
+      玩家不点它，照样走次级列表。
+   ⚠️ 推荐的那件事如果**点不动**（寿元不足等），要说出为什么，
+      并且降级到下一个候选 —— 第 33 轮雷池那条死路的教训。 */
+function mainSuggestion(){
+  if (!s || s.ended) return null;
+  const cand = [];
+
+  /* ⚠️⚠️ 这一节必须**完全不改状态**（它每次渲染主页都会跑）。
+     踩过的坑：第一版直接调了 npcPending() 与 miJingEnsure() ——
+     它们会**顺手建记录**（npcRec 会新建 {aff:0,...}、miJingEnsure 会新建 s.mijing）。
+     于是「打开主页」这件事本身在改存档。被
+     dev/verify-mainpage.js 的「调 20 次状态不变」抓到。
+     规矩：只读接口只能读**已经存在**的东西，不许顺手建。
+     （下面这两行是「取引用」，不是「取或建」。） */
+  const mRead = (s && s.mijing) || null;
+  const npcRead = (s && s.npc) || null;
+
+  /* ① 走完 / 走了一半的秘境 —— 洞里没结掉的事最该先办 */
+  if (mRead && mRead.run){
+    const def = G.mijingById(mRead.run.id);
+    const done = miJingRunDone(mRead.run);
+    cand.push({
+      kind:'mijingRun', id:'mijingEnter:'+mRead.run.id,
+      title: done ? '走出 · ' + (def?def.name:'秘境')
+                  : '继续 · ' + (def?def.name:'秘境'),
+      why: done ? '你已经到了最深处。该出去了。'
+                : `你还在里面，第 ${mRead.run.floor+1} 层还没走完。`,
+      special: done ? 'mijingLeave' : 'mijingEnter', mijingId:mRead.run.id,
+      cost:0, enabled:true
+    });
+  }
+
+  /* ② 残片够了 —— 拼图不花寿元（只在 mijing 已经存在时才算，避免顺手建它） */
+  if (mRead){
+    const div = miJingCanDivine();
+    if (div){
+      cand.push({ kind:'mijingDivine', id:'mijingDivine', title:'推演 · 秘境入口',
+        why:`残片已经够拼出一样东西了（${div.shards} / ${div.need}），而且不花寿元。`,
+        special:'mijingDivine', cost:0, enabled:true });
+    }
+
+    /* ③ 开着的秘境入口（大众型限时） */
+    miJingOpenList().forEach(o=>{
+      if (o.run) return;
+      cand.push({ kind:'mijingEnter', id:'mijingEnter:'+o.def.id,
+        title:'进入 · ' + o.def.name,
+        why: o.via === 'public' ? `天地异动，还剩 ${o.left} 次行动就关。`
+                                : '你已经推演出它在哪了。',
+        special:'mijingEnter', mijingId:o.def.id, cost:actionCost(), enabled:true });
+    });
+  }
+
+  /* ④ 主线 / 第二部攒够了贡献。
+     ⚠️ 必须判 `need <= 0`（攒够了才推荐）——
+        第一版只判了 `pr.next` 存在，于是**开局第一天**主页就说
+        「贡献攒够了，可以往下读一页」，而实际上还差十几个贡献点。
+        那是假承诺。被 dev/verify-mainpage.js 抓到。 */
+  try {
+    const pr = storyProgress();
+    if (pr && pr.next && pr.need <= 0){
+      cand.push({ kind:'story', id:'story', title:'翻 · ' + pr.next.name,
+        why:'贡献攒够了，可以往下读一页。', special:'story', cost:0, enabled:true });
+    }
+    const p2 = story2Progress();
+    if (p2 && p2.started && p2.next && p2.need <= 0){
+      cand.push({ kind:'story2', id:'story2', title:'翻 · ' + p2.next.name,
+        why:'那条线的下一页也可以读了。', special:'story2', cost:0, enabled:true });
+    }
+  } catch(e){ /* 主线状态坏了不该让主页崩 */ }
+
+  /* ⑤ 该破境了 */
+  let breakOK = false;
+  try { breakOK = canBreak(); } catch(e){ breakOK = false; }
+  if (breakOK){
+    const nx = G.REALMS[s.realmIdx+1];
+    cand.push({ kind:'break', id:'break', title:'突破 · ' + (nx?nx.name:'下一境'),
+      why:'修为已经够了。再攒下去也不会自己变成境界。', special:'break', cost:0, enabled:true });
+  }
+
+  /* ⑥ 有一笔旧账要还（长期因果兑现） */
+  const debts = (s.debts||[]).filter(d => !d.done && (s.actions||0) >= (d.at||0));
+  if (debts.length){
+    cand.push({ kind:'debt', id:'debt', title:'有一笔旧账到期了',
+      why:'你当初做的事，现在有下文了 —— 走一步就会演给你看。', special:'debt', cost:0, enabled:true });
+  }
+
+  /* ⑦ 有没有人主动来找你（第 37 轮的对话系统）
+     ⚠️ 这里**不能**直接调 npcPending() —— 它经由 npcRec() 会顺手给每个人
+        建一条 {aff:0,talked:0,lastAt:-1,seen:[]} 记录，那是写操作。
+        主页每次渲染都会跑这个函数，于是「打开主页」变成「改存档」。
+        所以自己只读一遍（判据与 npcPending 一致，但**不建记录**）。 */
+  if (npcRead){
+    const R = G.NPC_RULES || { missDays:40 };
+    const idle = (G.NPC || []).filter(n => !n.dynamic).map(n => {
+      const rec = npcRead[n.id];
+      if (!rec || typeof rec.lastAt !== 'number' || rec.lastAt < 0) return null;
+      const gap = (s.actions|0) - rec.lastAt;
+      if (gap < R.missDays) return null;
+      if (npcCanTalkRead(n.id)) return { name:n.name, gap:gap };
+      return null;
+    }).filter(Boolean)[0];
+    if (idle){
+      cand.push({ kind:'npc', id:'npc', title:'去见 ' + idle.name,
+        why:`你已经 ${idle.gap} 次行动没跟他说过话了。`, special:'npc', cost:0, enabled:true });
+    }
+  }
+
+  /* ⑧ 兜底：修行。平淡的一天也是日子。 */
+  if (!cand.length){
+    cand.push({ kind:'plain', id:'cultivate', title:'修行',
+      why:'今天没什么特别的。打坐、吐纳，把那一口气往下压。',
+      special:null, cost:actionCost(), enabled:true, plain:true });
+  }
+
+  /* 挑第一个「现在点得动」的；都点不动就把第一个报上去并说明原因。
+     ⚠️ 只对**真的花寿元**的候选判「点不动」。
+        第一版对 cost:0 的候选也判，于是寿元 0 时主页会说
+        「寿元只剩 0，这一步要 0。先静养」—— 一句自相矛盾的话。 */
+  const life = s.life || 0;
+  const affordable = c => ((c.cost||0) === 0) || ((c.cost||0) < life);
+  const pick = cand.filter(affordable)[0] || cand[0];
+  const out = Object.assign({}, pick);
+  out.blocked = !affordable(out) && (out.cost||0) > 0;
+  if (out.blocked) out.why = `寿元只剩 ${life}，这一步要 ${out.cost}。先静养。`;
+  out.alternatives = cand.slice(1).map(c => c.title);
+  return out;
+}
+
+/* 只读版的「这个人现在能不能聊」—— 给 mainSuggestion 用。
+   ⚠️ 与 npcCanTalk 的区别只有一个：**不建记录**。
+      npcCanTalk 经由 npcRec() 会给没见过的人建一条 {aff:0,...}，
+      而主页每次渲染都会问一次，那等于「打开主页就改存档」。
+      判据本身与 npcCanTalk 保持一致（谁也不能聊、能聊什么，只看这里和那边的结果）。 */
+function npcCanTalkRead(id){
+  const n = G.npcById ? G.npcById(id) : null;
+  if (!n) return false;
+  if (challenge && challenge.active) return false;
+  if (s.chapter !== 'zongmen') return false;
+  if (n.dynamic === 'disciples' && !(s.disciples||[]).length) return false;
+  if ((s.npcTalkedAt|0) === (s.actions|0) && s.npcTalkedAt >= 0) return false;
+  return (G.npcTopics ? G.npcTopics(id, s) : []).length > 0;
+}
+
 /* ---------------- 行动定义（给 UI 用） ---------------- */
 function availableActions(){
   const st = state();
@@ -22891,6 +23145,8 @@ G.Engine = {
   miJingFloor, miJingPick, leaveMijing, gainMijingShard, tickMijingClock,
   /* 第 38 轮：「这一次进洞完了没有」的唯一判据 + 唯一的收尾写入口 */
   miJingRunDone, miJingFinalize,
+  /* 第 38 轮：主页面用的四个**只读**接口（记事流水 / 最值得做的事 / 身份行 / 记忆刻度） */
+  chronicleTail, mainSuggestion, identityLine, memoryGauge,
   // 宗门主线（第 27 轮改成累计贡献）
   sectContribTotal,
   // 道途 · 大事记（第 28 轮）

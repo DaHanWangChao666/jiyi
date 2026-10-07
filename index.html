@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta name="build" content="2026/10/5 00:50:28">
-<!-- build: 2026/10/5 00:50:28 -->
+<meta name="build" content="2026/10/8 00:03:01">
+<!-- build: 2026/10/8 00:03:01 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#0d0b0a">
@@ -35,8 +35,14 @@
 
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;padding:0;height:100%}
+html{
+  background:#0a0807;
+}
 body{
-  background:var(--bg);
+  background:
+    radial-gradient(ellipse 90% 70% at 50% 28%, #3a2c1c 0%, transparent 58%),
+    radial-gradient(ellipse 70% 90% at 50% 100%, #1a120c 0%, #0a0807 70%),
+    repeating-linear-gradient(90deg, rgba(90,70,40,.04) 0 2px, transparent 2px 7px);
   color:var(--ink);
   font-family:"Songti SC","SimSun","Noto Serif SC",Georgia,serif;
   font-size:15px;line-height:1.7;
@@ -47,7 +53,14 @@ body{
   position:absolute;inset:0;
   display:none;flex-direction:column;
   max-width:520px;margin:0 auto;
-  background:var(--bg);
+  background:
+    linear-gradient(180deg, rgba(255,236,200,.035), transparent 28%),
+    #16110e;
+  border-left:1px solid #3d342c;
+  border-right:1px solid #3d342c;
+  box-shadow:
+    0 0 0 1px rgba(201,162,39,.07),
+    0 18px 64px rgba(0,0,0,.55);
 }
 .screen.active{display:flex}
 .hidden{display:none !important}
@@ -233,10 +246,10 @@ button:disabled{opacity:.35;cursor:not-allowed}
        战力 / 内景  → 属性面板（并且这里保留节点，只是 CSS 隐藏）
        资源 5 格    → 排成一条紧凑串（不再各占一块）
    ============================================================ */
-#screen-run{background:var(--bg)}
+#screen-run{background:transparent}
 .hud{
-  padding:9px 15px 8px;
-  background:linear-gradient(180deg,#191512,#121010);
+  padding:10px 16px 9px;
+  background:linear-gradient(180deg, rgba(28,22,16,.96), rgba(16,13,11,.92));
   border-bottom:1px solid var(--line);
   flex:none;
 }
@@ -249,10 +262,11 @@ button:disabled{opacity:.35;cursor:not-allowed}
   vertical-align:middle;display:inline-block;max-width:100%;
   white-space:normal;line-height:1.5;
 }
-/* 寿元：标签、条、代价挤在一行 —— 原来 61px，现在 26px */
-.hud-life{margin:6px 0 5px}
-.life-label{display:flex;justify-content:space-between;align-items:baseline;font-size:11.5px;color:var(--ink2);margin-bottom:4px}
-.life-label span:first-child{letter-spacing:.2em;color:var(--ink3)}
+/* 寿元：标签行右侧并排「余量 / 每次代价」，条单独一行。不许负 margin 叠字。 */
+.hud-life{margin:7px 0 6px}
+.life-label{display:flex;justify-content:space-between;align-items:baseline;font-size:11.5px;color:var(--ink2);margin-bottom:4px;gap:8px}
+.life-label > span:first-child{letter-spacing:.2em;color:var(--ink3)}
+.life-nums{display:flex;align-items:baseline;gap:10px;min-width:0}
 .life-bar{height:8px;background:#0a0908;border-radius:5px;overflow:hidden;border:1px solid #2a2320}
 .life-fill{
   height:100%;width:100%;border-radius:5px;
@@ -262,10 +276,8 @@ button:disabled{opacity:.35;cursor:not-allowed}
 .life-fill.warn{background:linear-gradient(90deg,#8a6a1e,#d9a72e);animation:lifePulse 1.1s infinite}
 .life-fill.danger{background:linear-gradient(90deg,#6a1f1a,#e04a3a);animation:lifePulse .6s infinite}
 @keyframes lifePulse{0%,100%{opacity:1}50%{opacity:.55}}
-/* 代价不再单独占一行：并到标签那一行的右边 */
 .life-cost{
-  font-size:10.5px;color:var(--ink3);text-align:right;
-  margin-top:-17px;position:relative;pointer-events:none;
+  font-size:10.5px;color:var(--ink3);white-space:nowrap;flex:none;
 }
 .life-cost span{color:var(--blood)}
 
@@ -278,18 +290,34 @@ button:disabled{opacity:.35;cursor:not-allowed}
 .prog-text .pow{color:var(--gold);margin-right:10px}
 .prog-text .pow.strong{color:var(--gold2);font-weight:700}
 
-/* 5 个资源：一条紧凑串（原来是 5 个各占一块的方块，37px） */
-.hud-res{display:flex;gap:4px;margin-bottom:0}
+/* 5 个资源：芯片串，高度压过寿元条，不抢第一眼 */
+/* 5 个资源：一条紧凑串，用**完整名称**（第 39 轮之后修）
+   ------------------------------------------------------------
+   我第一版把它们缩成「石/修/业/情/运」省地方，玩家反馈
+   「反而无法让玩家知道这具体是什么意思」—— 五个单字没有一个说得通。
+   现在写全名：灵石 / 修为 / 业障 / 人情 / 宗门气运。
+
+   ⚠️ 宽度账：「宗门气运」四个字在 375px 上放不进五等分的一格
+      （每个格子只有 (375-30-16)/5 ≈ 65px）。
+      所以这里不强行挤在一行，改成**名称在上、数字在下**的竖排：
+      每格高度只多几像素，但五个名字都读得通，不用截断也不用手势提示。 */
+.hud-res{
+  display:flex;gap:4px;margin:6px 0 0;padding-top:6px;
+  border-top:1px dashed rgba(70,58,50,.45);
+}
 .res{
-  flex:1;display:flex;align-items:center;justify-content:center;gap:2px;
-  background:transparent;border:none;border-radius:0;padding:0;
-  font-size:12px;min-width:0;
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:1px;
+  background:rgba(0,0,0,.18);border:1px solid var(--line);border-radius:6px;
+  padding:4px 2px;min-width:0;
 }
+/* 名称：小字、不许换行到第二行（换行会让五格高度不一） */
 .res i{
-  font-style:normal;font-size:9px;color:var(--ink3);
-  border:none;border-radius:0;padding:0;line-height:1.4;
+  font-style:normal;font-size:9.5px;color:var(--ink3);
+  border:none;border-radius:0;padding:0;line-height:1.3;
+  letter-spacing:0;white-space:nowrap;
 }
-.res span{color:var(--ink);font-weight:700;font-size:12.5px}
+.res span{color:var(--ink2);font-weight:700;font-size:12px;line-height:1.2}
 .res.up span{color:var(--jade)}
 .res.down span{color:var(--blood)}
 
@@ -316,11 +344,12 @@ button:disabled{opacity:.35;cursor:not-allowed}
   animation:fade .3s backwards;
 }
 .act:not(:disabled):active{transform:scale(.985);border-color:var(--line2);background:var(--panel2)}
-.act.primary{border-color:var(--gold);background:linear-gradient(135deg,#221c10,#1b1715)}
+.act.primary,.act.urgent{border-color:var(--gold);background:linear-gradient(135deg,#221c10,#1b1715)}
+.act.mapish{border-color:#4a3d2a}
 .act.danger{border-color:#5a2a24}
 .act-top{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
 .act-name{font-size:15px;color:var(--ink);letter-spacing:.1em}
-.act.primary .act-name{color:var(--gold2)}
+.act.primary .act-name,.act.urgent .act-name{color:var(--gold2)}
 .act-cost{font-size:11.5px;color:var(--blood);flex:none}
 .act-desc{font-size:12px;color:var(--ink3);margin-top:4px;line-height:1.65}
 .act-meta{font-size:11px;color:var(--jade);margin-top:5px}
@@ -353,10 +382,12 @@ button:disabled{opacity:.35;cursor:not-allowed}
   box-shadow:0 0 0 1px rgba(201,162,39,.12), 0 6px 18px -12px rgba(201,162,39,.5);
 }
 .fc:not(.blocked):active{transform:scale(.985);background:linear-gradient(135deg,#2b2213,#201b17)}
-/* 平淡的一天（兜底的「修行」）：不抢眼，但也不消失 */
+/* 平淡的一天（兜底的「修行」）：可点，但不抢「真正发生的事」 */
 .fc.plain{
   background:var(--panel);border-color:var(--line2);box-shadow:none;
+  padding:10px 13px;
 }
+.fc.plain .fc-k{letter-spacing:.22em;font-size:9px}
 /* 点不动的卡：变暗、**不绑点击**，理由写在卡面上 */
 .fc.blocked{opacity:.72;border-color:var(--line2);box-shadow:none;cursor:default}
 .fc-k{
@@ -413,6 +444,9 @@ button:disabled{opacity:.35;cursor:not-allowed}
   font-size:11px;color:var(--ink3);letter-spacing:.1em;font-family:inherit;
 }
 .chron-more:active{color:var(--gold2)}
+.chron.compact{margin-top:6px;padding-top:5px}
+.chron.compact .chron-h{margin-bottom:2px}
+.chron.compact .chron-empty{font-size:11.5px}
 
 /* ---- 记忆刻度 ---- */
 .mem-gauge{
@@ -424,6 +458,8 @@ button:disabled{opacity:.35;cursor:not-allowed}
 .mg-row b{color:var(--gold2);font-size:13px}
 .mg-who{color:var(--jade)}
 .mg-who.none{color:var(--ink3);font-style:italic}
+.mem-gauge.compact{margin-top:5px;padding-top:5px;font-size:11px;line-height:1.55}
+.mem-gauge.compact .mg-row b{font-size:12px}
 
 /* 底栏（第 36 轮：分成「常看」与「翻开」两组）
    ------------------------------------------------------------
@@ -452,8 +488,10 @@ button:disabled{opacity:.35;cursor:not-allowed}
 }
 .foot-btn:active{background:var(--panel2)}
 .foot-btn em{font-style:normal;color:var(--gold);font-size:11px;margin-left:3px}
-/* 高频的那四个给一点存在感（它们是玩家最常点的） */
-.foot-group.wide .foot-btn{border-color:var(--line2);color:var(--ink)}
+/* 常看：实底；翻开：幽灵底，少一块「十个一样的褐」 */
+.foot-group.wide .foot-btn{border-color:var(--line2);color:var(--ink);background:var(--panel2)}
+.foot-group.narrow .foot-btn{background:transparent;border-color:transparent;color:var(--ink3)}
+.foot-group.narrow .foot-btn:active{background:var(--panel);border-color:var(--line)}
 
 /* ============================================================
    舆图 · 远行（第 34 轮）
@@ -469,18 +507,27 @@ button:disabled{opacity:.35;cursor:not-allowed}
 .map-sub{font-size:11.5px;color:var(--ink3);line-height:1.7;margin-top:4px}
 
 .map-canvas{
-  background:linear-gradient(180deg,#100e0c,#0b0a09);
-  border:1px solid var(--line);border-radius:var(--r);
+  background:
+    linear-gradient(180deg, rgba(255,236,200,.06), transparent 42%),
+    linear-gradient(180deg,#2a2218,#1a1510);
+  border:1px solid #4a3d2c;border-radius:var(--r);
   padding:4px;margin:2px 0 8px;
 }
 .map-canvas svg{display:block;width:100%;height:auto}
 
-/* 七个寰：只有墨线，不填色 —— 古地图的味道来自留白 */
+/* 七个寰：淡填色 + 墨线（色在 G.REGIONS，class 是 r-{id}） */
 .map-region{
-  fill:rgba(201,162,39,.022);stroke:var(--line2);stroke-width:.45;
+  fill:rgba(201,162,39,.06);stroke:var(--line2);stroke-width:.45;
   stroke-linejoin:round;
 }
-.map-region.on{fill:rgba(201,162,39,.075);stroke:var(--gold);stroke-width:.7}
+.map-region.r-zhonghuan{fill:rgba(201,164,90,.16);stroke:#c9a45a}
+.map-region.r-beihuan{fill:rgba(122,160,184,.18);stroke:#7aa0b8}
+.map-region.r-huanghuan{fill:rgba(138,132,152,.16);stroke:#8a8498}
+.map-region.r-donghuan{fill:rgba(107,124,138,.16);stroke:#6b7c8a}
+.map-region.r-xihuan{fill:rgba(196,165,116,.18);stroke:#c4a574}
+.map-region.r-youhuan{fill:rgba(61,58,92,.22);stroke:#6a6588}
+.map-region.r-nanhuan{fill:rgba(90,158,120,.16);stroke:#5a9e78}
+.map-region.on{stroke:var(--gold);stroke-width:.78}
 .map-region-label{
   fill:var(--ink3);font-size:3.1px;letter-spacing:.35px;
   text-anchor:middle;font-family:inherit;
@@ -508,6 +555,13 @@ button:disabled{opacity:.35;cursor:not-allowed}
   animation:mapBreath 2.6s ease-in-out infinite;
 }
 .map-dot.here .map-label{fill:var(--gold2)}
+/* 地点按环境微染色（不压过「你在这儿 / 还没去过」的金点） */
+.map-dot.env-cold .map-halo{stroke:#7aa0b8}
+.map-dot.env-desert .map-halo{stroke:#c4a574}
+.map-dot.env-dark .map-halo{stroke:#6a6588}
+.map-dot.env-thin .map-halo{stroke:#b0a8c0}
+.map-dot.env-plague .map-halo{stroke:#5a9e78}
+.map-dot.env-awe .map-halo{stroke:#c9a45a}
 
 /* ---- 第 37 轮加厚的图层 ----
    玩家说「地图的呈现有点过于简陋了」。这一层补上经纬 / 地貌 / 路网 / 雾。
@@ -590,7 +644,17 @@ button:disabled{opacity:.35;cursor:not-allowed}
 
 /* 地方卡片 */
 .place-card{animation:fadeUp .4s ease both}
-.place-title{font-size:19px;letter-spacing:2px;color:var(--ink);margin-bottom:8px}
+.place-title{
+  font-size:19px;letter-spacing:2px;color:var(--ink);margin-bottom:8px;
+  border-left:3px solid var(--gold);padding-left:10px;
+}
+.place-title.r-zhonghuan{border-color:#c9a45a}
+.place-title.r-beihuan{border-color:#7aa0b8}
+.place-title.r-huanghuan{border-color:#8a8498}
+.place-title.r-donghuan{border-color:#6b7c8a}
+.place-title.r-xihuan{border-color:#c4a574}
+.place-title.r-youhuan{border-color:#6a6588}
+.place-title.r-nanhuan{border-color:#5a9e78}
 .place-you{font-size:12.5px;color:var(--ink2);line-height:1.8;margin-bottom:12px}
 .place-line{display:flex;gap:10px;font-size:12px;line-height:1.9;padding:3px 0}
 .place-line .pk{color:var(--ink3);flex:none;width:4.4em;letter-spacing:.1em}
@@ -604,6 +668,57 @@ button:disabled{opacity:.35;cursor:not-allowed}
   background:rgba(201,162,39,.07);border:1px solid rgba(201,162,39,.25);
   border-radius:8px;padding:8px 10px;margin-top:10px;
 }
+
+/* ============================================================
+   赶路过场（第 40 轮）
+   ------------------------------------------------------------
+   travelTo 已经扣完寿元。这里只演出：旧纸底 + 目的寰淡色 +
+   两点一线。点任意处可跳过。不是动作游戏。
+   ============================================================ */
+.travel-cine{
+  position:fixed;inset:0;z-index:90;
+  display:flex;align-items:center;justify-content:center;
+  background:#120e0a;
+  cursor:pointer;
+}
+.travel-cine.hidden{display:none !important}
+.tc-wash{
+  position:absolute;inset:0;opacity:.55;pointer-events:none;
+  background:#c9a45a;
+  mix-blend-mode:soft-light;
+}
+.tc-stage{
+  position:relative;z-index:1;
+  width:min(420px,88vw);padding:28px 22px 22px;
+  background:
+    linear-gradient(180deg, rgba(255,236,200,.07), transparent 40%),
+    #1a1510;
+  border:1px solid #4a3d2c;
+  box-shadow:0 18px 60px rgba(0,0,0,.55);
+  text-align:center;
+}
+.tc-svg{display:block;width:100%;height:auto;margin-bottom:14px}
+.tc-road{
+  fill:none;stroke:var(--gold);stroke-width:1.15;
+  stroke-linecap:round;stroke-dasharray:100;stroke-dashoffset:100;
+  animation:tcDraw var(--tc-dur,1.6s) ease-out forwards;
+}
+.tc-end{
+  fill:none;stroke:var(--gold2);stroke-width:.45;
+}
+.tc-core{fill:var(--gold2)}
+.tc-walker{
+  fill:var(--gold2);
+  offset-distance:0%;
+  animation:tcWalk var(--tc-dur,1.6s) ease-in-out forwards;
+}
+@keyframes tcDraw{to{stroke-dashoffset:0}}
+@keyframes tcWalk{to{offset-distance:100%}}
+.tc-copy{color:var(--ink2)}
+.tc-where{font-size:18px;letter-spacing:.18em;color:var(--ink);margin-bottom:6px}
+.tc-days{font-size:13px;color:var(--gold2);letter-spacing:.12em;margin-bottom:8px}
+.tc-flavor{font-size:12.5px;color:var(--ink3);line-height:1.75;min-height:2.6em}
+.tc-skip{margin-top:14px;font-size:11px;color:var(--ink3);letter-spacing:.2em}
 
 /* ============================================================
    人 · 对话（第 37 轮）
@@ -1516,7 +1631,7 @@ body{overscroll-behavior:none;}
 button{touch-action:manipulation;}
 </style>
 </head>
-<body>
+<body class="desk">
 
 <div id="app">
   <!-- ============ 元层：记忆修复局 ============ -->
@@ -1597,14 +1712,17 @@ button{touch-action:manipulation;}
         <button class="btn-icon" id="btnMenu">≡</button>
       </div>
 
-      <!-- 寿元：保留 lifeText / lifeFill / lifeCost 三个 id（renderRun 与测试都读） -->
+      <!-- 寿元：保留 lifeText / lifeFill / lifeCost 三个 id（renderRun 与测试都读）
+           第 40 轮：代价并进标签行右侧，不再负 margin 压在进度条上。 -->
       <div class="hud-life">
         <div class="life-label">
           <span>寿 元</span>
-          <span id="lifeText">100 / 100</span>
+          <span class="life-nums">
+            <span id="lifeText">100 / 100</span>
+            <span class="life-cost">每次 <span id="lifeCost">−3</span></span>
+          </span>
         </div>
         <div class="life-bar"><div class="life-fill" id="lifeFill"></div></div>
-        <div class="life-cost">每次行动 <span id="lifeCost">−3</span></div>
       </div>
 
       <!-- 修为：保留 cultFill / cultNeed -->
@@ -1613,14 +1731,22 @@ button{touch-action:manipulation;}
         <div class="prog-text">距突破还需 <span id="cultNeed">100</span> 修为</div>
       </div>
 
-      <!-- 5 个资源：还是 5 个 .res 格子（setRes() 要给 .res 加闪烁类），
-           但排成一条紧凑串，不再各占一块。 -->
+      <!-- 5 个资源：还是 5 个 .res 格子（setRes() 要给 .res 加闪烁类）。
+           ⚠️ 第 39 轮之后修：我一开始为了省地方把它们缩成「石/修/业/情/运」，
+              玩家反馈「反而无法让玩家知道这具体是什么意思」。
+              现在用**完整名称**：灵石 / 修为 / 业障 / 人情 / 宗门气运。
+              名字与「属性」面板、事件结算里的叫法一致：
+                · 灵石     = 货币
+                · 修为     = 当前的修为点数（和上面那条突破进度是同一个数）
+                · 业障     = 作恶的账，高到一定程度会影响突破
+                · 人情     = 别人欠你 / 你欠别人的
+                · 宗门气运 = **宗门**的（不是元层那个「个人气运」，两回事） -->
       <div class="hud-res">
-        <div class="res" title="灵石"><i>石</i><span id="resStone">0</span></div>
-        <div class="res" title="修为"><i>修</i><span id="resCult">0</span></div>
-        <div class="res" title="业障"><i>业</i><span id="resKarma">0</span></div>
-        <div class="res" title="人情"><i>情</i><span id="resFavor">0</span></div>
-        <div class="res" title="宗门气运"><i>运</i><span id="resSect">0</span></div>
+        <div class="res" title="灵石"><i>灵石</i><span id="resStone">0</span></div>
+        <div class="res" title="修为"><i>修为</i><span id="resCult">0</span></div>
+        <div class="res" title="业障"><i>业障</i><span id="resKarma">0</span></div>
+        <div class="res" title="人情"><i>人情</i><span id="resFavor">0</span></div>
+        <div class="res" title="宗门气运"><i>宗门气运</i><span id="resSect">0</span></div>
       </div>
 
       <!-- 丹力：有丹才出现（空的时候整条隐藏） -->
@@ -1729,6 +1855,20 @@ button{touch-action:manipulation;}
 </div>
 
 <div id="toast" class="toast-wrap"></div>
+
+<!-- 赶路过场（第 40 轮）：travelTo 已经扣完寿元，这里只演出。点任意处可跳过。 -->
+<div id="travelCine" class="travel-cine hidden">
+  <div class="tc-wash" id="tcWash"></div>
+  <div class="tc-stage">
+    <svg class="tc-svg" id="tcSvg" viewBox="0 0 100 36" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"></svg>
+    <div class="tc-copy">
+      <div class="tc-where" id="tcWhere"></div>
+      <div class="tc-days" id="tcDays"></div>
+      <div class="tc-flavor" id="tcFlavor"></div>
+      <div class="tc-skip">点任意处跳过</div>
+    </div>
+  </div>
+</div>
 
 <script>
 /* ===== realms.js ===== */
@@ -5718,24 +5858,31 @@ window.G = window.G || {};
    ============================================================ */
 G.REGIONS = [
   { id:'zhonghuan', name:'中寰', pos:[50,50],
+    fill:'#c9a45a', stroke:'#e0c070',
     desc:'天下正中。灵脉最厚，人也最多。',
     flavor:'这里的山都被开过，没有一座是原来的样子。' },
   { id:'beihuan',   name:'北寰', pos:[46,10],
+    fill:'#7aa0b8', stroke:'#a8c8d8',
     desc:'冰原。风是横着吹的。',
     flavor:'雪下面埋着很多东西，没人挖。' },
   { id:'huanghuan', name:'荒寰', pos:[78,18],
+    fill:'#8a8498', stroke:'#b0a8c0',
     desc:'云上的荒原。要爬很久才上得去。',
     flavor:'从这里往下看，别的山都像沉在水里。' },
   { id:'donghuan',  name:'东寰', pos:[86,44],
+    fill:'#6b7c8a', stroke:'#8fa0ae',
     desc:'书山。山道上全是碑。',
     flavor:'碑上刻的是别人记下来的事。记下来的就算发生过。' },
   { id:'xihuan',    name:'西寰', pos:[12,56],
+    fill:'#c4a574', stroke:'#dcc08c',
     desc:'荒漠。寺在山顶。',
     flavor:'沙里没有路，走的人多了也不算路 —— 风一来就没了。' },
   { id:'youhuan',   name:'幽寰', pos:[38,72],
+    fill:'#3d3a5c', stroke:'#6a6588',
     desc:'地底。入口是一道裂缝。',
     flavor:'下面没有白天。有人在下面待了很久。' },
   { id:'nanhuan',   name:'南寰', pos:[54,88],
+    fill:'#5a9e78', stroke:'#7ec49a',
     desc:'药洲。空气是甜的。',
     flavor:'连石头缝里都长东西。长出来的东西大多能吃，有些会吃你。' }
 ];
@@ -5915,15 +6062,25 @@ G.MAP_SVG = {
     { kind:'river', d:'M94,50 Q90,56 92,62' }
   ],
 
-  /* ---- 冰原点纹与荒漠横纹：用 pattern 平铺，不用逐条画 ---- */
+  /* ---- 七寰纹样：用 pattern 平铺，不用逐条画（第 40 轮补齐）---- */
   patterns: [
-    { id:'mapIce',  w:3, h:3, marks:'<circle cx="1" cy="1" r="0.28"/>' },
-    { id:'mapSand', w:4, h:3, marks:'<path d="M0,1.2 L2.2,1.2 M0.8,2.4 L3,2.4" stroke-width="0.22"/>' }
+    { id:'mapIce',   w:3, h:3, marks:'<circle cx="1" cy="1" r="0.28"/>' },
+    { id:'mapSand',  w:4, h:3, marks:'<path d="M0,1.2 L2.2,1.2 M0.8,2.4 L3,2.4" stroke-width="0.22"/>' },
+    { id:'mapLeaf',  w:5, h:5, marks:'<path d="M2.5,1.1 Q3.5,2.5 2.5,4 Q1.5,2.5 2.5,1.1" stroke-width="0.18"/>' },
+    { id:'mapCloud', w:8, h:5, marks:'<path d="M1.6,3 Q2.2,1.8 3.4,2.3 Q4.2,1.4 5.3,2.2 Q6.4,1.7 6.7,3 Q5.4,3.7 3.9,3.4 Q2.3,3.7 1.6,3" stroke-width="0.26"/>' },
+    { id:'mapCrack', w:5, h:5, marks:'<path d="M0.2,0.4 L4.8,4.6 M1.8,0.2 L4.8,2.6" stroke-width="0.22"/>' },
+    { id:'mapStele', w:4, h:6, marks:'<path d="M1.5,0.5 L1.5,5.5 M2.5,0.5 L2.5,5.5" stroke-width="0.2"/>' },
+    { id:'mapGrain', w:6, h:4, marks:'<path d="M0.4,1.1 L2.1,1.7 M3.1,0.7 L5.2,1.4 M0.9,2.9 L3.6,2.5" stroke-width="0.18"/>' }
   ],
-  /* 哪块地上铺哪种纹（铺在轮廓之上、点数之下，很淡） */
+  /* 哪块地上铺哪种纹（铺在轮廓之上、点数之下，很淡）—— path 与 regions 对齐 */
   textures: [
-    { pattern:'mapIce',  d:'M28,4 L62,2 L70,16 L58,26 L34,24 L24,14 Z' },
-    { pattern:'mapSand', d:'M2,40 L20,34 L28,52 L20,72 L4,66 Z' }
+    { pattern:'mapIce',   d:'M28,4 L62,2 L70,16 L58,26 L34,24 L24,14 Z' },
+    { pattern:'mapCloud', d:'M70,8 L92,6 L96,22 L80,30 L72,20 Z' },
+    { pattern:'mapStele', d:'M74,32 L96,28 L98,52 L80,58 L72,46 Z' },
+    { pattern:'mapSand',  d:'M2,40 L20,34 L28,52 L20,72 L4,66 Z' },
+    { pattern:'mapGrain', d:'M30,30 L70,28 L74,50 L64,68 L36,66 L26,48 Z' },
+    { pattern:'mapCrack', d:'M30,68 L58,70 L60,86 L40,94 L28,82 Z' },
+    { pattern:'mapLeaf',  d:'M42,86 L68,80 L76,92 L58,98 L44,96 Z' }
   ],
   /* 赶路的线（留给以后画「你走过的路」） */
   paths: []
@@ -14930,7 +15087,7 @@ G.EVENTS = (G.EVENTS || []).concat([
 
    ── 写法约定（与前面 18 批一致）─────────────────────────
      · 选项收益一律用 a.xxx() 的返回值拼文案
-     · `when` 在全局作用域求值，只能读引擎发布到 window 的助手
+     · variants[].when 必须是函数（抽到事件时才调用）。写成 IIFE 会在加载时求成 false，变体永远当无条件命中
      · 事件正文里的 `a` 是 makeActions() 的返回值
      · tier 0 = 通用，1~9 = 大境界索引
      · loc 不写 = 哪都能抽；写了就只在列出的地方抽
@@ -14977,10 +15134,10 @@ const WULIANG = [
         dev/verify-eventstruct.js 会检查「变体正文不短于原文」，
         漏改会被它抓到。 */
   variants:[
-    { when:(function(){ try { return flagAge('e19_bell_key') >= 0; } catch(e){ return false; } })(),
-      text: '寺中央挂着一口钟。\n\n铜是黑的，上面没有铭文。\n钟锤就挂在旁边，谁都能敲。\n\n你敲了一下。\n\n**没有声音。**\n\n不是声音小，是完全没有——\n连震动都没有。\n\n旁边打坐的僧人动都没动，\n像是早就知道。' + "\\n\\n（你身上还揣着钟楼的钥匙。）" },
-    { when:(function(){ try { return flagAge('e19_bell_seven') >= 0; } catch(e){ return false; } })(),
-      text: '寺中央挂着一口钟。\n\n铜是黑的，上面没有铭文。\n钟锤就挂在旁边，谁都能敲。\n\n你敲了一下。\n\n**没有声音。**\n\n不是声音小，是完全没有——\n连震动都没有。\n\n旁边打坐的僧人动都没动，\n像是早就知道。' + "\\n\\n（你听见过七声。所以你现在数的不是七，是还剩几声。）" }
+    { when:function(){ try { return flagAge('e19_bell_key') >= 0; } catch(e){ return false; } },
+      text: '寺中央挂着一口钟。\n\n铜是黑的，上面没有铭文。\n钟锤就挂在旁边，谁都能敲。\n\n你敲了一下。\n\n**没有声音。**\n\n不是声音小，是完全没有——\n连震动都没有。\n\n旁边打坐的僧人动都没动，\n像是早就知道。' + '\n\n（你身上还揣着钟楼的钥匙。）' },
+    { when:function(){ try { return flagAge('e19_bell_seven') >= 0; } catch(e){ return false; } },
+      text: '寺中央挂着一口钟。\n\n铜是黑的，上面没有铭文。\n钟锤就挂在旁边，谁都能敲。\n\n你敲了一下。\n\n**没有声音。**\n\n不是声音小，是完全没有——\n连震动都没有。\n\n旁边打坐的僧人动都没动，\n像是早就知道。' + '\n\n（你听见过七声。所以你现在数的不是七，是还剩几声。）' }
   ],
   choices:[
     { label:'用力再敲一次', hint:'砸下去',
@@ -15048,8 +15205,8 @@ const WULIANG = [
         dev/verify-eventstruct.js 会检查「变体正文不短于原文」，
         漏改会被它抓到。 */
   variants:[
-    { when:(function(){ try { return flagAge('e19_tree_cut') >= 0; } catch(e){ return false; } })(),
-      text: '你往沙漠深处走了两天。\n\n第三天中午，你看见了一座寺。\n\n和无量寺一模一样——\n一样的院墙，一样的钟楼，\n连门口那棵歪脖子树的角度都一样。\n\n你走进去。\n\n里面没有人。\n\n但地上很干净。' + "\\n\\n（你砍过一棵这样的树。所以你知道这一棵砍下去也不会出声。）" }
+    { when:function(){ try { return flagAge('e19_tree_cut') >= 0; } catch(e){ return false; } },
+      text: '你往沙漠深处走了两天。\n\n第三天中午，你看见了一座寺。\n\n和无量寺一模一样——\n一样的院墙，一样的钟楼，\n连门口那棵歪脖子树的角度都一样。\n\n你走进去。\n\n里面没有人。\n\n但地上很干净。' + '\n\n（你砍过一棵这样的树。所以你知道这一棵砍下去也不会出声。）' }
   ],
   choices:[
     { label:'敲那口钟', hint:'',
@@ -15115,8 +15272,8 @@ const WULIANG = [
         dev/verify-eventstruct.js 会检查「变体正文不短于原文」，
         漏改会被它抓到。 */
   variants:[
-    { when:(function(){ try { return deedPick('e19_ledger') === 'tore'; } catch(e){ return false; } })(),
-      text: '藏经的柜子最下面有一本账。\n\n记的是香火钱。\n\n你翻了几页，发现一件怪事：\n\n每一年的账都记得很细，\n只有**三月初七**那一行，\n永远写着同样三个字：\n\n「支三百」。' + "\\n\\n（你撕过一页。它变空过一次。）" }
+    { when:function(){ try { return deedPick('e19_ledger') === 'tore'; } catch(e){ return false; } },
+      text: '藏经的柜子最下面有一本账。\n\n记的是香火钱。\n\n你翻了几页，发现一件怪事：\n\n每一年的账都记得很细，\n只有**三月初七**那一行，\n永远写着同样三个字：\n\n「支三百」。' + '\n\n（你撕过一页。它变空过一次。）' }
   ],
   choices:[
     { label:'往前翻，看最早那一年', eff:(s,a)=>{ a.clue('clue_date'); a.clue('clue_book'); const g=a.cult(280,'high');
@@ -15195,8 +15352,8 @@ const WULIANG = [
         dev/verify-eventstruct.js 会检查「变体正文不短于原文」，
         漏改会被它抓到。 */
   variants:[
-    { when:(function(){ try { return flagAge('e19_everlight') >= 0; } catch(e){ return false; } })(),
-      text: '你在沙漠里走，忽然看见一片绿。\n\n有树，有水，还有一小片菜地。\n\n菜地里有个人在浇水。\n\n他抬起头，冲你招了招手，\n像认识你一样。' + "\\n\\n（你买过一盏不灭灯。它现在还亮着，只是比买的时候暗。）" }
+    { when:function(){ try { return flagAge('e19_everlight') >= 0; } catch(e){ return false; } },
+      text: '你在沙漠里走，忽然看见一片绿。\n\n有树，有水，还有一小片菜地。\n\n菜地里有个人在浇水。\n\n他抬起头，冲你招了招手，\n像认识你一样。' + '\n\n（你买过一盏不灭灯。它现在还亮着，只是比买的时候暗。）' }
   ],
   choices:[
     { label:'走过去', eff:(s,a)=>{ a.gainStone(38); a.life(40); const g=a.cult(170,'high');
@@ -15216,10 +15373,10 @@ const WULIANG = [
         dev/verify-eventstruct.js 会检查「变体正文不短于原文」，
         漏改会被它抓到。 */
   variants:[
-    { when:(function(){ try { return flagAge('e19_read_23') >= 0; } catch(e){ return false; } })(),
-      text: '住持让你去他屋里取一样东西。\n\n你找到了那个柜子。\n\n柜子没锁。\n\n里面只有一格放着东西：\n\n**二十三个小木牌。**\n\n每个木牌上刻着一个名字。\n\n木牌都很旧，边角磨圆了。\n\n你数了数。\n\n二十三个。' + "\\n\\n（你已经念过一遍二十三个名字。这一次你没有念。）" },
-    { when:(function(){ try { return deedPick('e19_plaque') === 'took'; } catch(e){ return false; } })(),
-      text: '住持让你去他屋里取一样东西。\n\n你找到了那个柜子。\n\n柜子没锁。\n\n里面只有一格放着东西：\n\n**二十三个小木牌。**\n\n每个木牌上刻着一个名字。\n\n木牌都很旧，边角磨圆了。\n\n你数了数。\n\n二十三个。' + "\\n\\n（你拿走过一个木牌。第二天上面多了一道划痕。）" }
+    { when:function(){ try { return flagAge('e19_read_23') >= 0; } catch(e){ return false; } },
+      text: '住持让你去他屋里取一样东西。\n\n你找到了那个柜子。\n\n柜子没锁。\n\n里面只有一格放着东西：\n\n**二十三个小木牌。**\n\n每个木牌上刻着一个名字。\n\n木牌都很旧，边角磨圆了。\n\n你数了数。\n\n二十三个。' + '\n\n（你已经念过一遍二十三个名字。这一次你没有念。）' },
+    { when:function(){ try { return deedPick('e19_plaque') === 'took'; } catch(e){ return false; } },
+      text: '住持让你去他屋里取一样东西。\n\n你找到了那个柜子。\n\n柜子没锁。\n\n里面只有一格放着东西：\n\n**二十三个小木牌。**\n\n每个木牌上刻着一个名字。\n\n木牌都很旧，边角磨圆了。\n\n你数了数。\n\n二十三个。' + '\n\n（你拿走过一个木牌。第二天上面多了一道划痕。）' }
   ],
   choices:[
     { label:'一个一个念出来', eff:(s,a)=>{ a.clue('clue_erased'); a.clue('clue_name'); a.karma(-6);
@@ -15278,8 +15435,8 @@ const GUIXU = [
         dev/verify-eventstruct.js 会检查「变体正文不短于原文」，
         漏改会被它抓到。 */
   variants:[
-    { when:(function(){ try { return flagAge('e19_called_him') >= 0; } catch(e){ return false; } })(),
-      text: '执事把你叫去，讲了三条规矩：\n\n“第一，不许在第六层以下说话。”\n\n“第二，不许带光下去。”\n\n“第三——\n\n如果下面有人叫你的名字，**不许答应。**”' + "\\n\\n（你叫过第七层那个人的名字。执事还不知道这件事。）" }
+    { when:function(){ try { return flagAge('e19_called_him') >= 0; } catch(e){ return false; } },
+      text: '执事把你叫去，讲了三条规矩：\n\n“第一，不许在第六层以下说话。”\n\n“第二，不许带光下去。”\n\n“第三——\n\n如果下面有人叫你的名字，**不许答应。**”' + '\n\n（你叫过第七层那个人的名字。执事还不知道这件事。）' }
   ],
   choices:[
     { label:'问：如果有人答应了呢', eff:(s,a)=>{ a.clue('clue_erased'); const g=a.cult(160,'high');
@@ -15347,8 +15504,8 @@ const GUIXU = [
         dev/verify-eventstruct.js 会检查「变体正文不短于原文」，
         漏改会被它抓到。 */
   variants:[
-    { when:(function(){ try { return deedPick('e19_wall') === 'copied'; } catch(e){ return false; } })(),
-      text: '第四层的石壁上刻满了字。\n\n都是往下的弟子留的。\n\n大部分是名字和日期。\n\n有一条刻得很深，\n像是用剑尖划的：\n\n**「我下去看看。如果我三天没上来，就别等了。」**\n\n日期是三十年前。' + "\\n\\n（你拓过墙上那一行。刻痕里有新墨。）" }
+    { when:function(){ try { return deedPick('e19_wall') === 'copied'; } catch(e){ return false; } },
+      text: '第四层的石壁上刻满了字。\n\n都是往下的弟子留的。\n\n大部分是名字和日期。\n\n有一条刻得很深，\n像是用剑尖划的：\n\n**「我下去看看。如果我三天没上来，就别等了。」**\n\n日期是三十年前。' + '\n\n（你拓过墙上那一行。刻痕里有新墨。）' }
   ],
   choices:[
     { label:'在旁边刻上自己的名字', eff:(s,a)=>{ a.karma(-2); const g=a.cult(170,'high');
@@ -15417,8 +15574,8 @@ const GUIXU = [
         dev/verify-eventstruct.js 会检查「变体正文不短于原文」，
         漏改会被它抓到。 */
   variants:[
-    { when:(function(){ try { return flagAge('e19_called_him2') >= 0; } catch(e){ return false; } })(),
-      text: '你又下到了第七层。\n\n那个人还坐在那儿。\n\n你这次带了灯，看清了他。\n\n他很年轻，看着不到三十。\n\n衣服是三十年前的样式。\n\n他没有呼吸。\n\n**但他睁着眼睛。**' + "\\n\\n（你叫过他的名字。所以这一次他不必再坐着。）" }
+    { when:function(){ try { return flagAge('e19_called_him2') >= 0; } catch(e){ return false; } },
+      text: '你又下到了第七层。\n\n那个人还坐在那儿。\n\n你这次带了灯，看清了他。\n\n他很年轻，看着不到三十。\n\n衣服是三十年前的样式。\n\n他没有呼吸。\n\n**但他睁着眼睛。**' + '\n\n（你叫过他的名字。所以这一次他不必再坐着。）' }
   ],
   choices:[
     { label:'叫他的名字', hint:'你得先知道他叫什么',
@@ -15499,10 +15656,10 @@ const XUEHE = [
         dev/verify-eventstruct.js 会检查「变体正文不短于原文」，
         漏改会被它抓到。 */
   variants:[
-    { when:(function(){ try { return flagAge('e19_blood_drank') >= 0; } catch(e){ return false; } })(),
-      text: '血河宗的入门功课叫「换血」。\n\n师兄把一碗红色的水放在你面前。\n\n“喝了它。”\n\n“这是什么？”\n\n“**别人的。**”\n\n他说得很随便。' + "\\n\\n（你喝过一次。所以这一次你知道那碗水是甜的。）" },
-    { when:(function(){ try { return flagAge('e19_blood_refused') >= 0; } catch(e){ return false; } })(),
-      text: '血河宗的入门功课叫「换血」。\n\n师兄把一碗红色的水放在你面前。\n\n“喝了它。”\n\n“这是什么？”\n\n“**别人的。**”\n\n他说得很随便。' + "\\n\\n（你推回去过一次。所以这一次你推得更快。）" }
+    { when:function(){ try { return flagAge('e19_blood_drank') >= 0; } catch(e){ return false; } },
+      text: '血河宗的入门功课叫「换血」。\n\n师兄把一碗红色的水放在你面前。\n\n“喝了它。”\n\n“这是什么？”\n\n“**别人的。**”\n\n他说得很随便。' + '\n\n（你喝过一次。所以这一次你知道那碗水是甜的。）' },
+    { when:function(){ try { return flagAge('e19_blood_refused') >= 0; } catch(e){ return false; } },
+      text: '血河宗的入门功课叫「换血」。\n\n师兄把一碗红色的水放在你面前。\n\n“喝了它。”\n\n“这是什么？”\n\n“**别人的。**”\n\n他说得很随便。' + '\n\n（你推回去过一次。所以这一次你推得更快。）' }
   ],
   choices:[
     { label:'喝下去', eff:(s,a)=>{ a.karma(-5); a.lifeBy(-0.06); const g=a.cult(400,'high'); a.attr({ tizhi:4 });
@@ -15535,8 +15692,8 @@ const XUEHE = [
         dev/verify-eventstruct.js 会检查「变体正文不短于原文」，
         漏改会被它抓到。 */
   variants:[
-    { when:(function(){ try { return flagAge('e19_asked_lord') >= 0; } catch(e){ return false; } })(),
-      text: '血河宗的宗主在石山最里面。\n\n他坐在一张椅子上，\n椅子下面是一池红水。\n\n“你来了。”他说。\n\n他说话的时候，**声音是从水里出来的。**' + "\\n\\n（你问过「您还是人吗」。他记得这个问题。）" }
+    { when:function(){ try { return flagAge('e19_asked_lord') >= 0; } catch(e){ return false; } },
+      text: '血河宗的宗主在石山最里面。\n\n他坐在一张椅子上，\n椅子下面是一池红水。\n\n“你来了。”他说。\n\n他说话的时候，**声音是从水里出来的。**' + '\n\n（你问过「您还是人吗」。他记得这个问题。）' }
   ],
   choices:[
     { label:'问：您还是人吗', eff:(s,a)=>{ a.clue('clue_erased'); a.clue('clue_name'); a.karma(-4);
@@ -15569,8 +15726,8 @@ const XUEHE = [
         dev/verify-eventstruct.js 会检查「变体正文不短于原文」，
         漏改会被它抓到。 */
   variants:[
-    { when:(function(){ try { return deedPick('e19_ledger2') === 'copied'; } catch(e){ return false; } })(),
-      text: '血河宗也记账。\n\n他们的账本只有一种条目：\n\n**「入：一人。」**\n**「出：一人。」**\n\n你翻了很久。\n\n每一年的条目数都对得上。\n\n只有一年不是。' + "\\n\\n（你拓过那两个字。底下压着一个名字。）" }
+    { when:function(){ try { return deedPick('e19_ledger2') === 'copied'; } catch(e){ return false; } },
+      text: '血河宗也记账。\n\n他们的账本只有一种条目：\n\n**「入：一人。」**\n**「出：一人。」**\n\n你翻了很久。\n\n每一年的条目数都对得上。\n\n只有一年不是。' + '\n\n（你拓过那两个字。底下压着一个名字。）' }
   ],
   choices:[
     { label:'找那一年', eff:(s,a)=>{ a.clue('clue_date'); a.clue('clue_book'); const g=a.cult(380,'high');
@@ -15614,10 +15771,10 @@ const XUEHE = [
         dev/verify-eventstruct.js 会检查「变体正文不短于原文」，
         漏改会被它抓到。 */
   variants:[
-    { when:(function(){ try { return flagAge('e19_read_31') >= 0; } catch(e){ return false; } })(),
-      text: '你在宗主的椅子后面找到一面墙。\n\n墙上有三十一个刻痕。\n\n前三十个都画了圈。\n\n**最后一个没有。**\n\n刻痕下面刻着一行小字。' + "\\n\\n（你数过那三十一道刻痕。所以你现在不用再数了。）" },
-    { when:(function(){ try { return deedPick('e19_wall32') === 'carved'; } catch(e){ return false; } })(),
-      text: '你在宗主的椅子后面找到一面墙。\n\n墙上有三十一个刻痕。\n\n前三十个都画了圈。\n\n**最后一个没有。**\n\n刻痕下面刻着一行小字。' + "\\n\\n（你刻过第三十二道。刻完墙上就多出第三十三道。）" }
+    { when:function(){ try { return flagAge('e19_read_31') >= 0; } catch(e){ return false; } },
+      text: '你在宗主的椅子后面找到一面墙。\n\n墙上有三十一个刻痕。\n\n前三十个都画了圈。\n\n**最后一个没有。**\n\n刻痕下面刻着一行小字。' + '\n\n（你数过那三十一道刻痕。所以你现在不用再数了。）' },
+    { when:function(){ try { return deedPick('e19_wall32') === 'carved'; } catch(e){ return false; } },
+      text: '你在宗主的椅子后面找到一面墙。\n\n墙上有三十一个刻痕。\n\n前三十个都画了圈。\n\n**最后一个没有。**\n\n刻痕下面刻着一行小字。' + '\n\n（你刻过第三十二道。刻完墙上就多出第三十三道。）' }
   ],
   choices:[
     { label:'读那一行字', eff:(s,a)=>{ a.clue('clue_erased'); a.clue('clue_name'); a.karma(-5);
@@ -15725,8 +15882,8 @@ const TAIXUAN = [
         dev/verify-eventstruct.js 会检查「变体正文不短于原文」，
         漏改会被它抓到。 */
   variants:[
-    { when:(function(){ try { return deedPick('e19_stele') === 'copied'; } catch(e){ return false; } })(),
-      text: '太玄门广场中央立着一块碑。\n\n碑上刻着建宗以来的大事。\n\n你从头往下看。\n\n看到中间一行的时候，你停住了。\n\n**「某年三月初七，宗门大定。」**\n\n没有写发生了什么。\n\n**只有四个字：宗门大定。**' + "\\n\\n（你拓过这块碑。底下压着「宗门大乱」。）" }
+    { when:function(){ try { return deedPick('e19_stele') === 'copied'; } catch(e){ return false; } },
+      text: '太玄门广场中央立着一块碑。\n\n碑上刻着建宗以来的大事。\n\n你从头往下看。\n\n看到中间一行的时候，你停住了。\n\n**「某年三月初七，宗门大定。」**\n\n没有写发生了什么。\n\n**只有四个字：宗门大定。**' + '\n\n（你拓过这块碑。底下压着「宗门大乱」。）' }
   ],
   choices:[
     { label:'问守碑的弟子：什么叫大定', eff:(s,a)=>{ a.clue('clue_date'); a.clue('clue_book'); const g=a.cult(420,'high');
@@ -15782,8 +15939,8 @@ const TAIXUAN = [
         dev/verify-eventstruct.js 会检查「变体正文不短于原文」，
         漏改会被它抓到。 */
   variants:[
-    { when:(function(){ try { return deedPick('e19_roster') === 'wrote'; } catch(e){ return false; } })(),
-      text: '太玄门的名册房很大。\n\n一排一排的架子，从地上到房顶。\n\n每一册都是三十年。\n\n你抽了最近的一册。\n\n翻到第一页。\n\n**第一页是空的。**' + "\\n\\n（你在空白那页写过自己的名字。第二天它又空了。）" }
+    { when:function(){ try { return deedPick('e19_roster') === 'wrote'; } catch(e){ return false; } },
+      text: '太玄门的名册房很大。\n\n一排一排的架子，从地上到房顶。\n\n每一册都是三十年。\n\n你抽了最近的一册。\n\n翻到第一页。\n\n**第一页是空的。**' + '\n\n（你在空白那页写过自己的名字。第二天它又空了。）' }
   ],
   choices:[
     { label:'往前翻', eff:(s,a)=>{ a.clue('clue_erased'); a.clue('clue_book'); const g=a.cult(480,'high');
@@ -15853,8 +16010,8 @@ const TAIXUAN = [
         dev/verify-eventstruct.js 会检查「变体正文不短于原文」，
         漏改会被它抓到。 */
   variants:[
-    { when:(function(){ try { return deedPick('e19_stone') === 'signed'; } catch(e){ return false; } })(),
-      text: '从太玄门回自己宗门，有一条小路。\n\n走大路要绕半天，\n这条小路一炷香就到。\n\n路上没有别人。\n\n走到一半，你看见路边有个石碑。\n\n碑上刻着三个字：\n\n**「归去来。」**' + "\\n\\n（你在碑背面刻过名字。后来碑不见了。）" }
+    { when:function(){ try { return deedPick('e19_stone') === 'signed'; } catch(e){ return false; } },
+      text: '从太玄门回自己宗门，有一条小路。\n\n走大路要绕半天，\n这条小路一炷香就到。\n\n路上没有别人。\n\n走到一半，你看见路边有个石碑。\n\n碑上刻着三个字：\n\n**「归去来。」**' + '\n\n（你在碑背面刻过名字。后来碑不见了。）' }
   ],
   choices:[
     { label:'在碑前站一会儿', eff:(s,a)=>{ a.karma(-2); a.life(35); const g=a.cult(320,'high');
@@ -15898,8 +16055,8 @@ const TAIXUAN = [
         dev/verify-eventstruct.js 会检查「变体正文不短于原文」，
         漏改会被它抓到。 */
   variants:[
-    { when:(function(){ try { return flagAge('e19_tx_forbidden') >= 0; } catch(e){ return false; } })(),
-      text: '太玄门后山有一片地方不许进。\n\n界碑上写着「禁」。\n\n但界碑**倒了**。\n\n倒在地上，断面是新的。\n\n里面是一片竹林。\n\n竹子里有一条小路。' + "\\n\\n（你进去过一次。桌上那支笔还放在原处。）" }
+    { when:function(){ try { return flagAge('e19_tx_forbidden') >= 0; } catch(e){ return false; } },
+      text: '太玄门后山有一片地方不许进。\n\n界碑上写着「禁」。\n\n但界碑**倒了**。\n\n倒在地上，断面是新的。\n\n里面是一片竹林。\n\n竹子里有一条小路。' + '\n\n（你进去过一次。桌上那支笔还放在原处。）' }
   ],
   choices:[
     { label:'走进去', eff:(s,a)=>{ a.clue('clue_erased'); a.clue('clue_book'); a.karma(-5);
@@ -15946,8 +16103,8 @@ const TIANJI = [
         dev/verify-eventstruct.js 会检查「变体正文不短于原文」，
         漏改会被它抓到。 */
   variants:[
-    { when:(function(){ try { return deedPick('e19_plaque2') === 'took'; } catch(e){ return false; } })(),
-      text: '天机阁的墙上挂着很多牌。\n\n每一块牌上写着一个名字。\n\n名字下面写着「算得出」。\n\n只有最右边那一块不一样。\n\n上面写着：\n\n**「算名。算不出。」**' + "\\n\\n（你摘过那块牌。背面写着「来过三次」。）" }
+    { when:function(){ try { return deedPick('e19_plaque2') === 'took'; } catch(e){ return false; } },
+      text: '天机阁的墙上挂着很多牌。\n\n每一块牌上写着一个名字。\n\n名字下面写着「算得出」。\n\n只有最右边那一块不一样。\n\n上面写着：\n\n**「算名。算不出。」**' + '\n\n（你摘过那块牌。背面写着「来过三次」。）' }
   ],
   choices:[
     { label:'问：算名是谁', eff:(s,a)=>{ a.clue('clue_name'); a.clue('clue_erased'); const g=a.cult(480,'high');
@@ -15969,8 +16126,8 @@ const TIANJI = [
         dev/verify-eventstruct.js 会检查「变体正文不短于原文」，
         漏改会被它抓到。 */
   variants:[
-    { when:(function(){ try { return flagAge('e19_tj_divined') >= 0; } catch(e){ return false; } })(),
-      text: '天机阁可以替你算一卦。\n\n价钱不便宜：**一百灵石。**\n\n阁里的人把算盘摆好，\n“算什么？”\n\n“算我能活多久。”\n\n他拨了拨算盘。\n\n然后停下来。\n\n“你确定要知道？”' + "\\n\\n（你算过一次。纸上写的是「够用」。）" }
+    { when:function(){ try { return flagAge('e19_tj_divined') >= 0; } catch(e){ return false; } },
+      text: '天机阁可以替你算一卦。\n\n价钱不便宜：**一百灵石。**\n\n阁里的人把算盘摆好，\n“算什么？”\n\n“算我能活多久。”\n\n他拨了拨算盘。\n\n然后停下来。\n\n“你确定要知道？”' + '\n\n（你算过一次。纸上写的是「够用」。）' }
   ],
   choices:[
     { label:'确定', eff:(s,a)=>{ a.gainStone(-100); a.clue('clue_date'); a.karma(-3); a.lifeBy(-0.06);
@@ -16027,8 +16184,8 @@ const TIANJI = [
         dev/verify-eventstruct.js 会检查「变体正文不短于原文」，
         漏改会被它抓到。 */
   variants:[
-    { when:(function(){ try { return deedPick('e19_div') === 'burned'; } catch(e){ return false; } })(),
-      text: '阁里忽然乱了起来。\n\n有人在喊：\n\n“错了！错了！”\n\n你过去看。\n\n一个年轻的算命人坐在桌前，\n面前摊着一张纸。\n\n纸上写着一个结果。\n\n他一直在说：“不可能的。”' + "\\n\\n（你烧过一张纸。烧完之后它就没有结果了。）" }
+    { when:function(){ try { return deedPick('e19_div') === 'burned'; } catch(e){ return false; } },
+      text: '阁里忽然乱了起来。\n\n有人在喊：\n\n“错了！错了！”\n\n你过去看。\n\n一个年轻的算命人坐在桌前，\n面前摊着一张纸。\n\n纸上写着一个结果。\n\n他一直在说：“不可能的。”' + '\n\n（你烧过一张纸。烧完之后它就没有结果了。）' }
   ],
   choices:[
     { label:'看那张纸', eff:(s,a)=>{ a.clue('clue_erased'); a.lifeBy(-0.05); const g=a.cult(420,'high');
@@ -16048,8 +16205,8 @@ const TIANJI = [
         dev/verify-eventstruct.js 会检查「变体正文不短于原文」，
         漏改会被它抓到。 */
   variants:[
-    { when:(function(){ try { return flagAge('e19_tj_own') >= 0; } catch(e){ return false; } })(),
-      text: '阁主的屋子在天机阁最上面。\n\n里面没有算盘。\n\n只有一屋子的纸。\n\n每一张纸上都写着一个名字。\n\n贴满了四面墙。\n\n**一张空白的都没有。**' + "\\n\\n（你已经在反着贴的那面墙上找到过自己。所以这一次你没有找。）" }
+    { when:function(){ try { return flagAge('e19_tj_own') >= 0; } catch(e){ return false; } },
+      text: '阁主的屋子在天机阁最上面。\n\n里面没有算盘。\n\n只有一屋子的纸。\n\n每一张纸上都写着一个名字。\n\n贴满了四面墙。\n\n**一张空白的都没有。**' + '\n\n（你已经在反着贴的那面墙上找到过自己。所以这一次你没有找。）' }
   ],
   choices:[
     { label:'找自己的名字', eff:(s,a)=>{ a.clue('clue_erased'); a.clue('clue_name'); a.karma(-4);
@@ -16130,10 +16287,10 @@ const TIANJI = [
         dev/verify-eventstruct.js 会检查「变体正文不短于原文」，
         漏改会被它抓到。 */
   variants:[
-    { when:(function(){ try { return flagAge('e19_tj_knocked') >= 0; } catch(e){ return false; } })(),
-      text: '天机阁最里面有一间屋，门锁着。\n\n锁是新的。\n\n门上贴着一张纸：\n\n**「此屋无物。」**\n\n你站在门口。\n\n里面**有人在打算盘。**' + "\\n\\n（你敲过这扇门。门自己开过一次。）" },
-    { when:(function(){ try { return deedPick('e19_door') === 'tore'; } catch(e){ return false; } })(),
-      text: '天机阁最里面有一间屋，门锁着。\n\n锁是新的。\n\n门上贴着一张纸：\n\n**「此屋无物。」**\n\n你站在门口。\n\n里面**有人在打算盘。**' + "\\n\\n（你撕过门上那张纸。背面写着「里面那个」四个字。）" }
+    { when:function(){ try { return flagAge('e19_tj_knocked') >= 0; } catch(e){ return false; } },
+      text: '天机阁最里面有一间屋，门锁着。\n\n锁是新的。\n\n门上贴着一张纸：\n\n**「此屋无物。」**\n\n你站在门口。\n\n里面**有人在打算盘。**' + '\n\n（你敲过这扇门。门自己开过一次。）' },
+    { when:function(){ try { return deedPick('e19_door') === 'tore'; } catch(e){ return false; } },
+      text: '天机阁最里面有一间屋，门锁着。\n\n锁是新的。\n\n门上贴着一张纸：\n\n**「此屋无物。」**\n\n你站在门口。\n\n里面**有人在打算盘。**' + '\n\n（你撕过门上那张纸。背面写着「里面那个」四个字。）' }
   ],
   choices:[
     { label:'敲门', eff:(s,a)=>{ a.clue('clue_erased'); a.clue('clue_book'); a.karma(-5);
@@ -18340,9 +18497,11 @@ function evTextOf(v){
          { when:()=>evAttr('shenshi') >= evPeer('shenshi')*1.2, text:'你看得见…' }
        ] }
 
-   ⚠️ `when` 与事件自己的 when 同规矩：**在全局作用域求值**，
-      只能读引擎发布到 window 的助手（flagAge / deedPick / evAttr…），
+   ⚠️ `when` 必须是函数，抽到事件时才调用。
+      函数体只能读引擎发布到 window 的助手（flagAge / deedPick / evAttr…），
       拿不到 s。写 s.xxx 会 ReferenceError。
+      写成 IIFE 会在加载时求成 boolean：false 曾被当成「没有条件」
+      从而永远命中第一条变体（events19 的 26 条都这样静默坏过）。
       这里对抛错做 fail-closed：跳过这个变体，继续试下一个 ——
       绝不让异常冒到界面把整个事件渲染成空白（第 32 轮踩过）。 */
 function resolveVariant(e){
@@ -18350,9 +18509,11 @@ function resolveVariant(e){
   for (let i = 0; i < e.variants.length; i++){
     const v = e.variants[i];
     if (!v) continue;
-    if (v.when){
-      try { if (!v.when()) continue; }
-      catch(err){ continue; }
+    if (Object.prototype.hasOwnProperty.call(v, 'when')){
+      try {
+        const hit = typeof v.when === 'function' ? !!v.when() : !!v.when;
+        if (!hit) continue;
+      } catch(err){ continue; }
     }
     return v;
   }
@@ -20458,12 +20619,14 @@ function endRun(reason){
   }
 
   // 隐藏结局优先：只要集齐全部 7 条线索，无论怎么结束，都会导向「重修」。
-  // 例外是「山中岁月」「此世圆满」——那是玩家自己走完的路，不该被覆盖。
+  // 例外是「山中岁月」「此世圆满」「阵眼」——那是玩家自己走完的路，不该被覆盖。
   // ⚠️ 第 29 轮：这里的 'ascend' 跟着那个结局一起删了。
   // 注意「天谴」（karma）**不在**豁免名单里，这是有意的：
   // 七条线索是玩家自己一条条攒出来的，不能因为死法不同就被没收。
   // 被天谴劈死的人只要线索齐，照样导向「重修」。
-  if (reason !== 'hidden' && reason !== 'sanxiu' && reason !== 'capstone'){
+  // ⚠️ 「阵眼」也曾被漏掉：checkWorldEnding 走 endRun('world')，
+  //    若当时已集齐 7 条主线索，会被改写成「重修」，阵眼永远拿不到。
+  if (reason !== 'hidden' && reason !== 'sanxiu' && reason !== 'capstone' && reason !== 'world'){
     const CLUE_IDS = ['clue_name','clue_book','clue_master','clue_disciple','clue_page','clue_dream','clue_xinmo'];
     if (CLUE_IDS.every(id=>s.clues.includes(id))) reason = 'hidden';
   }
@@ -24170,8 +24333,10 @@ function renderRunLog(){
     const h = el('div','chron-h','这 一 世');
     ch.appendChild(h);
     if (!tail.length){
+      ch.classList.add('compact');
       ch.appendChild(el('div','chron-empty','这一世刚开始。'));
     } else {
+      ch.classList.remove('compact');
       tail.forEach(c => {
         const row = el('div','chron-i k-' + (c.kind||'choice'));
         row.innerHTML = `<span class="chron-n">第 ${c.at} 次</span>` +
@@ -24197,6 +24362,9 @@ function renderRunLog(){
       const who = (g.who && g.who.length)
         ? '还记得你的人：' + g.who.map(w => `${w.name}（${w.tier}）`).join('　')
         : '还没有人记得你。';
+      const emptyMem = !(g.who && g.who.length) && !g.known && !g.marks;
+      if (emptyMem) mem.classList.add('compact');
+      else mem.classList.remove('compact');
       mem.innerHTML =
         `<div class="mg-row">你记得 <b>${g.known}</b> / ${g.total} 件事` +
         `　做过 <b>${g.marks}</b> 个选择</div>` +
@@ -24350,7 +24518,11 @@ function renderRun(){
 
   G.Engine.availableActions().forEach((a,i)=>{
     if (focusId && a.id === focusId) return;      // 焦点卡已经收了这一条
-    const b = el('button','act');
+    let extra = '';
+    if (a.primary) extra += ' primary';
+    if (a.id === 'break' || a.special === 'break') extra += ' urgent';
+    if (!a.primary && (a.id === 'map' || a.special === 'map')) extra += ' mapish';
+    const b = el('button','act' + extra);
     b.style.animationDelay = (i*45)+'ms';
     if (a.disabled) b.disabled = true;
     b.innerHTML =
@@ -24653,7 +24825,8 @@ function showMap(){
     const x = def.pos[0], y = def.pos[1];
     const lab = layout.labels[p.id] || { x:x, y:y + 5.4 };
     const tone = mapDotTone(p);
-    return `<g class="map-dot ${tone}" data-place="${p.id}">
+    const envCls = p.env ? ' env-' + p.env : '';
+    return `<g class="map-dot ${tone}${envCls}" data-place="${p.id}">
       <circle cx="${x}" cy="${y}" r="${p.kind==='home'?2.6:2.0}" class="map-halo"/>
       <circle cx="${x}" cy="${y}" r="${p.kind==='home'?1.5:1.1}" class="map-core"/>
       <text x="${lab.x}" y="${lab.y + 1.1}" class="map-label">${p.name}</text>
@@ -24719,7 +24892,7 @@ function showMap(){
   const regions = S.regions.map(rg => {
     const r = G.regionById(rg.id);
     const on = rg.id === cur.region;
-    return `<path d="${rg.d}" class="map-region${on?' on':''}"/>
+    return `<path d="${rg.d}" class="map-region r-${rg.id}${on?' on':''}"/>
       <text x="${r.pos[0]}" y="${r.pos[1] - 7}" class="map-region-label">${r.name}</text>`;
   }).join('');
 
@@ -24834,7 +25007,7 @@ function showPlaceCard(id){
   }
 
   body.innerHTML =
-    `<div class="place-title">${region?region.name+'·':''}${p.name}</div>
+    `<div class="place-title${region?' r-'+region.id:''}">${region?region.name+'·':''}${p.name}</div>
      <div class="place-you">${p.you.replace(/\n/g,'<br>')}</div>
      ${extra}
      <div class="place-line"><span class="pk">赶路</span><span class="pv">` +
@@ -24855,13 +25028,19 @@ function showPlaceCard(id){
 
 /* 真的走过去 */
 function doTravel(id){
+  /* 过场要画出发/到达两点。travelTo 之后 currentPlace 已经是目的地，
+     所以出发坐标必须在扣寿元之前记下。天数/消耗仍只读引擎返回值。 */
+  const from = G.Engine.currentPlace();
   const r = G.Engine.travelTo(id);
   closeSheet();
   if (!r.ok){ toast(r.msg || '走不了','bad'); return; }
-  const p = r.place;
-  const region = G.regionById(p.region);
-  toast(`走了 ${r.days} 天，到了${region?region.name+'·':''}${p.name}　寿元 −${r.cost}`, 'good');
-  if (r.dead){ afterDeath(r.dead); return; }
+  if (r.dead){
+    const p = r.place;
+    const region = G.regionById(p.region);
+    toast(`走了 ${r.days} 天，到了${region?region.name+'·':''}${p.name}　寿元 −${r.cost}`, 'good');
+    afterDeath(r.dead);
+    return;
+  }
   /* ⚠️ 这里**不要**再写一行记事 —— engine 的 travelTo() 已经写了
      （`log(...)` + `note('place', ...)`）。第一版在这里又写了一次，
      而 ui.js 里根本没有 log() 这个函数（它是 engine IIFE 私有的），
@@ -24869,9 +25048,92 @@ function doTravel(id){
      是 dev 的舆图探测脚本抓到的 —— 界面层的调用只有真跑一遍才测得出来。 */
   renderRun();
   autoSave();
-  /* 到了之后走一遍正常的「行动之后」流程 ——
-     路上碰到什么事就在这里发生（地域分层里的 *travel 事件）。 */
-  setTimeout(afterActionFlow, 300);
+  /* 过场结束再走「行动之后」—— 路上的 *travel 事件仍在 afterActionFlow 里发生。
+     测试环境 setTimeout 不排队时过场直接 finish，不挡 verify。 */
+  playTravelCine(from, r, afterActionFlow);
+}
+
+function hexWash(hex, a){
+  if (!hex) return 'rgba(201,164,90,' + a + ')';
+  const h = String(hex).replace('#','');
+  const full = h.length === 3 ? h.split('').map(c => c + c).join('') : h;
+  const n = parseInt(full, 16);
+  if (!isFinite(n)) return 'rgba(201,164,90,' + a + ')';
+  return 'rgba(' + ((n>>16)&255) + ',' + ((n>>8)&255) + ',' + (n&255) + ',' + a + ')';
+}
+
+/* 赶路过场：数据只读 travelDays / flavor，界面不许重算寿元。点任意处可跳过。 */
+function playTravelCine(from, r, done){
+  const layer = $('travelCine');
+  let closed = false;
+  let tid = 0;
+  function finish(){
+    if (closed) return;
+    closed = true;
+    if (tid){ try { clearTimeout(tid); } catch(e){} tid = 0; }
+    if (layer){
+      layer.classList.add('hidden');
+      layer.onclick = null;
+    }
+    try {
+      if ($('screen-page') && $('screen-page').classList.contains('active')) leavePage();
+    } catch(e){}
+    const p = r.place;
+    const region = G.regionById(p.region);
+    toast(`走了 ${r.days} 天，到了${region?region.name+'·':''}${p.name}　寿元 −${r.cost}`, 'good');
+    if (done) done();
+  }
+  if (!layer){ finish(); return; }
+
+  const dest = r.place;
+  const region = G.regionById(dest.region);
+  const days = r.days || 1;
+  const env = dest.env ? G.PLACE_ENV[dest.env] : null;
+  const flavor = (region && region.flavor) || (env && env.text) || '';
+  const where = $('tcWhere');
+  const daysEl = $('tcDays');
+  const flavorEl = $('tcFlavor');
+  const wash = $('tcWash');
+  const svg = $('tcSvg');
+  if (where) where.textContent = (region ? region.name + '·' : '') + dest.name;
+  if (daysEl) daysEl.textContent = '走了 ' + days + ' 天';
+  if (flavorEl) flavorEl.textContent = flavor;
+  if (wash) wash.style.background = hexWash(region && region.fill, 0.9);
+
+  const fromDef = from && from.id ? (G.placeById(from.id) || from) : from;
+  const toDef = dest && dest.id ? (G.placeById(dest.id) || dest) : dest;
+  const a = (fromDef && fromDef.pos) || [22, 18];
+  const b = (toDef && toDef.pos) || [78, 18];
+  const ax = Math.max(8, Math.min(92, a[0]));
+  const bx = Math.max(8, Math.min(92, b[0]));
+  const ay = 8 + (Math.max(0, Math.min(100, a[1])) / 100) * 20;
+  const by = 8 + (Math.max(0, Math.min(100, b[1])) / 100) * 20;
+  const mx = (ax + bx) / 2;
+  const d = 'M' + ax.toFixed(1) + ',' + ay.toFixed(1) +
+            ' C' + mx.toFixed(1) + ',' + (ay - 8).toFixed(1) +
+            ' ' + mx.toFixed(1) + ',' + (by + 8).toFixed(1) +
+            ' ' + bx.toFixed(1) + ',' + by.toFixed(1);
+  const dur = 1.2 + Math.min(days, 5) * 0.25;
+  try {
+    if (layer.style && typeof layer.style.setProperty === 'function')
+      layer.style.setProperty('--tc-dur', dur.toFixed(2) + 's');
+  } catch(e){}
+  if (svg){
+    svg.innerHTML =
+      `<path class="tc-road" pathLength="100" d="${d}"/>` +
+      `<circle class="tc-end" cx="${ax.toFixed(1)}" cy="${ay.toFixed(1)}" r="2.2"/>` +
+      `<circle class="tc-core" cx="${ax.toFixed(1)}" cy="${ay.toFixed(1)}" r="1.1"/>` +
+      `<circle class="tc-end" cx="${bx.toFixed(1)}" cy="${by.toFixed(1)}" r="2.2"/>` +
+      `<circle class="tc-core" cx="${bx.toFixed(1)}" cy="${by.toFixed(1)}" r="1.1"/>` +
+      `<circle class="tc-walker" r="1.5" style="offset-path:path('${d}')"/>`;
+  }
+  layer.classList.remove('hidden');
+  layer.onclick = finish;
+
+  const wait = Math.max(2500, Math.round(dur * 1000) + 300);
+  tid = setTimeout(finish, wait);
+  /* uidom / 测试桩：setTimeout 返回 0 且不排队 → 立刻结束，不挡 afterActionFlow */
+  if (tid === 0) finish();
 }
 
 
@@ -27773,7 +28035,7 @@ G.UI.__dev = {
   showMijingBook, doDivineMijing, renderArchive, showClue, showSect, showBag, startChallengeFlow,
   showLog,
   /* 第 34 轮：舆图与远行 —— 这些必须能被测到（地图要真的渲染出点来） */
-  showMap, showPlaceCard, doTravel,
+  showMap, showPlaceCard, doTravel, playTravelCine,
   /* 第 37 轮：人物与对话 */
   showNpc, showNpcTopics, showNpcSaid,
   /* 第 36 轮：页面导航 —— 测「点了地图是不是真的跳到一个独立页面」 */
